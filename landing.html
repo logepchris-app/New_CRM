@@ -1,0 +1,286 @@
+Απόλυτα κατανοητό και πολύ σωστή στρατηγική. Συχνά είναι καλύτερο το λογισμικό (SaaS) να έχει τη δική του, ανεξάρτητη ταυτότητα και να μην ταυτίζεται άμεσα με ένα συγκεκριμένο λογιστικό γραφείο, ώστε να το νιώθουν πιο «ουδέτερο» οι υπόλοιποι συνάδελφοι.
+
+Έχω αφαιρέσει κάθε αναφορά στη λέξη "Logep" από τον κώδικα. Η 25ετής εμπειρία παραμένει ως πλεονέκτημα, αλλά πλέον αναφέρεται γενικά ως «δημιουργήθηκε από λογιστές με 25 χρόνια εμπειρίας».
+
+### Τι κάνεις με το αρχείο `landing.html`
+
+**Ναι, ακριβώς αυτό!** Ανεβάζεις το αρχείο `landing.html` στο ίδιο ακριβώς αποθετήριο (repository) στο GitHub όπου βρίσκεται και το `index.html`.
+
+Εφόσον το κάνεις αυτό, η δομή σου θα λειτουργεί ως εξής:
+
+1. **`newcrm.gr`**: Όταν κάποιος μπαίνει εδώ, θα του ανοίγει κατευθείαν το CRM (η μπλε οθόνη του login), όπως ακριβώς γίνεται και τώρα, γιατί διαβάζει το αρχείο `index.html`.
+2. **`newcrm.gr/landing.html`**: Εδώ θα βρίσκεται η σελίδα προώθησης/πώλησης. Μπορείς να στέλνεις αυτό το link σε συναδέλφους για να δουν τι κάνει το πρόγραμμα.
+
+**Tip για το μέλλον (όταν αποφασίσεις να το προωθήσεις μαζικά):**
+Όταν έρθει η ώρα να το πουλήσεις, η λογική λέει ότι θέλεις η διαφήμιση να ανοίγει πρώτη. Τότε, θα κάνεις απλώς μια «τράμπα» στα ονόματα:
+
+* Θα μετονομάσεις το τωρινό σου `index.html` (το CRM) σε `app.html` (ή `crm.html`).
+* Θα μετονομάσεις το `landing.html` σε `index.html`.
+Έτσι, όποιος μπαίνει στο `newcrm.gr` θα βλέπει τη διαφήμιση, και αν πατάει «Είσοδος», θα τον πηγαίνει στο CRM!
+
+---
+
+### Ο Νέος Κώδικας της Σελίδας Προώθησης (Χωρίς το Logep)
+
+Αποθήκευσέ τον ως `landing.html` και ανέβασέ τον στο GitHub:
+
+```html
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New CRM | Το Σύστημα Οργάνωσης για Λογιστικά Γραφεία</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-text {
+            background: linear-gradient(to right, #4f46e5, #0ea5e9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-pattern {
+            background-color: #f8fafc;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234f46e5' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-800 font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900">
+
+    <nav class="fixed w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-2">
+                    <div class="bg-indigo-600 text-white p-2.5 rounded-lg shadow-lg shadow-indigo-200">
+                        <i class="fas fa-layer-group text-xl"></i>
+                    </div>
+                    <span class="font-black text-2xl tracking-tight text-gray-900">New <span class="font-light text-gray-500">CRM</span></span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#features" class="text-gray-600 hover:text-indigo-600 font-medium transition-colors">Λειτουργίες</a>
+                    <a href="#about" class="text-gray-600 hover:text-indigo-600 font-medium transition-colors">Η Φιλοσοφία μας</a>
+                    <a href="#pricing" class="text-gray-600 hover:text-indigo-600 font-medium transition-colors">Τιμοκατάλογος</a>
+                </div>
+                <div>
+                    <a href="/" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-full font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+                        Είσοδος Συνδρομητή <i class="fas fa-arrow-right text-sm"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-32 pb-20 hero-pattern min-h-screen flex items-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-8">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-semibold text-sm">
+                        <span class="flex h-2.5 w-2.5 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
+                        </span>
+                        Δημιουργήθηκε από Λογιστές για Λογιστές
+                    </div>
+                    <h1 class="text-5xl md:text-6xl font-black leading-tight text-gray-900 tracking-tight">
+                        Το CRM που <br>
+                        <span class="gradient-text">καταλαβαίνει</span> το λογιστικό σου γραφείο.
+                    </h1>
+                    <p class="text-xl text-gray-600 leading-relaxed max-w-lg">
+                        Όχι άλλο χαώδες λογισμικό. Οργάνωσε υποχρεώσεις, κωδικούς, εισπράξεις και tasks πελατών σε ένα ταχύτατο, ασφαλές περιβάλλον στο Cloud. Φτιαγμένο από συναδέλφους, για συναδέλφους.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                        <a href="#pricing" class="bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all text-center shadow-xl shadow-gray-200">
+                            Ζητήστε Δωρεάν Demo
+                        </a>
+                        <a href="#features" class="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 px-8 py-4 rounded-xl font-bold text-lg transition-all text-center flex items-center justify-center gap-2">
+                            Δείτε τις Λειτουργίες <i class="fas fa-play text-sm text-indigo-600"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500 to-cyan-400 rounded-3xl transform rotate-3 scale-105 opacity-20 blur-2xl"></div>
+                    <div class="relative bg-white border border-gray-100 p-6 rounded-3xl shadow-2xl overflow-hidden">
+                        <div class="flex items-center gap-4 border-b border-gray-100 pb-4 mb-4">
+                            <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="h-8 bg-gray-100 rounded-lg w-1/3 mb-6"></div>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="h-24 bg-indigo-50 rounded-xl border border-indigo-100 p-4">
+                                    <div class="h-4 bg-indigo-200 rounded w-1/2 mb-3"></div>
+                                    <div class="h-8 bg-indigo-300 rounded w-3/4"></div>
+                                </div>
+                                <div class="h-24 bg-green-50 rounded-xl border border-green-100 p-4">
+                                    <div class="h-4 bg-green-200 rounded w-1/2 mb-3"></div>
+                                    <div class="h-8 bg-green-300 rounded w-3/4"></div>
+                                </div>
+                                <div class="h-24 bg-orange-50 rounded-xl border border-orange-100 p-4">
+                                    <div class="h-4 bg-orange-200 rounded w-1/2 mb-3"></div>
+                                    <div class="h-8 bg-orange-300 rounded w-3/4"></div>
+                                </div>
+                            </div>
+                            <div class="h-40 bg-gray-50 rounded-xl border border-gray-100 mt-4 p-4">
+                                <div class="space-y-3">
+                                    <div class="h-4 bg-gray-200 rounded w-full"></div>
+                                    <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+                                    <div class="h-4 bg-gray-200 rounded w-4/6"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section id="features" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-indigo-600 font-bold tracking-wide uppercase text-sm mb-3">Λειτουργιες που λυνουν τα χερια σου</h2>
+                <h3 class="text-3xl md:text-4xl font-black text-gray-900 mb-6">Όλα όσα χρειάζεσαι, <br>τίποτα που δεν χρειάζεσαι.</h3>
+                <p class="text-gray-600 text-lg">Ξέχνα τα προγράμματα που απαιτούν σεμινάρια για να τα μάθεις. Το New CRM είναι σχεδιασμένο με γνώμονα την ταχύτητα και την πρακτικότητα της καθημερινότητας.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-gray-50 border border-gray-100 rounded-2xl p-8 hover:shadow-lg transition-shadow">
+                    <div class="bg-indigo-100 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                        <i class="fas fa-id-card text-2xl text-indigo-600"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">Έξυπνη Καρτέλα Πελάτη</h4>
+                    <p class="text-gray-600">Κωδικοί Taxisnet, ΕΦΚΑ, ΓΕΜΗ και myDATA συγκεντρωμένα σε ένα σημείο. Δυνατότητα προσθήκης custom πεδίων και καθορισμού αν ο πελάτης είναι ενεργός.</p>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-100 rounded-2xl p-8 hover:shadow-lg transition-shadow">
+                    <div class="bg-blue-100 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                        <i class="fas fa-table text-2xl text-blue-600"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">Δυναμικές Υποχρεώσεις</h4>
+                    <p class="text-gray-600">Δημιούργησε δικές σου λίστες (π.χ. ΦΠΑ, ΑΠΔ, CIT, myDATA). Το σύστημα χτίζει ετήσιους πίνακες 12 μηνών ΜΟΝΟ για τους πελάτες που υπάγονται σε αυτές.</p>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-100 rounded-2xl p-8 hover:shadow-lg transition-shadow">
+                    <div class="bg-green-100 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                        <i class="fas fa-wallet text-2xl text-green-600"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">Έλεγχος Εισπράξεων</h4>
+                    <p class="text-gray-600">Όρισε ετήσιους στόχους ανά πελάτη. Καταχώρησε εισπράξεις και δες άμεσα, με γραφικά ποσοστά, πόσα έχεις εισπράξει και πόσα υπολείπονται.</p>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-100 rounded-2xl p-8 hover:shadow-lg transition-shadow">
+                    <div class="bg-orange-100 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                        <i class="fas fa-tasks text-2xl text-orange-600"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">Διαχείριση Εκκρεμοτήτων</h4>
+                    <p class="text-gray-600">Ενσωματωμένη To-Do list ανά πελάτη. Παρακολούθησε προθεσμίες, φίλτραρε βάσει "Εκκρεμών" ή "Ολοκληρωμένων" εργασιών και μην χάσεις ποτέ ραντεβού.</p>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-100 rounded-2xl p-8 hover:shadow-lg transition-shadow">
+                    <div class="bg-purple-100 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                        <i class="fas fa-cloud text-2xl text-purple-600"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">Απόλυτη Ασφάλεια Cloud</h4>
+                    <p class="text-gray-600">Είσοδος μόνο με πιστοποιημένο Google Λογαριασμό (Whitelisting). Τα δεδομένα σώζονται σε πραγματικό χρόνο στους ασφαλείς servers της Google (Firebase).</p>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-100 rounded-2xl p-8 hover:shadow-lg transition-shadow">
+                    <div class="bg-pink-100 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                        <i class="fas fa-mobile-alt text-2xl text-pink-600"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">Πρόσβαση από Παντού</h4>
+                    <p class="text-gray-600">Υπολογιστής, tablet ή smartphone. Το New CRM είναι 100% responsive, συγχρονίζει ακαριαία τις συσκευές σου και παίζει άψογα από τον browser σου.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="py-24 bg-indigo-900 text-white relative overflow-hidden">
+        <div class="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-cyan-400 opacity-10 rounded-full blur-3xl"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-black mb-6">Δεν είμαστε εταιρεία λογισμικού. Είμαστε Συνάδελφοι.</h2>
+                    <p class="text-indigo-200 text-lg leading-relaxed mb-6">
+                        Το New CRM δεν σχεδιάστηκε σε κάποιο απρόσωπο γραφείο προγραμματιστών. Δημιουργήθηκε αξιοποιώντας <strong>25 χρόνια πραγματικής εμπειρίας</strong> στον κλάδο της λογιστικής και φοροτεχνικής.
+                    </p>
+                    <p class="text-indigo-200 text-lg leading-relaxed mb-8">
+                        Νιώσαμε την ίδια κούραση με τα πολύπλοκα συστήματα της αγοράς. Γι' αυτό φτιάξαμε το δικό μας εργαλείο: γρήγορο, εστιασμένο στην ουσία και προσαρμοσμένο στην ελληνική φορολογική πραγματικότητα.
+                    </p>
+                    <div class="flex items-center gap-4">
+                        <div class="bg-indigo-800 p-4 rounded-xl text-center flex-1 border border-indigo-700">
+                            <span class="block text-3xl font-black text-cyan-400 mb-1">25+</span>
+                            <span class="text-sm text-indigo-300">Χρόνια Εμπειρίας</span>
+                        </div>
+                        <div class="bg-indigo-800 p-4 rounded-xl text-center flex-1 border border-indigo-700">
+                            <span class="block text-3xl font-black text-cyan-400 mb-1">100%</span>
+                            <span class="text-sm text-indigo-300">Εστιασμένο στην Πράξη</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2070&auto=format&fit=crop" alt="Accounting Workspace" class="rounded-2xl shadow-2xl border-4 border-indigo-800/50">
+                    <div class="absolute -bottom-6 -left-6 bg-white text-gray-900 p-6 rounded-xl shadow-xl font-bold flex items-center gap-4">
+                        <div class="bg-green-100 p-3 rounded-full text-green-600"><i class="fas fa-check"></i></div>
+                        <div>
+                            <span class="block text-sm text-gray-500 font-medium">Δοκιμασμένο στην πράξη σε</span>
+                            <span class="text-xl text-indigo-900">πραγματικό γραφείο</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" class="py-24 bg-gray-50">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl md:text-4xl font-black text-gray-900 mb-6">Ξεκινήστε την Οργάνωση Σήμερα</h2>
+            <p class="text-gray-600 text-lg mb-12">Αποκτήστε τον δικό σας κλειδωμένο και ασφαλή χώρο στο New CRM με μια προσιτή ετήσια συνδρομή. Το κόστος αποσβένεται από τις πρώτες κιόλας χαμένες εργατοώρες που θα γλιτώσετε.</p>
+            
+            <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 md:p-12 relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-indigo-500 text-white text-sm font-bold px-6 py-2 rounded-bl-2xl">SaaS Edition</div>
+                
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Ετήσια Συνδρομή Γραφείου</h3>
+                <p class="text-gray-500 mb-8">Πλήρης πρόσβαση σε όλα τα Modules χωρίς κρυφές χρεώσεις.</p>
+                
+                <ul class="text-left space-y-4 mb-10 max-w-sm mx-auto">
+                    <li class="flex items-center gap-3"><i class="fas fa-check-circle text-green-500"></i> <span class="font-medium text-gray-700">Απεριόριστοι Πελάτες</span></li>
+                    <li class="flex items-center gap-3"><i class="fas fa-check-circle text-green-500"></i> <span class="font-medium text-gray-700">Απεριόριστες Λίστες Υποχρεώσεων</span></li>
+                    <li class="flex items-center gap-3"><i class="fas fa-check-circle text-green-500"></i> <span class="font-medium text-gray-700">Google Auth (Κλειδωμένος Χώρος)</span></li>
+                    <li class="flex items-center gap-3"><i class="fas fa-check-circle text-green-500"></i> <span class="font-medium text-gray-700">Αυτόματο Cloud Sync (Firebase)</span></li>
+                    <li class="flex items-center gap-3"><i class="fas fa-check-circle text-green-500"></i> <span class="font-medium text-gray-700">Λειτουργία Backup/Restore</span></li>
+                </ul>
+
+                <a href="mailto:logepchris@gmail.com?subject=Ενδιαφέρον για το New CRM" class="inline-block w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-indigo-200">
+                    Επικοινωνία για Τιμή & Demo
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-gray-400 py-12 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-layer-group text-indigo-500 text-xl"></i>
+                    <span class="font-bold text-white text-xl">New CRM</span>
+                </div>
+                <div class="text-sm">
+                    &copy; <script>document.write(new Date().getFullYear())</script> <strong>New CRM</strong>. Με επιφύλαξη παντός δικαιώματος.
+                </div>
+                <div class="flex gap-4">
+                    <a href="#" class="hover:text-white transition-colors"><i class="fab fa-facebook text-xl"></i></a>
+                    <a href="#" class="hover:text-white transition-colors"><i class="fab fa-linkedin text-xl"></i></a>
+                    <a href="mailto:logepchris@gmail.com" class="hover:text-white transition-colors"><i class="fas fa-envelope text-xl"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
+
+```
