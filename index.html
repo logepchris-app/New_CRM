@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New CRM | Logep</title>
+    <title>New CRM | </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js για τα Γραφήματα -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
 
@@ -29,7 +31,6 @@
         
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="flex justify-between items-center h-16">
-                <!-- Brand -->
                 <div class="flex items-center gap-3 pr-4">
                     <div class="bg-white/90 text-indigo-900 p-2 rounded-lg shadow-sm backdrop-blur-sm">
                         <i class="fas fa-layer-group text-xl"></i>
@@ -40,7 +41,6 @@
                     </div>
                 </div>
 
-                <!-- Global Actions -->
                 <div class="flex items-center space-x-3">
                     <label for="globalYear" class="text-sm font-medium text-indigo-100 hidden sm:inline drop-shadow-sm">Έτος:</label>
                     <select id="globalYear" onchange="window.changeYear()" class="bg-white/10 backdrop-blur-md border border-white/30 text-white text-sm rounded-lg focus:ring-white focus:border-white block p-2 cursor-pointer font-bold outline-none shadow-sm mr-1">
@@ -150,7 +150,16 @@
                             <div id="dashTotalProgressBar" class="bg-indigo-600 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
                         </div>
                     </div>
+                    
+                    <!-- NEW: Bar Chart Analytics -->
+                    <div class="mt-8 border-t pt-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Εισπράξεις ανά Μήνα</h3>
+                        <div class="h-64 w-full">
+                            <canvas id="receiptsChart"></canvas>
+                        </div>
+                    </div>
                 </div>
+                
                 <h3 class="text-lg font-bold text-gray-800 mb-4 mt-8">Ανάλυση ανά Πελάτη (<span class="display-year"></span>)</h3>
                 <div id="dashboardClientsGrid" class="flex flex-col gap-4"></div>
             </div>
@@ -276,15 +285,24 @@
                 </div>
                 
                 <div class="p-4 border-b border-gray-100 bg-gray-50">
-                    <form onsubmit="window.saveTask(event)" class="flex flex-col sm:flex-row gap-3">
-                        <input type="text" id="taskTitle" required placeholder="Τι πρέπει να κάνεις;" class="flex-1 border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
-                        <select id="taskClient" required class="sm:w-48 border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm bg-white client-dropdown">
-                            <option value="">Επίλεξε πελάτη *</option>
-                        </select>
-                        <input type="date" id="taskDate" class="sm:w-40 border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-sm" title="Προθεσμία">
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold transition-colors shadow-sm">
-                            <i class="fas fa-plus"></i> Προσθήκη
-                        </button>
+                    <!-- Φόρμα Προσθήκης Task (Προστέθηκε Checkbox Επανάληψης) -->
+                    <form onsubmit="window.saveTask(event)" class="flex flex-col gap-3">
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="taskTitle" required placeholder="Τι πρέπει να κάνεις;" class="flex-1 border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
+                            <select id="taskClient" required class="sm:w-48 border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm bg-white client-dropdown">
+                                <option value="">Επίλεξε πελάτη *</option>
+                            </select>
+                            <input type="date" id="taskDate" required class="sm:w-40 border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-sm" title="Προθεσμία">
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer bg-white border border-gray-200 px-3 py-2 rounded-lg shadow-sm hover:bg-gray-50">
+                                <input type="checkbox" id="taskRecurring" class="mr-2 w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer">
+                                <span><i class="fas fa-sync-alt text-indigo-500 mr-1"></i> Επανάληψη κάθε μήνα</span>
+                            </label>
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold transition-colors shadow-sm">
+                                <i class="fas fa-plus"></i> Προσθήκη
+                            </button>
+                        </div>
                     </form>
                 </div>
 
@@ -362,7 +380,7 @@
         <div id="customDialogContent" class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 transform scale-95 transition-transform duration-300 overflow-hidden">
             <div class="p-6">
                 <h3 id="dialogTitle" class="text-lg font-bold text-gray-900 mb-2">Title</h3>
-                <p id="dialogMessage" class="text-gray-600">Message</p>
+                <p id="dialogMessage" class="text-gray-600 whitespace-pre-wrap">Message</p>
             </div>
             <div class="bg-gray-50 px-6 py-3 flex justify-end gap-3" id="dialogButtons"></div>
         </div>
@@ -384,7 +402,7 @@
 
     <!-- Client Profile Modal (Καρτέλα Πελάτη) -->
     <div id="clientProfileModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center py-4">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-full flex flex-col overflow-hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-3xl mx-4 max-h-full flex flex-col overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 class="text-xl font-bold text-gray-900"><i class="fas fa-id-card text-indigo-600 mr-2"></i>Καρτέλα Πελάτη</h3>
                 <button onclick="window.closeClientProfile()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-lg"></i></button>
@@ -397,7 +415,7 @@
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="profileIsActive" class="sr-only peer" checked>
                         <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                        <span class="ml-3 text-sm font-bold text-indigo-900">Ενεργός Πελάτης (Συμμετέχει στους Πίνακες Υποχρεώσεων)</span>
+                        <span class="ml-3 text-sm font-bold text-indigo-900">Ενεργός Πελάτης</span>
                     </label>
                 </div>
 
@@ -406,7 +424,7 @@
                     <input type="text" id="profileName" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 font-bold text-lg text-indigo-900 shadow-sm" required>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Έναρξη Σχέσης</label>
                         <input type="date" id="profileStartDate" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
@@ -415,38 +433,61 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Λήξη Σχέσης</label>
                         <input type="date" id="profileEndDate" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
                     </div>
+                    <!-- ΝΕΟ: Φάκελος Πελάτη -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ψηφιακός Φάκελος</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="profileFolderLink" placeholder="Link από Drive, Dropbox..." class="flex-1 border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-sm">
+                            <button type="button" onclick="window.openClientFolder()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 rounded-lg border border-blue-200 transition-colors" title="Άνοιγμα Φακέλου"><i class="fas fa-external-link-alt"></i></button>
+                        </div>
+                    </div>
                 </div>
 
                 <hr class="my-6 border-gray-100">
                 <h4 class="font-bold text-gray-800 mb-2 text-sm uppercase tracking-wider"><i class="fas fa-list-check text-indigo-500 mr-2"></i>Υπαγωγή σε Λίστες Υποχρεώσεων</h4>
-                <p class="text-xs text-gray-500 mb-4">Επίλεξε σε ποιους πίνακες υποχρεώσεων θέλεις να εμφανίζεται ο συγκεκριμένος πελάτης.</p>
-                <div id="profileLiabilitiesCheckboxes" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-                    <!-- Checkboxes injected by JS -->
-                </div>
+                <div id="profileLiabilitiesCheckboxes" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6"></div>
 
                 <hr class="my-6 border-gray-100">
-                <h4 class="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wider">Στοιχεία & Κωδικοί</h4>
+                <h4 class="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wider"><i class="fas fa-key text-indigo-500 mr-2"></i>Στοιχεία & Κωδικοί (One-Click Copy)</h4>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Κωδικοί GSIS</label>
-                        <input type="text" id="profileGsis" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm font-mono text-sm" placeholder="π.χ. username / password">
+                        <div class="flex gap-2">
+                            <input type="text" id="profileGsis" class="flex-1 border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm font-mono text-sm" placeholder="π.χ. username / password">
+                            <button type="button" onclick="window.copyToClipboard('profileGsis')" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 rounded-lg border border-gray-300 transition-colors" title="Αντιγραφή"><i class="fas fa-copy"></i></button>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Κωδικοί ΕΦΚΑ</label>
-                        <input type="text" id="profileEfka" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm font-mono text-sm" placeholder="Στοιχεία ΕΦΚΑ...">
+                        <div class="flex gap-2">
+                            <input type="text" id="profileEfka" class="flex-1 border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm font-mono text-sm" placeholder="Στοιχεία ΕΦΚΑ...">
+                            <button type="button" onclick="window.copyToClipboard('profileEfka')" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 rounded-lg border border-gray-300 transition-colors" title="Αντιγραφή"><i class="fas fa-copy"></i></button>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Αριθμός ΓΕΜΗ</label>
-                        <input type="text" id="profileGemi" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm font-mono text-sm" placeholder="π.χ. 123456789000">
+                        <div class="flex gap-2">
+                            <input type="text" id="profileGemi" class="flex-1 border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm font-mono text-sm" placeholder="π.χ. 123456789000">
+                            <button type="button" onclick="window.copyToClipboard('profileGemi')" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 rounded-lg border border-gray-300 transition-colors" title="Αντιγραφή"><i class="fas fa-copy"></i></button>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Κωδικοί myDATA</label>
-                        <input type="text" id="profileMyData" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm font-mono text-sm" placeholder="API User / Key...">
+                        <div class="flex gap-2">
+                            <input type="text" id="profileMyData" class="flex-1 border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm font-mono text-sm" placeholder="API User / Key...">
+                            <button type="button" onclick="window.copyToClipboard('profileMyData')" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 rounded-lg border border-gray-300 transition-colors" title="Αντιγραφή"><i class="fas fa-copy"></i></button>
+                        </div>
                     </div>
                 </div>
 
                 <hr class="my-6 border-gray-100">
+                <!-- ΝΕΟ: Ημερολόγιο / Ιστορικό -->
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-book mr-1 text-indigo-500"></i>Ημερολόγιο Επικοινωνίας & Σημειώσεις</label>
+                    <textarea id="profileNotes" rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" placeholder="π.χ. 12/5: Τον πήρα τηλέφωνο για το ΦΠΑ..."></textarea>
+                </div>
+
                 <div class="flex justify-between items-center mb-4">
                     <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wider">Επιπλέον Πεδία (Custom)</h4>
                     <button type="button" onclick="window.addCustomFieldRow()" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium bg-indigo-50 px-3 py-1 rounded-full"><i class="fas fa-plus mr-1"></i>Προσθήκη</button>
@@ -468,16 +509,12 @@
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ==========================================
-        // ΛΙΣΤΑ ΕΠΙΤΡΕΠΟΜΕΝΩΝ ΧΡΗΣΤΩΝ (WHITELIST)
+        // WHITELIST EMAILS
         // ==========================================
         const ALLOWED_EMAILS = [
-            'logepchris@gmail.com' // Βάλε εδώ το δικό σου email
-            // ,'pelatis1@gmail.com' // Βγάλε τα '//' για να προσθέσεις κάποιον
-            // ,'pelatis2@yahoo.gr'
+            'logepchris@gmail.com' 
         ];
-        // ==========================================
 
-        // Global State (LOGEp CRM)
         let appData = {
             clients: [],         
             receipts: [],        
@@ -498,21 +535,14 @@
             if (!appData.tasks) appData.tasks = [];
             if (!appData.liabilityTypes) appData.liabilityTypes = [];
             if (!appData.liabilityCells) appData.liabilityCells = {};
-            
-            if(appData.clients) {
-                appData.clients.forEach(c => {
-                    if (c.isActive === undefined) c.isActive = true;
-                });
-            }
+            if(appData.clients) appData.clients.forEach(c => { if (c.isActive === undefined) c.isActive = true; });
         }
 
-        // Custom Dialog Logic
         function showCustomDialog(title, message, type = 'alert', onConfirm = null) {
             const dialog = document.getElementById('customDialog');
             const dialogContent = document.getElementById('customDialogContent');
             document.getElementById('dialogTitle').textContent = title;
             document.getElementById('dialogMessage').textContent = message;
-            
             const btnContainer = document.getElementById('dialogButtons');
             btnContainer.innerHTML = '';
 
@@ -525,10 +555,7 @@
                 const confirmBtn = document.createElement('button');
                 confirmBtn.className = 'px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition-colors font-medium';
                 confirmBtn.textContent = 'Επιβεβαίωση';
-                confirmBtn.onclick = () => {
-                    if (onConfirm) onConfirm();
-                    window.closeCustomDialog();
-                };
+                confirmBtn.onclick = () => { if (onConfirm) onConfirm(); window.closeCustomDialog(); };
                 
                 btnContainer.appendChild(cancelBtn);
                 btnContainer.appendChild(confirmBtn);
@@ -539,7 +566,6 @@
                 okBtn.onclick = () => window.closeCustomDialog();
                 btnContainer.appendChild(okBtn);
             }
-
             dialog.classList.remove('hidden');
             setTimeout(() => {
                 dialog.classList.remove('opacity-0');
@@ -557,270 +583,161 @@
             setTimeout(() => { dialog.classList.add('hidden'); }, 300);
         }
 
-        // --- FIREBASE CLOUD ---
+        // --- Αντιγραφή στο Πρόχειρο (One-Click Copy) ---
+        window.copyToClipboard = function(elementId) {
+            const val = document.getElementById(elementId).value;
+            if (val) {
+                navigator.clipboard.writeText(val).then(() => {
+                    // Μικρό οπτικό feedback
+                    const btn = document.getElementById(elementId).nextElementSibling;
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check text-green-600"></i>';
+                    setTimeout(() => { btn.innerHTML = originalHTML; }, 1500);
+                }).catch(err => {
+                    showCustomDialog('Σφάλμα', 'Δεν ήταν δυνατή η αντιγραφή.');
+                });
+            }
+        };
+
+        // --- Άνοιγμα Ψηφιακού Φακέλου ---
+        window.openClientFolder = function() {
+            let link = document.getElementById('profileFolderLink').value.trim();
+            if (link) {
+                if (!link.startsWith('http://') && !link.startsWith('https://')) {
+                    link = 'https://' + link;
+                }
+                window.open(link, '_blank');
+            } else {
+                showCustomDialog('Προσοχή', 'Δεν έχει καταχωρηθεί link φακέλου για αυτόν τον πελάτη.');
+            }
+        };
+
         function initApp() {
             try {
-                const firebaseConfig = {
-                    apiKey: "AIzaSyDlQGXb7M2xpQ7yfjojF1VPuPgEV7slUGU",
-                    authDomain: "fstracker-47c31.firebaseapp.com",
-                    projectId: "fstracker-47c31",
-                    storageBucket: "fstracker-47c31.firebasestorage.app",
-                    messagingSenderId: "438637783236",
-                    appId: "1:438637783236:web:f3647de08ee205ead94191"
-                };
+                const firebaseConfig = { apiKey: "AIzaSyDlQGXb7M2xpQ7yfjojF1VPuPgEV7slUGU", authDomain: "fstracker-47c31.firebaseapp.com", projectId: "fstracker-47c31", storageBucket: "fstracker-47c31.firebasestorage.app", messagingSenderId: "438637783236", appId: "1:438637783236:web:f3647de08ee205ead94191" };
+                const app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); const provider = new GoogleAuthProvider();
 
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                const provider = new GoogleAuthProvider();
-
-                window.loginWithGoogle = function() {
-                    signInWithPopup(auth, provider).catch((error) => {
-                        console.error("Σφάλμα σύνδεσης:", error);
-                        showCustomDialog('Σφάλμα', 'Η σύνδεση απέτυχε. Δοκίμασε ξανά.');
-                    });
-                };
-
-                window.logout = function() {
-                    signOut(auth).then(() => {
-                        appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {} };
-                        updateUI();
-                    });
-                };
+                window.loginWithGoogle = function() { signInWithPopup(auth, provider).catch(e => showCustomDialog('Σφάλμα', 'Η σύνδεση απέτυχε.')); };
+                window.logout = function() { signOut(auth).then(() => { appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {} }; updateUI(); }); };
 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
-                        // --- ΕΛΕΓΧΟΣ ΠΡΟΣΒΑΣΗΣ (Whitelist Switch) ---
                         if (!ALLOWED_EMAILS.includes(user.email.toLowerCase())) {
-                            signOut(auth).then(() => {
-                                showCustomDialog('Πρόσβαση Αρνήθηκε', `Ο λογαριασμός ${user.email} δεν έχει ενεργή συνδρομή. Παρακαλώ επικοινωνήστε με τη Logep.`);
-                            });
-                            return; // Αποτροπή περαιτέρω εκτέλεσης
+                            signOut(auth).then(() => showCustomDialog('Πρόσβαση Αρνήθηκε', `Ο λογαριασμός ${user.email} δεν έχει ενεργή συνδρομή.`));
+                            return; 
                         }
-                        // ---------------------------------------------
-
-                        isCloudEnabled = true;
-                        document.getElementById('login-screen').classList.add('hidden');
-                        
+                        isCloudEnabled = true; document.getElementById('login-screen').classList.add('hidden');
                         userDocRef = doc(db, 'crm_users', user.uid);
-                        
                         onSnapshot(userDocRef, (docSnap) => {
-                            if (docSnap.exists()) {
-                                appData = docSnap.data();
-                                sanitizeDataStructure();
-                                saveLocalData();
-                            } else {
-                                loadLocalData();
-                                saveData();
-                            }
-                            updateUI();
-                            document.getElementById('cloud-status').innerHTML = `<i class="fas fa-cloud text-green-400" title="Συνδέθηκε ως: ${user.email}"></i> <span class="hidden sm:inline" title="${user.email}">Συγχρονίζεται</span>`;
-                        }, (error) => {
-                            console.error("Snapshot error:", error);
-                            fallbackToLocal();
-                        });
+                            if (docSnap.exists()) { appData = docSnap.data(); sanitizeDataStructure(); saveLocalData(); } else { loadLocalData(); saveData(); }
+                            updateUI(); document.getElementById('cloud-status').innerHTML = `<i class="fas fa-cloud text-green-400"></i> <span class="hidden sm:inline">Συγχρονίζεται</span>`;
+                        }, (e) => fallbackToLocal());
                     } else {
-                        isCloudEnabled = false;
-                        document.getElementById('login-screen').classList.remove('hidden');
-                        document.getElementById('cloud-status').innerHTML = '<i class="fas fa-lock text-red-300"></i> <span class="hidden sm:inline">Κλειδωμένο</span>';
+                        isCloudEnabled = false; document.getElementById('login-screen').classList.remove('hidden');
+                        document.getElementById('cloud-status').innerHTML = '<i class="fas fa-lock text-red-300"></i>';
                     }
                 });
-            } catch (e) {
-                console.error("Init Error:", e);
-                fallbackToLocal();
-            }
+            } catch (e) { fallbackToLocal(); }
         }
 
-        function fallbackToLocal() {
-            isCloudEnabled = false;
-            document.getElementById('cloud-status').innerHTML = '<i class="fas fa-hdd text-indigo-300" title="Τοπική Αποθήκευση"></i> <span class="hidden sm:inline">Τοπικά</span>';
-            loadLocalData();
-            updateUI();
-        }
+        function fallbackToLocal() { isCloudEnabled = false; document.getElementById('cloud-status').innerHTML = '<i class="fas fa-hdd text-indigo-300"></i>'; loadLocalData(); updateUI(); }
+        function loadLocalData() { const stored = localStorage.getItem('logepCrmDataV4') || localStorage.getItem('logepCrmDataV3') || localStorage.getItem('logepCrmData'); appData = stored ? JSON.parse(stored) : { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {} }; sanitizeDataStructure(); }
+        function saveData() { if (isCloudEnabled && userDocRef) { setDoc(userDocRef, appData).then(() => { saveLocalData(); updateUI(); }).catch(e => saveLocalData()); } else { saveLocalData(); } }
+        function saveLocalData() { localStorage.setItem('logepCrmDataV4', JSON.stringify(appData)); updateUI(); }
 
-        function loadLocalData() {
-            const storedData = localStorage.getItem('logepCrmDataV4') || localStorage.getItem('logepCrmDataV3') || localStorage.getItem('logepCrmData');
-            if (storedData) {
-                appData = JSON.parse(storedData);
-            } else {
-                appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {} };
-            }
-            sanitizeDataStructure();
-        }
-
-        function saveData() {
-            if (isCloudEnabled && userDocRef) {
-                setDoc(userDocRef, appData).then(() => { saveLocalData(); updateUI(); }).catch(e => { saveLocalData(); });
-            } else {
-                saveLocalData();
-            }
-        }
-
-        function saveLocalData() {
-            localStorage.setItem('logepCrmDataV4', JSON.stringify(appData));
-            updateUI();
-        }
-
-        // Utils
         const formatCurrency = (amount) => new Intl.NumberFormat('el-GR', { style: 'currency', currency: 'EUR' }).format(amount);
-        const formatDate = (dateStr) => {
-            if(!dateStr) return '-';
-            return new Date(dateStr).toLocaleDateString('el-GR', { year: 'numeric', month: '2-digit', day: '2-digit' });
-        };
+        const formatDate = (dateStr) => { if(!dateStr) return '-'; return new Date(dateStr).toLocaleDateString('el-GR', { year: 'numeric', month: '2-digit', day: '2-digit' }); };
 
-        // UI Routing & State
         function initYearSelector() {
-            const select = document.getElementById('globalYear');
-            select.innerHTML = '';
-            
-            const currentCalendarYear = new Date().getFullYear();
-            let years = new Set([currentCalendarYear]);
-            for (let i = 1; i <= 5; i++) years.add(currentCalendarYear - i);
-            years.add(currentCalendarYear + 1);
-
+            const select = document.getElementById('globalYear'); select.innerHTML = '';
+            const currentCalendarYear = new Date().getFullYear(); let years = new Set([currentCalendarYear]);
+            for (let i = 1; i <= 5; i++) years.add(currentCalendarYear - i); years.add(currentCalendarYear + 1);
             appData.receipts.forEach(r => { if(r.date) years.add(new Date(r.date).getFullYear()); });
             appData.clients.forEach(c => { if(c.targets) Object.keys(c.targets).forEach(y => years.add(parseInt(y))); });
-            
             let sortedYears = Array.from(years).sort((a,b) => b - a);
-            
-            sortedYears.forEach(year => {
-                const opt = document.createElement('option');
-                opt.value = year;
-                opt.textContent = year;
-                if (year === currentAppYear) opt.selected = true;
-                select.appendChild(opt);
-            });
-
+            sortedYears.forEach(year => { const opt = document.createElement('option'); opt.value = year; opt.textContent = year; if (year === currentAppYear) opt.selected = true; select.appendChild(opt); });
             document.querySelectorAll('.display-year').forEach(el => el.textContent = currentAppYear);
         }
 
-        window.changeYear = function() {
-            currentAppYear = parseInt(document.getElementById('globalYear').value);
-            document.querySelectorAll('.display-year').forEach(el => el.textContent = currentAppYear);
-            updateUI();
-        };
+        window.changeYear = function() { currentAppYear = parseInt(document.getElementById('globalYear').value); document.querySelectorAll('.display-year').forEach(el => el.textContent = currentAppYear); updateUI(); };
 
         window.switchCrmModule = function(moduleName) {
-            document.querySelectorAll('.crm-module').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.subnav-container').forEach(el => el.classList.add('hidden'));
-            
-            document.getElementById(`module-${moduleName}`).classList.remove('hidden');
-            document.getElementById(`subnav-${moduleName}`).classList.remove('hidden');
-
-            document.querySelectorAll('.crm-nav-btn').forEach(el => {
-                el.classList.remove('bg-white', 'text-indigo-900', 'font-bold');
-                el.classList.add('text-indigo-100', 'font-medium', 'hover:bg-white/20');
-            });
-            const activeBtn = document.getElementById(`nav-${moduleName}`);
-            if(activeBtn) {
-                activeBtn.classList.remove('text-indigo-100', 'font-medium', 'hover:bg-white/20');
-                activeBtn.classList.add('bg-white', 'text-indigo-900', 'font-bold');
-            }
-            
+            document.querySelectorAll('.crm-module').forEach(el => el.classList.add('hidden')); document.querySelectorAll('.subnav-container').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`module-${moduleName}`).classList.remove('hidden'); document.getElementById(`subnav-${moduleName}`).classList.remove('hidden');
+            document.querySelectorAll('.crm-nav-btn').forEach(el => { el.classList.remove('bg-white', 'text-indigo-900', 'font-bold'); el.classList.add('text-indigo-100', 'font-medium', 'hover:bg-white/20'); });
+            const activeBtn = document.getElementById(`nav-${moduleName}`); if(activeBtn) { activeBtn.classList.remove('text-indigo-100', 'font-medium', 'hover:bg-white/20'); activeBtn.classList.add('bg-white', 'text-indigo-900', 'font-bold'); }
             if(moduleName === 'receipts') window.showTab('dashboard');
         };
 
         window.showTab = function(tabId) {
-            document.querySelectorAll('#module-receipts .tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(tabId).classList.remove('hidden');
-            
-            document.querySelectorAll('#module-receipts .tab-btn').forEach(el => {
-                el.classList.remove('text-indigo-600', 'border-indigo-600', 'font-bold');
-                el.classList.add('text-gray-500', 'border-transparent', 'font-medium');
-            });
-            const activeBtn = document.getElementById(`tab-${tabId}`);
-            if(activeBtn) {
-                activeBtn.classList.remove('text-gray-500', 'border-transparent', 'font-medium');
-                activeBtn.classList.add('text-indigo-600', 'border-indigo-600', 'font-bold');
-            }
+            document.querySelectorAll('#module-receipts .tab-content').forEach(el => el.classList.add('hidden')); document.getElementById(tabId).classList.remove('hidden');
+            document.querySelectorAll('#module-receipts .tab-btn').forEach(el => { el.classList.remove('text-indigo-600', 'border-indigo-600', 'font-bold'); el.classList.add('text-gray-500', 'border-transparent', 'font-medium'); });
+            const activeBtn = document.getElementById(`tab-${tabId}`); if(activeBtn) { activeBtn.classList.remove('text-gray-500', 'border-transparent', 'font-medium'); activeBtn.classList.add('text-indigo-600', 'border-indigo-600', 'font-bold'); }
         };
 
         function populateClientDropdowns() {
             const sortedClients = [...appData.clients].sort((a, b) => a.name.localeCompare(b.name));
-            const generateOptions = (defaultText) => {
-                let html = `<option value="">${defaultText}</option>`;
-                sortedClients.forEach(c => { html += `<option value="${c.name}">${c.name}</option>`; });
-                return html;
-            };
-
-            document.getElementById('clientSelect').innerHTML = generateOptions("Επίλεξε πελάτη...");
-            document.getElementById('taskClient').innerHTML = generateOptions("Επίλεξε πελάτη *");
-            document.getElementById('taskFilterClient').innerHTML = generateOptions("Όλοι οι Πελάτες");
+            const generateOptions = (defaultText) => { let html = `<option value="">${defaultText}</option>`; sortedClients.forEach(c => { html += `<option value="${c.name}">${c.name}</option>`; }); return html; };
+            document.getElementById('clientSelect').innerHTML = generateOptions("Επίλεξε πελάτη..."); document.getElementById('taskClient').innerHTML = generateOptions("Επίλεξε πελάτη *"); document.getElementById('taskFilterClient').innerHTML = generateOptions("Όλοι οι Πελάτες");
         }
 
         function updateUI() {
-            initYearSelector();
-            populateClientDropdowns();
-
-            renderClientsModule();
-            renderReceiptsModule();
-            renderLiabilitiesModule();
-            renderTasksModule();
-            renderConfigModule();
+            initYearSelector(); populateClientDropdowns();
+            renderClientsModule(); renderReceiptsModule(); renderLiabilitiesModule(); renderTasksModule(); renderConfigModule();
         }
 
         function renderConfigModule() {
-            const list = document.getElementById('liabilityTypesList');
-            if(!list) return;
-            list.innerHTML = '';
-            
-            if (appData.liabilityTypes.length === 0) {
-                list.innerHTML = '<li class="p-6 text-gray-500 text-sm text-center italic">Δεν έχεις δημιουργήσει καμία λίστα ακόμη.</li>';
-                return;
-            }
-
+            const list = document.getElementById('liabilityTypesList'); if(!list) return; list.innerHTML = '';
+            if (appData.liabilityTypes.length === 0) { list.innerHTML = '<li class="p-6 text-gray-500 text-sm text-center italic">Δεν έχεις δημιουργήσει καμία λίστα ακόμη.</li>'; return; }
             appData.liabilityTypes.forEach(t => {
                 list.innerHTML += `
                     <li class="p-4 flex justify-between items-center bg-white hover:bg-gray-50 transition-colors">
                         <span class="font-bold text-gray-800 text-lg"><i class="fas fa-list-ul text-indigo-300 mr-2"></i>${t.title}</span>
-                        <button onclick="window.deleteLiabilityType('${t.id}')" class="text-gray-400 hover:text-indigo-500 p-2 rounded transition-colors"><i class="fas fa-trash"></i></button>
-                    </li>
-                `;
+                        <div>
+                            <!-- ΝΕΟ ΚΟΥΜΠΙ ΜΕΤΟΝΟΜΑΣΙΑΣ -->
+                            <button onclick="window.renameLiabilityType('${t.id}')" class="text-gray-400 hover:text-blue-500 p-2 rounded transition-colors mr-1" title="Μετονομασία Λίστας"><i class="fas fa-edit"></i></button>
+                            <button onclick="window.deleteLiabilityType('${t.id}')" class="text-gray-400 hover:text-red-500 p-2 rounded transition-colors" title="Διαγραφή"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </li>`;
             });
         }
 
-        function renderClientsModule() {
-            const clientsList = document.getElementById('clientsList');
-            clientsList.innerHTML = '';
-            document.getElementById('totalClientsCount').textContent = `${appData.clients.length} Πελάτες`;
-            
-            const sortedClients = [...appData.clients].map((c, originalIndex) => ({...c, originalIndex}))
-                                                      .sort((a,b) => a.name.localeCompare(b.name));
+        // --- Μετονομασία Λίστας Υποχρεώσεων ---
+        window.renameLiabilityType = function(id) {
+            const typeObj = appData.liabilityTypes.find(t => t.id === id);
+            if(!typeObj) return;
+            const newName = prompt('Εισάγετε το νέο όνομα για τη λίστα:', typeObj.title);
+            if(newName && newName.trim() !== '') {
+                typeObj.title = newName.trim();
+                saveData();
+            }
+        };
 
+        function renderClientsModule() {
+            const clientsList = document.getElementById('clientsList'); clientsList.innerHTML = ''; document.getElementById('totalClientsCount').textContent = `${appData.clients.length} Πελάτες`;
+            const sortedClients = [...appData.clients].map((c, originalIndex) => ({...c, originalIndex})).sort((a,b) => a.name.localeCompare(b.name));
             sortedClients.forEach(c => {
                 const target = (c.targets && c.targets[currentAppYear]) ? parseFloat(c.targets[currentAppYear]) : 0;
                 const activeBadge = c.isActive === false ? '<span class="ml-2 bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full">Ανενεργός</span>' : '';
-                
                 clientsList.innerHTML += `
                     <li class="p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-gray-50 transition-colors ${c.isActive === false ? 'opacity-70' : ''}">
                         <div class="flex items-center gap-3 flex-1">
-                            <div class="${c.isActive === false ? 'bg-gray-200 text-gray-500' : 'bg-indigo-100 text-indigo-600'} w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">
-                                ${c.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                                <p class="font-bold text-gray-900 text-lg">${c.name} ${activeBadge}</p>
-                                <p class="text-sm text-gray-500">Στόχος ${currentAppYear}: <span class="font-bold text-indigo-600">${formatCurrency(target)}</span></p>
-                            </div>
+                            <div class="${c.isActive === false ? 'bg-gray-200 text-gray-500' : 'bg-indigo-100 text-indigo-600'} w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">${c.name.charAt(0).toUpperCase()}</div>
+                            <div><p class="font-bold text-gray-900 text-lg">${c.name} ${activeBadge}</p><p class="text-sm text-gray-500">Στόχος ${currentAppYear}: <span class="font-bold text-indigo-600">${formatCurrency(target)}</span></p></div>
                         </div>
                         <div class="flex gap-2 w-full sm:w-auto">
-                            <button onclick="window.openClientProfile(${c.originalIndex})" class="flex-1 sm:flex-none text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg font-medium transition-colors border border-blue-100 shadow-sm" title="Καρτέλα Πελάτη"><i class="fas fa-id-card"></i><span class="ml-1 sm:hidden"> Καρτέλα</span></button>
-                            <button onclick="window.openTargetModal(${c.originalIndex})" class="flex-1 sm:flex-none text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg font-medium transition-colors border border-indigo-100 shadow-sm" title="Ορισμός Στόχου"><i class="fas fa-bullseye"></i><span class="ml-1 sm:hidden"> Στόχος</span></button>
+                            <button onclick="window.openClientProfile(${c.originalIndex})" class="flex-1 sm:flex-none text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg font-medium transition-colors border border-blue-100 shadow-sm" title="Καρτέλα Πελάτη"><i class="fas fa-id-card"></i></button>
+                            <button onclick="window.openTargetModal(${c.originalIndex})" class="flex-1 sm:flex-none text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg font-medium transition-colors border border-indigo-100 shadow-sm" title="Ορισμός Στόχου"><i class="fas fa-bullseye"></i></button>
                             <button onclick="window.deleteClient(${c.originalIndex})" class="flex-1 sm:flex-none text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg font-medium transition-colors border border-red-100 shadow-sm" title="Διαγραφή"><i class="fas fa-trash"></i></button>
                         </div>
-                    </li>
-                `;
+                    </li>`;
             });
-
-            if (appData.clients.length === 0) {
-                clientsList.innerHTML = `<li class="p-8 text-center text-gray-500">Δεν έχεις δημιουργήσει κανέναν πελάτη. Πρόσθεσε τον πρώτο σου από πάνω!</li>`;
-            }
+            if (appData.clients.length === 0) clientsList.innerHTML = `<li class="p-8 text-center text-gray-500">Δεν έχεις δημιουργήσει κανέναν πελάτη.</li>`;
         }
 
         function renderReceiptsModule() {
             const yearReceipts = appData.receipts.filter(r => new Date(r.date).getFullYear() === currentAppYear);
-
-            let totalTarget = 0;
-            appData.clients.forEach(c => { if(c.targets && c.targets[currentAppYear]) totalTarget += parseFloat(c.targets[currentAppYear]); });
+            let totalTarget = 0; appData.clients.forEach(c => { if(c.targets && c.targets[currentAppYear]) totalTarget += parseFloat(c.targets[currentAppYear]); });
             const totalCollected = yearReceipts.reduce((sum, r) => sum + parseFloat(r.amount), 0);
             const totalRemaining = Math.max(0, totalTarget - totalCollected);
             let progressPercent = totalTarget > 0 ? Math.min(100, (totalCollected / totalTarget) * 100) : (totalCollected > 0 ? 100 : 0);
@@ -831,9 +748,32 @@
             document.getElementById('dashTotalPercent').textContent = progressPercent.toFixed(1) + '%';
             document.getElementById('dashTotalProgressBar').style.width = progressPercent + '%';
 
-            const clientsGrid = document.getElementById('dashboardClientsGrid');
-            clientsGrid.innerHTML = '';
+            // --- ΝΕΟ: Chart.js Γράφημα Μηνών ---
+            const monthlyData = new Array(12).fill(0);
+            yearReceipts.forEach(r => {
+                const m = new Date(r.date).getMonth(); // 0 = Jan, 11 = Dec
+                monthlyData[m] += parseFloat(r.amount);
+            });
             
+            const ctx = document.getElementById('receiptsChart');
+            if(ctx) {
+                if(window.receiptsChartInstance) window.receiptsChartInstance.destroy(); // Καθαρίζει το παλιό γράφημα αν αλλάξεις έτος
+                window.receiptsChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Ιαν', 'Φεβ', 'Μαρ', 'Απρ', 'Μαι', 'Ιουν', 'Ιουλ', 'Αυγ', 'Σεπ', 'Οκτ', 'Νοε', 'Δεκ'],
+                        datasets: [{
+                            label: `Εισπράξεις ${currentAppYear} (€)`,
+                            data: monthlyData,
+                            backgroundColor: '#4f46e5',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const clientsGrid = document.getElementById('dashboardClientsGrid'); clientsGrid.innerHTML = '';
             const clientsPerformance = appData.clients.map(client => {
                 const cTarget = (client.targets && client.targets[currentAppYear]) ? parseFloat(client.targets[currentAppYear]) : 0;
                 const cCollected = yearReceipts.filter(r => r.client === client.name).reduce((sum, r) => sum + parseFloat(r.amount), 0);
@@ -843,39 +783,20 @@
             clientsPerformance.forEach(client => {
                 const cRemaining = Math.max(0, client.target - client.collected);
                 let cProgress = client.target > 0 ? Math.min(100, (client.collected / client.target) * 100) : (client.collected > 0 ? 100 : 0);
-
                 clientsGrid.innerHTML += `
                     <div class="bg-white border border-gray-100 p-4 rounded-xl shadow-sm hover:bg-gray-50 transition-colors flex flex-col md:flex-row md:items-center gap-4">
-                        <div class="md:w-1/4 flex items-center justify-between md:justify-start gap-2">
-                            <h4 class="font-bold text-gray-800 truncate" title="${client.name}">${client.name}</h4>
-                            <span class="text-xs font-medium px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full whitespace-nowrap">${cProgress.toFixed(1)}%</span>
-                        </div>
-                        <div class="md:w-1/3 w-full flex-shrink-0">
-                            <div class="w-full bg-gray-100 rounded-full h-2">
-                                <div class="bg-${cProgress >= 100 ? 'green' : 'indigo'}-500 h-2 rounded-full transition-all" style="width: ${cProgress}%"></div>
-                            </div>
-                        </div>
+                        <div class="md:w-1/4 flex items-center justify-between md:justify-start gap-2"><h4 class="font-bold text-gray-800 truncate" title="${client.name}">${client.name}</h4><span class="text-xs font-medium px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">${cProgress.toFixed(1)}%</span></div>
+                        <div class="md:w-1/3 w-full flex-shrink-0"><div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-${cProgress >= 100 ? 'green' : 'indigo'}-500 h-2 rounded-full transition-all" style="width: ${cProgress}%"></div></div></div>
                         <div class="md:w-5/12 flex justify-between text-sm text-gray-600 w-full">
-                            <div class="text-center flex-1">
-                                <span class="block text-xs text-gray-500 mb-1">Στόχος</span>
-                                <span class="font-medium text-gray-900">${formatCurrency(client.target)}</span>
-                            </div>
-                            <div class="text-center flex-1 border-l border-gray-200">
-                                <span class="block text-xs text-gray-500 mb-1">Είσπραξη</span>
-                                <span class="font-medium text-green-600">${formatCurrency(client.collected)}</span>
-                            </div>
-                            <div class="text-center flex-1 border-l border-gray-200">
-                                <span class="block text-xs text-gray-500 mb-1">Υπόλοιπο</span>
-                                <span class="font-medium ${cRemaining > 0 ? 'text-orange-600' : 'text-gray-900'}">${formatCurrency(cRemaining)}</span>
-                            </div>
+                            <div class="text-center flex-1"><span class="block text-xs text-gray-500 mb-1">Στόχος</span><span class="font-medium text-gray-900">${formatCurrency(client.target)}</span></div>
+                            <div class="text-center flex-1 border-l border-gray-200"><span class="block text-xs text-gray-500 mb-1">Είσπραξη</span><span class="font-medium text-green-600">${formatCurrency(client.collected)}</span></div>
+                            <div class="text-center flex-1 border-l border-gray-200"><span class="block text-xs text-gray-500 mb-1">Υπόλοιπο</span><span class="font-medium ${cRemaining > 0 ? 'text-orange-600' : 'text-gray-900'}">${formatCurrency(cRemaining)}</span></div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
-            if (clientsGrid.innerHTML === '') clientsGrid.innerHTML = `<p class="text-gray-500 text-sm italic p-4 bg-white rounded-lg border border-dashed text-center">Δεν υπάρχουν δεδομένα. Ορίστε στόχους στην καρτέλα "Πελάτες".</p>`;
+            if (clientsGrid.innerHTML === '') clientsGrid.innerHTML = `<p class="text-gray-500 text-sm italic p-4 bg-white rounded-lg text-center">Δεν υπάρχουν δεδομένα.</p>`;
 
-            const tbody = document.getElementById('historyTableBody');
-            tbody.innerHTML = '';
+            const tbody = document.getElementById('historyTableBody'); tbody.innerHTML = '';
             const sortedReceipts = [...yearReceipts].sort((a,b) => new Date(b.date) - new Date(a.date));
             sortedReceipts.forEach(r => {
                 tbody.innerHTML += `
@@ -889,88 +810,42 @@
                             <button onclick="window.editReceipt('${r.id}')" class="text-gray-400 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition-colors mr-1" title="Επεξεργασία"><i class="fas fa-edit"></i></button>
                             <button onclick="window.deleteReceipt('${r.id}')" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors" title="Διαγραφή"><i class="fas fa-trash"></i></button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             });
             if (sortedReceipts.length === 0) tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-500">Καμία είσπραξη για το έτος ${currentAppYear}.</td></tr>`;
         }
 
         function renderLiabilitiesModule() {
-            const container = document.getElementById('liabilitiesTableBody');
-            const tabsContainer = document.getElementById('liabilitiesTabs');
+            const container = document.getElementById('liabilitiesTableBody'); const tabsContainer = document.getElementById('liabilitiesTabs');
+            if (!appData.liabilityTypes || appData.liabilityTypes.length === 0) { tabsContainer.innerHTML = ''; container.innerHTML = `<tr><td colspan="13" class="p-8 text-center text-gray-500 bg-white">Δεν υπάρχουν κατηγορίες. Πήγαινε στις "Ρυθμίσεις" για να φτιάξεις μία (π.χ. ΦΠΑ).</td></tr>`; return; }
+            if (!window.currentLiabilityTypeId || !appData.liabilityTypes.find(t => t.id === window.currentLiabilityTypeId)) { window.currentLiabilityTypeId = appData.liabilityTypes[0].id; }
+            tabsContainer.innerHTML = appData.liabilityTypes.map(type => `<button onclick="window.switchLiabilityType('${type.id}')" class="px-6 py-2.5 font-bold text-sm whitespace-nowrap border-b-[3px] transition-colors outline-none ${type.id === window.currentLiabilityTypeId ? 'border-indigo-600 text-indigo-900 bg-white rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'}">${type.title}</button>`).join('');
             
-            if (!appData.liabilityTypes || appData.liabilityTypes.length === 0) {
-                tabsContainer.innerHTML = '';
-                container.innerHTML = `<tr><td colspan="13" class="p-8 text-center text-gray-500 bg-white">Δεν υπάρχουν κατηγορίες. Πήγαινε στις "Ρυθμίσεις" για να φτιάξεις μία (π.χ. ΦΠΑ).</td></tr>`;
-                return;
-            }
-
-            if (!window.currentLiabilityTypeId || !appData.liabilityTypes.find(t => t.id === window.currentLiabilityTypeId)) {
-                window.currentLiabilityTypeId = appData.liabilityTypes[0].id;
-            }
-
-            tabsContainer.innerHTML = appData.liabilityTypes.map(type => `
-                <button onclick="window.switchLiabilityType('${type.id}')" class="px-6 py-2.5 font-bold text-sm whitespace-nowrap border-b-[3px] transition-colors outline-none ${type.id === window.currentLiabilityTypeId ? 'border-indigo-600 text-indigo-900 bg-white rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'}">
-                    ${type.title}
-                </button>
-            `).join('');
-
-            const activeClients = appData.clients.map((c, idx) => ({...c, originalIndex: idx}))
-                                                 .filter(c => c.isActive !== false)
-                                                 .filter(c => !c.assignedLiabilities || c.assignedLiabilities.includes(window.currentLiabilityTypeId))
-                                                 .sort((a,b) => a.name.localeCompare(b.name));
+            const activeClients = appData.clients.map((c, idx) => ({...c, originalIndex: idx})).filter(c => c.isActive !== false).filter(c => !c.assignedLiabilities || c.assignedLiabilities.includes(window.currentLiabilityTypeId)).sort((a,b) => a.name.localeCompare(b.name));
             container.innerHTML = '';
-
-            if (activeClients.length === 0) {
-                container.innerHTML = `<tr><td colspan="13" class="p-8 text-center text-gray-500 bg-white">Δεν υπάρχουν Πελάτες που να υπάγονται σε αυτή τη λίστα. Πήγαινε στην Καρτέλα Πελάτη για να τους προσθέσεις.</td></tr>`;
-                return;
-            }
+            if (activeClients.length === 0) { container.innerHTML = `<tr><td colspan="13" class="p-8 text-center text-gray-500 bg-white">Δεν υπάρχουν Πελάτες.</td></tr>`; return; }
 
             activeClients.forEach(c => {
-                let rowHTML = `<tr class="hover:bg-indigo-50/30 border-b border-gray-100 bg-white group transition-colors">
-                    <td class="p-3 border-r border-gray-100 font-bold text-gray-800 text-sm sticky left-0 bg-white group-hover:bg-indigo-50/50 z-10 max-w-[250px] truncate" title="${c.name}">${c.name}</td>`;
-                
+                let rowHTML = `<tr class="hover:bg-indigo-50/30 border-b border-gray-100 bg-white group transition-colors"><td class="p-3 border-r border-gray-100 font-bold text-gray-800 text-sm sticky left-0 bg-white group-hover:bg-indigo-50/50 z-10 max-w-[250px] truncate" title="${c.name}">${c.name}</td>`;
                 for (let m = 1; m <= 12; m++) {
                     const cellKey = `${currentAppYear}_${window.currentLiabilityTypeId}_${c.name}_${m}`;
                     const cellValue = appData.liabilityCells && appData.liabilityCells[cellKey] ? appData.liabilityCells[cellKey] : '';
-                    
-                    rowHTML += `
-                        <td class="border-r border-gray-100 p-0 min-w-[100px] relative focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
-                            <input type="text" value="${cellValue.replace(/"/g, '&quot;')}" 
-                                   onchange="window.saveLiabilityCell('${window.currentLiabilityTypeId}', ${c.originalIndex}, ${m}, this.value)" 
-                                   class="w-full h-full min-h-[46px] p-2 border-0 bg-transparent text-sm text-gray-700 text-center outline-none">
-                        </td>
-                    `;
+                    rowHTML += `<td class="border-r border-gray-100 p-0 min-w-[100px] relative focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500"><input type="text" value="${cellValue.replace(/"/g, '&quot;')}" onchange="window.saveLiabilityCell('${window.currentLiabilityTypeId}', ${c.originalIndex}, ${m}, this.value)" class="w-full h-full min-h-[46px] p-2 border-0 bg-transparent text-sm text-gray-700 text-center outline-none"></td>`;
                 }
-                rowHTML += `</tr>`;
-                container.innerHTML += rowHTML;
+                rowHTML += `</tr>`; container.innerHTML += rowHTML;
             });
         }
 
         window.renderTasksModule = function() {
-            const tasksList = document.getElementById('tasksList');
-            tasksList.innerHTML = '';
-            
-            const filterStatus = document.getElementById('taskFilterStatus').value;
-            const filterClient = document.getElementById('taskFilterClient').value;
-
-            let filteredTasks = appData.tasks.filter(t => {
-                let matchStatus = (filterStatus === 'all') || 
-                                  (filterStatus === 'pending' && !t.isCompleted) || 
-                                  (filterStatus === 'completed' && t.isCompleted);
-                let matchClient = (filterClient === '') || (t.client === filterClient);
-                return matchStatus && matchClient;
-            });
-
-            filteredTasks.sort((a,b) => {
-                if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1;
-                if (!a.date && !b.date) return 0;
-                if (!a.date) return 1; if (!b.date) return -1;
-                return new Date(a.date) - new Date(b.date);
-            });
+            const tasksList = document.getElementById('tasksList'); tasksList.innerHTML = '';
+            const filterStatus = document.getElementById('taskFilterStatus').value; const filterClient = document.getElementById('taskFilterClient').value;
+            let filteredTasks = appData.tasks.filter(t => { let matchStatus = (filterStatus === 'all') || (filterStatus === 'pending' && !t.isCompleted) || (filterStatus === 'completed' && t.isCompleted); let matchClient = (filterClient === '') || (t.client === filterClient); return matchStatus && matchClient; });
+            filteredTasks.sort((a,b) => { if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1; if (!a.date && !b.date) return 0; if (!a.date) return 1; if (!b.date) return -1; return new Date(a.date) - new Date(b.date); });
 
             filteredTasks.forEach(t => {
                 const isOverdue = !t.isCompleted && t.date && new Date(t.date) < new Date(new Date().setHours(0,0,0,0));
+                // Ένδειξη αν είναι επαναλαμβανόμενο
+                const recIcon = t.isRecurring ? `<i class="fas fa-sync-alt text-indigo-400 ml-2" title="Επαναλαμβανόμενο κάθε μήνα"></i>` : '';
                 
                 tasksList.innerHTML += `
                     <li class="p-4 flex items-center justify-between hover:bg-indigo-50/50 transition-colors group ${t.isCompleted ? 'bg-gray-50 opacity-75' : 'bg-white'} border-b border-gray-50 last:border-0">
@@ -978,393 +853,199 @@
                             <input type="checkbox" ${t.isCompleted ? 'checked' : ''} onchange="window.toggleTask('${t.id}')" class="mt-1 w-5 h-5 text-indigo-600 rounded-full border-gray-300 focus:ring-indigo-500 cursor-pointer">
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
-                                    <p class="font-bold text-base ${t.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}">${t.title}</p>
+                                    <p class="font-bold text-base ${t.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}">${t.title} ${recIcon}</p>
                                     <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-0.5 rounded-full font-medium"><i class="fas fa-user text-[10px] mr-1"></i>${t.client}</span>
                                 </div>
                                 ${t.date ? `<p class="text-xs ${isOverdue ? 'text-red-600 font-bold bg-red-50 inline-block px-1 rounded' : 'text-gray-500'}"><i class="far fa-calendar-alt mr-1"></i>${formatDate(t.date)} ${isOverdue ? '(Εκπρόθεσμο)' : ''}</p>` : ''}
                             </div>
                         </div>
                         <button onclick="window.deleteTask('${t.id}')" class="text-gray-300 hover:text-red-500 bg-white shadow-sm border border-gray-200 rounded p-2 opacity-0 group-hover:opacity-100 transition-all"><i class="fas fa-trash"></i></button>
-                    </li>
-                `;
+                    </li>`;
             });
-
-            if (filteredTasks.length === 0) {
-                tasksList.innerHTML = `<li class="p-8 text-center text-gray-400 italic">Δεν βρέθηκαν εργασίες.</li>`;
-            }
+            if (filteredTasks.length === 0) tasksList.innerHTML = `<li class="p-8 text-center text-gray-400 italic">Δεν βρέθηκαν εργασίες.</li>`;
         };
 
         window.addClient = function() {
-            const nameInput = document.getElementById('newClientName');
-            const name = nameInput.value.trim();
+            const nameInput = document.getElementById('newClientName'); const name = nameInput.value.trim();
             if (name) {
-                if (appData.clients.find(c => c.name.toLowerCase() === name.toLowerCase())) {
-                    showCustomDialog('Προσοχή', 'Αυτός ο πελάτης υπάρχει ήδη.'); return;
-                }
-                appData.clients.push({ name: name, targets: {}, isActive: true });
-                nameInput.value = '';
-                saveData();
-                showCustomDialog('Επιτυχία', `Ο πελάτης ${name} προστέθηκε!`, 'alert');
+                if (appData.clients.find(c => c.name.toLowerCase() === name.toLowerCase())) { showCustomDialog('Προσοχή', 'Αυτός ο πελάτης υπάρχει ήδη.'); return; }
+                appData.clients.push({ name: name, targets: {}, isActive: true }); nameInput.value = ''; saveData(); showCustomDialog('Επιτυχία', `Ο πελάτης ${name} προστέθηκε!`, 'alert');
             }
         };
 
         window.deleteClient = function(index) {
             const clientName = appData.clients[index].name;
-            const inReceipts = appData.receipts.some(r => r.client === clientName);
-            const inTasks = appData.tasks.some(t => t.client === clientName);
-            
-            if (inReceipts || inTasks) {
-                let msg = `Δεν μπορείς να διαγράψεις τον πελάτη "${clientName}" διότι χρησιμοποιείται σε: `;
-                let uses = [];
-                if(inReceipts) uses.push("Εισπράξεις");
-                if(inTasks) uses.push("Tasks");
-                showCustomDialog('Αδυναμία Διαγραφής', msg + uses.join(', ') + '. Διαγράψτε πρώτα τις σχετικές εγγραφές.'); 
-                return;
-            }
-            showCustomDialog('Διαγραφή', `Να διαγραφεί οριστικά ο πελάτης "${clientName}";`, 'confirm', () => {
-                appData.clients.splice(index, 1);
-                saveData();
-            });
+            const inReceipts = appData.receipts.some(r => r.client === clientName); const inTasks = appData.tasks.some(t => t.client === clientName);
+            if (inReceipts || inTasks) { showCustomDialog('Αδυναμία Διαγραφής', `Δεν μπορείς να διαγράψεις τον πελάτη "${clientName}" διότι χρησιμοποιείται. Διαγράψτε πρώτα τις σχετικές εγγραφές.`); return; }
+            showCustomDialog('Διαγραφή', `Να διαγραφεί οριστικά ο πελάτης "${clientName}";`, 'confirm', () => { appData.clients.splice(index, 1); saveData(); });
         };
 
         window.openTargetModal = function(clientIndex) {
-            const client = appData.clients[clientIndex];
-            document.getElementById('targetModalClientIndex').value = clientIndex;
-            document.getElementById('targetModalClientName').textContent = client.name;
-            document.getElementById('targetModalAmount').value = (client.targets && client.targets[currentAppYear]) ? client.targets[currentAppYear] : '';
+            const client = appData.clients[clientIndex]; document.getElementById('targetModalClientIndex').value = clientIndex;
+            document.getElementById('targetModalClientName').textContent = client.name; document.getElementById('targetModalAmount').value = (client.targets && client.targets[currentAppYear]) ? client.targets[currentAppYear] : '';
             document.getElementById('targetModal').classList.remove('hidden');
         };
 
         window.closeTargetModal = function() { document.getElementById('targetModal').classList.add('hidden'); };
-
         window.saveTarget = function() {
-            const index = document.getElementById('targetModalClientIndex').value;
-            const amount = parseFloat(document.getElementById('targetModalAmount').value) || 0;
-            if (!appData.clients[index].targets) appData.clients[index].targets = {};
-            appData.clients[index].targets[currentAppYear] = amount;
-            saveData();
-            window.closeTargetModal();
+            const index = document.getElementById('targetModalClientIndex').value; const amount = parseFloat(document.getElementById('targetModalAmount').value) || 0;
+            if (!appData.clients[index].targets) appData.clients[index].targets = {}; appData.clients[index].targets[currentAppYear] = amount; saveData(); window.closeTargetModal();
         };
 
         window.openClientProfile = function(index) {
-            const client = appData.clients[index];
-            document.getElementById('profileClientIndex').value = index;
+            const client = appData.clients[index]; document.getElementById('profileClientIndex').value = index;
             document.getElementById('profileIsActive').checked = client.isActive !== false;
             document.getElementById('profileName').value = client.name || '';
             document.getElementById('profileStartDate').value = client.startDate || '';
             document.getElementById('profileEndDate').value = client.endDate || '';
+            // ΝΕΑ ΠΕΔΙΑ
+            document.getElementById('profileFolderLink').value = client.folderLink || '';
+            document.getElementById('profileNotes').value = client.notes || '';
+            
             document.getElementById('profileGsis').value = client.gsis || '';
             document.getElementById('profileEfka').value = client.efka || '';
             document.getElementById('profileGemi').value = client.gemi || '';
             document.getElementById('profileMyData').value = client.mydata || '';
 
-            const liabContainer = document.getElementById('profileLiabilitiesCheckboxes');
-            liabContainer.innerHTML = '';
-            
-            if (appData.liabilityTypes.length === 0) {
-                liabContainer.innerHTML = '<p class="text-sm text-gray-400 italic">Δεν υπάρχουν διαθέσιμες λίστες. Φτιάξε πρώτα μερικές στις "Ρυθμίσεις".</p>';
-            } else {
+            const liabContainer = document.getElementById('profileLiabilitiesCheckboxes'); liabContainer.innerHTML = '';
+            if (appData.liabilityTypes.length === 0) { liabContainer.innerHTML = '<p class="text-sm text-gray-400 italic">Δεν υπάρχουν διαθέσιμες λίστες.</p>'; } else {
                 appData.liabilityTypes.forEach(lt => {
                     const isChecked = !client.assignedLiabilities || client.assignedLiabilities.includes(lt.id);
-                    liabContainer.innerHTML += `
-                        <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-indigo-50 transition-colors bg-white shadow-sm">
-                            <input type="checkbox" class="profile-liability-cb w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" value="${lt.id}" ${isChecked ? 'checked' : ''}>
-                            <span class="ml-2 text-sm font-medium text-gray-700">${lt.title}</span>
-                        </label>
-                    `;
+                    liabContainer.innerHTML += `<label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-indigo-50 transition-colors bg-white shadow-sm"><input type="checkbox" class="profile-liability-cb w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" value="${lt.id}" ${isChecked ? 'checked' : ''}><span class="ml-2 text-sm font-medium text-gray-700">${lt.title}</span></label>`;
                 });
             }
 
-            const customContainer = document.getElementById('profileCustomFields');
-            customContainer.innerHTML = '';
-            if (client.customFields && client.customFields.length > 0) {
-                client.customFields.forEach(field => window.addCustomFieldRow(field.key, field.value));
-            } else {
-                window.addCustomFieldRow();
-            }
-
+            const customContainer = document.getElementById('profileCustomFields'); customContainer.innerHTML = '';
+            if (client.customFields && client.customFields.length > 0) { client.customFields.forEach(field => window.addCustomFieldRow(field.key, field.value)); } else { window.addCustomFieldRow(); }
             document.getElementById('clientProfileModal').classList.remove('hidden');
         };
 
         window.closeClientProfile = function() { document.getElementById('clientProfileModal').classList.add('hidden'); };
-
         window.addCustomFieldRow = function(key = '', value = '') {
-            const container = document.getElementById('profileCustomFields');
-            const row = document.createElement('div');
-            row.className = "flex gap-2 custom-field-row items-start";
-            row.innerHTML = `
-                <input type="text" class="custom-key w-1/3 border border-gray-300 rounded-lg p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500 shadow-sm bg-gray-50" placeholder="Όνομα πεδίου..." value="${key}">
-                <input type="text" class="custom-val flex-1 border border-gray-300 rounded-lg p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" placeholder="Τιμή..." value="${value}">
-                <button type="button" onclick="this.parentElement.remove()" class="text-indigo-400 hover:text-indigo-600 p-2"><i class="fas fa-times"></i></button>
-            `;
+            const container = document.getElementById('profileCustomFields'); const row = document.createElement('div'); row.className = "flex gap-2 custom-field-row items-start";
+            row.innerHTML = `<input type="text" class="custom-key w-1/3 border border-gray-300 rounded-lg p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500 shadow-sm bg-gray-50" placeholder="Όνομα πεδίου..." value="${key}"><input type="text" class="custom-val flex-1 border border-gray-300 rounded-lg p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" placeholder="Τιμή..." value="${value}"><button type="button" onclick="this.parentElement.remove()" class="text-indigo-400 hover:text-indigo-600 p-2"><i class="fas fa-times"></i></button>`;
             container.appendChild(row);
         };
 
         window.saveClientProfile = function() {
-            const index = document.getElementById('profileClientIndex').value;
-            const oldName = appData.clients[index].name;
-            const newName = document.getElementById('profileName').value.trim();
-            const isActive = document.getElementById('profileIsActive').checked;
-
+            const index = document.getElementById('profileClientIndex').value; const oldName = appData.clients[index].name;
+            const newName = document.getElementById('profileName').value.trim(); const isActive = document.getElementById('profileIsActive').checked;
             if (!newName) { showCustomDialog('Σφάλμα', 'Η Επωνυμία είναι υποχρεωτική.'); return; }
-            if (oldName !== newName && appData.clients.some((c, i) => i != index && c.name.toLowerCase() === newName.toLowerCase())) {
-                showCustomDialog('Σφάλμα', 'Υπάρχει ήδη άλλος πελάτης με αυτό το όνομα.'); return;
-            }
+            if (oldName !== newName && appData.clients.some((c, i) => i != index && c.name.toLowerCase() === newName.toLowerCase())) { showCustomDialog('Σφάλμα', 'Υπάρχει ήδη άλλος πελάτης με αυτό το όνομα.'); return; }
 
-            const assignedLiabilities = [];
-            document.querySelectorAll('.profile-liability-cb:checked').forEach(cb => {
-                assignedLiabilities.push(cb.value);
-            });
-
-            const customFields = [];
-            document.querySelectorAll('.custom-field-row').forEach(row => {
-                const key = row.querySelector('.custom-key').value.trim();
-                const val = row.querySelector('.custom-val').value.trim();
-                if (key || val) customFields.push({ key, value: val });
-            });
+            const assignedLiabilities = []; document.querySelectorAll('.profile-liability-cb:checked').forEach(cb => { assignedLiabilities.push(cb.value); });
+            const customFields = []; document.querySelectorAll('.custom-field-row').forEach(row => { const key = row.querySelector('.custom-key').value.trim(); const val = row.querySelector('.custom-val').value.trim(); if (key || val) customFields.push({ key, value: val }); });
 
             const client = appData.clients[index];
-            client.isActive = isActive;
-            client.name = newName;
-            client.startDate = document.getElementById('profileStartDate').value;
-            client.endDate = document.getElementById('profileEndDate').value;
-            client.gsis = document.getElementById('profileGsis').value;
-            client.efka = document.getElementById('profileEfka').value;
-            client.gemi = document.getElementById('profileGemi').value;
-            client.mydata = document.getElementById('profileMyData').value;
-            client.assignedLiabilities = assignedLiabilities; 
-            client.customFields = customFields;
+            client.isActive = isActive; client.name = newName; client.startDate = document.getElementById('profileStartDate').value; client.endDate = document.getElementById('profileEndDate').value;
+            // Αποθήκευση Νέων Πεδίων
+            client.folderLink = document.getElementById('profileFolderLink').value.trim();
+            client.notes = document.getElementById('profileNotes').value.trim();
+
+            client.gsis = document.getElementById('profileGsis').value; client.efka = document.getElementById('profileEfka').value; client.gemi = document.getElementById('profileGemi').value; client.mydata = document.getElementById('profileMyData').value;
+            client.assignedLiabilities = assignedLiabilities; client.customFields = customFields;
 
             if (oldName !== newName) {
-                appData.receipts.forEach(r => { if(r.client === oldName) r.client = newName; });
-                appData.tasks.forEach(t => { if(t.client === oldName) t.client = newName; });
-                
-                const newCells = {};
-                Object.keys(appData.liabilityCells).forEach(key => {
-                    if (key.includes(`_${oldName}_`)) {
-                        const newKey = key.replace(`_${oldName}_`, `_${newName}_`);
-                        newCells[newKey] = appData.liabilityCells[key];
-                    } else {
-                        newCells[key] = appData.liabilityCells[key];
-                    }
-                });
+                appData.receipts.forEach(r => { if(r.client === oldName) r.client = newName; }); appData.tasks.forEach(t => { if(t.client === oldName) t.client = newName; });
+                const newCells = {}; Object.keys(appData.liabilityCells).forEach(key => { if (key.includes(`_${oldName}_`)) { const newKey = key.replace(`_${oldName}_`, `_${newName}_`); newCells[newKey] = appData.liabilityCells[key]; } else { newCells[key] = appData.liabilityCells[key]; } });
                 appData.liabilityCells = newCells;
             }
-
-            saveData();
-            window.closeClientProfile();
-            showCustomDialog('Επιτυχία', 'Η καρτέλα ενημερώθηκε!');
+            saveData(); window.closeClientProfile(); showCustomDialog('Επιτυχία', 'Η καρτέλα ενημερώθηκε!');
         };
 
         window.saveReceipt = function(e) {
-            e.preventDefault();
-            const client = document.getElementById('clientSelect').value;
-            const amount = parseFloat(document.getElementById('amount').value);
-            const date = document.getElementById('date').value;
-            
-            if (!client || !amount || !date) return;
-            
-            const period = document.getElementById('period').value;
-            const comments = document.getElementById('comments').value;
-            const receiptYear = new Date(date).getFullYear();
-
+            e.preventDefault(); const client = document.getElementById('clientSelect').value; const amount = parseFloat(document.getElementById('amount').value); const date = document.getElementById('date').value;
+            if (!client || !amount || !date) return; const period = document.getElementById('period').value; const comments = document.getElementById('comments').value; const receiptYear = new Date(date).getFullYear();
             if (window.editingReceiptId) {
                 const index = appData.receipts.findIndex(r => r.id === window.editingReceiptId);
-                if (index > -1) {
-                    appData.receipts[index] = { id: window.editingReceiptId, client, amount, date, period, comments };
-                }
+                if (index > -1) appData.receipts[index] = { id: window.editingReceiptId, client, amount, date, period, comments };
                 showCustomDialog('Επιτυχία', 'Η είσπραξη ενημερώθηκε!');
-            } else {
-                appData.receipts.push({
-                    id: Date.now().toString(), client, amount, date, period, comments
-                });
-            }
-            
-            window.cancelEditReceipt();
-            
-            if (receiptYear !== currentAppYear) {
-                currentAppYear = receiptYear;
-                document.getElementById('globalYear').value = currentAppYear;
-            }
-            saveData();
+            } else { appData.receipts.push({ id: Date.now().toString(), client, amount, date, period, comments }); }
+            window.cancelEditReceipt(); if (receiptYear !== currentAppYear) { currentAppYear = receiptYear; document.getElementById('globalYear').value = currentAppYear; } saveData();
         };
 
         window.editReceipt = function(id) {
-            const receipt = appData.receipts.find(r => r.id === id);
-            if (!receipt) return;
-
-            window.editingReceiptId = id;
-            window.showTab('newReceipt');
-
-            document.getElementById('clientSelect').value = receipt.client;
-            document.getElementById('amount').value = receipt.amount;
-            document.getElementById('date').value = receipt.date;
-            document.getElementById('period').value = receipt.period || '';
-            document.getElementById('comments').value = receipt.comments || '';
-
+            const receipt = appData.receipts.find(r => r.id === id); if (!receipt) return; window.editingReceiptId = id; window.showTab('newReceipt');
+            document.getElementById('clientSelect').value = receipt.client; document.getElementById('amount').value = receipt.amount; document.getElementById('date').value = receipt.date; document.getElementById('period').value = receipt.period || ''; document.getElementById('comments').value = receipt.comments || '';
             document.getElementById('formReceiptTitle').innerHTML = '<i class="fas fa-edit text-blue-500 mr-2"></i>Επεξεργασία Είσπραξης';
-            const btnSave = document.getElementById('btnSaveReceipt');
-            btnSave.innerHTML = '<i class="fas fa-save"></i> Ενημέρωση';
-            btnSave.classList.replace('bg-indigo-600', 'bg-blue-600');
-            btnSave.classList.replace('hover:bg-indigo-700', 'hover:bg-blue-700');
-            document.getElementById('btnCancelEdit').classList.remove('hidden');
+            const btnSave = document.getElementById('btnSaveReceipt'); btnSave.innerHTML = '<i class="fas fa-save"></i> Ενημέρωση'; btnSave.classList.replace('bg-indigo-600', 'bg-blue-600'); btnSave.classList.replace('hover:bg-indigo-700', 'hover:bg-blue-700'); document.getElementById('btnCancelEdit').classList.remove('hidden');
         };
 
         window.cancelEditReceipt = function() {
-            window.editingReceiptId = null;
-            document.getElementById('receiptForm').reset();
-            document.getElementById('date').valueAsDate = new Date();
-
-            document.getElementById('formReceiptTitle').textContent = 'Καταχώρηση Νέας Είσπραξης';
-            const btnSave = document.getElementById('btnSaveReceipt');
-            btnSave.innerHTML = '<i class="fas fa-save"></i> Αποθήκευση Είσπραξης';
-            btnSave.classList.replace('bg-blue-600', 'bg-indigo-600');
-            btnSave.classList.replace('hover:bg-blue-700', 'hover:bg-indigo-700');
-            document.getElementById('btnCancelEdit').classList.add('hidden');
-            
-            window.showTab('history');
+            window.editingReceiptId = null; document.getElementById('receiptForm').reset(); document.getElementById('date').valueAsDate = new Date();
+            document.getElementById('formReceiptTitle').textContent = 'Καταχώρηση Νέας Είσπραξης'; const btnSave = document.getElementById('btnSaveReceipt'); btnSave.innerHTML = '<i class="fas fa-save"></i> Αποθήκευση Είσπραξης'; btnSave.classList.replace('bg-blue-600', 'bg-indigo-600'); btnSave.classList.replace('hover:bg-blue-700', 'hover:bg-indigo-700'); document.getElementById('btnCancelEdit').classList.add('hidden'); window.showTab('history');
         };
 
-        window.deleteReceipt = function(id) {
-            showCustomDialog('Διαγραφή', 'Είσαι σίγουρος για τη διαγραφή της είσπραξης;', 'confirm', () => {
-                appData.receipts = appData.receipts.filter(r => r.id !== id);
-                saveData();
-            });
-        };
+        window.deleteReceipt = function(id) { showCustomDialog('Διαγραφή', 'Είσαι σίγουρος για τη διαγραφή της είσπραξης;', 'confirm', () => { appData.receipts = appData.receipts.filter(r => r.id !== id); saveData(); }); };
 
         window.saveLiabilityType = function(e) {
-            e.preventDefault();
-            const title = document.getElementById('liabTypeTitle').value.trim();
-            if(!title) return;
-            
-            appData.liabilityTypes.push({
-                id: 'LT' + Date.now().toString(),
-                title: title
-            });
-            document.getElementById('liabTypeTitle').value = '';
-            saveData();
-            showCustomDialog('Επιτυχία', `Η λίστα "${title}" δημιουργήθηκε! Μπορείς να την δεις στην καρτέλα Υποχρεώσεις.`, 'alert');
+            e.preventDefault(); const title = document.getElementById('liabTypeTitle').value.trim(); if(!title) return;
+            appData.liabilityTypes.push({ id: 'LT' + Date.now().toString(), title: title }); document.getElementById('liabTypeTitle').value = ''; saveData(); showCustomDialog('Επιτυχία', `Η λίστα "${title}" δημιουργήθηκε!`, 'alert');
         };
 
-        window.deleteLiabilityType = function(id) {
-            showCustomDialog('Προσοχή', 'Η διαγραφή θα σβήσει αυτόν τον πίνακα για όλα τα έτη. Σίγουρα;', 'confirm', () => {
-                appData.liabilityTypes = appData.liabilityTypes.filter(t => t.id !== id);
-                if (window.currentLiabilityTypeId === id) window.currentLiabilityTypeId = null;
-                saveData();
-            });
-        };
+        window.deleteLiabilityType = function(id) { showCustomDialog('Προσοχή', 'Η διαγραφή θα σβήσει αυτόν τον πίνακα για όλα τα έτη. Σίγουρα;', 'confirm', () => { appData.liabilityTypes = appData.liabilityTypes.filter(t => t.id !== id); if (window.currentLiabilityTypeId === id) window.currentLiabilityTypeId = null; saveData(); }); };
+        
+        window.switchLiabilityType = function(id) { window.currentLiabilityTypeId = id; renderLiabilitiesModule(); };
+        window.saveLiabilityCell = function(typeId, clientIndex, month, value) { const clientName = appData.clients[clientIndex].name; const cellKey = `${currentAppYear}_${typeId}_${clientName}_${month}`; appData.liabilityCells[cellKey] = value; saveData(); };
 
-        window.switchLiabilityType = function(id) {
-            window.currentLiabilityTypeId = id;
-            renderLiabilitiesModule();
-        };
-
-        window.saveLiabilityCell = function(typeId, clientIndex, month, value) {
-            const clientName = appData.clients[clientIndex].name;
-            const cellKey = `${currentAppYear}_${typeId}_${clientName}_${month}`;
-            appData.liabilityCells[cellKey] = value;
-            saveData(); 
-        };
-
+        // --- TASKS: Προσθήκη Επανάληψης ---
         window.saveTask = function(e) {
-            e.preventDefault();
-            const title = document.getElementById('taskTitle').value;
-            const client = document.getElementById('taskClient').value;
-            const date = document.getElementById('taskDate').value;
+            e.preventDefault(); const title = document.getElementById('taskTitle').value; const client = document.getElementById('taskClient').value; const date = document.getElementById('taskDate').value;
+            const isRecurring = document.getElementById('taskRecurring').checked;
             if (!title || !client) return;
-
             appData.tasks.push({
-                id: 'T' + Date.now().toString(),
-                title, client, date,
-                isCompleted: false,
-                createdAt: new Date().toISOString()
+                id: 'T' + Date.now().toString(), title, client, date,
+                isCompleted: false, isRecurring: isRecurring, createdAt: new Date().toISOString()
             });
-            document.getElementById('taskTitle').value = '';
-            document.getElementById('taskDate').value = '';
-            document.getElementById('taskClient').value = '';
+            document.getElementById('taskTitle').value = ''; document.getElementById('taskDate').value = ''; document.getElementById('taskClient').value = ''; document.getElementById('taskRecurring').checked = false;
             saveData();
         };
 
+        // --- TASKS: Αυτόματη Δημιουργία Επόμενου Μήνα ---
         window.toggleTask = function(id) {
             const task = appData.tasks.find(t => t.id === id);
-            if (task) { task.isCompleted = !task.isCompleted; saveData(); }
+            if (task) { 
+                task.isCompleted = !task.isCompleted; 
+                
+                // Αν μόλις το κάναμε Completed ΚΑΙ είναι Recurring ΚΑΙ έχει ημερομηνία
+                if (task.isCompleted && task.isRecurring && task.date) {
+                    let oldDate = new Date(task.date);
+                    oldDate.setMonth(oldDate.getMonth() + 1); // Προσθήκη 1 μήνα
+                    const nextMonthDate = oldDate.toISOString().split('T')[0];
+                    
+                    // Δημιουργούμε το νέο Task
+                    appData.tasks.push({
+                        id: 'T' + Date.now().toString() + Math.floor(Math.random()*1000),
+                        title: task.title,
+                        client: task.client,
+                        date: nextMonthDate,
+                        isCompleted: false,
+                        isRecurring: true,
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    // Αφαιρούμε το recurring από το παλιό, για να μην ξαναφτιάξει κι άλλο αν το ξε-τικάρει και το ξανα-τικάρει
+                    task.isRecurring = false;
+                    showCustomDialog('Αυτόματη Επανάληψη', `Η εργασία ολοκληρώθηκε και προστέθηκε ξανά αυτόματα για τις ${formatDate(nextMonthDate)}!`);
+                }
+                saveData(); 
+            }
         };
 
-        window.deleteTask = function(id) {
-            appData.tasks = appData.tasks.filter(t => t.id !== id); saveData();
-        };
-
-        window.exportBackup = function() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
-            const dl = document.createElement('a');
-            dl.setAttribute("href", dataStr);
-            dl.setAttribute("download", "New_CRM_Full_Backup.json");
-            document.body.appendChild(dl);
-            dl.click(); dl.remove();
-        };
-
-        window.importBackup = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    if (importedData.clients) {
-                        showCustomDialog('Προσοχή', 'Τα τρέχοντα δεδομένα θα αντικατασταθούν. Είσαι σίγουρος;', 'confirm', () => {
-                            appData = importedData;
-                            sanitizeDataStructure();
-                            saveData();
-                            showCustomDialog('Επιτυχία', 'Επαναφορά επιτυχής!');
-                        });
-                    }
-                } catch (err) { showCustomDialog('Σφάλμα', 'Λάθος αρχείο.'); }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
-        };
-
-        window.exportToCSV = function() {
-            const yearReceipts = appData.receipts.filter(r => new Date(r.date).getFullYear() === currentAppYear).sort((a,b) => new Date(b.date) - new Date(a.date));
-            if (yearReceipts.length === 0) { showCustomDialog('Προσοχή', 'Δεν υπάρχουν δεδομένα.'); return; }
-
-            let csv = "data:text/csv;charset=utf-8,\uFEFFΗμερομηνία,Πελάτης,Ποσό,Περίοδος,Σχόλια\n";
-            yearReceipts.forEach(r => {
-                csv += `${formatDate(r.date)},${r.client},${r.amount.toString().replace('.', ',')},${r.period || ''},${(r.comments || '').replace(/,/g, ' ')}\n`;
-            });
-            const link = document.createElement("a");
-            link.href = encodeURI(csv);
-            link.download = `Receipts_${currentAppYear}.csv`;
-            document.body.appendChild(link);
-            link.click(); link.remove();
-        };
+        window.deleteTask = function(id) { appData.tasks = appData.tasks.filter(t => t.id !== id); saveData(); };
+        window.exportBackup = function() { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", "New_CRM_Full_Backup.json"); document.body.appendChild(dl); dl.click(); dl.remove(); };
+        window.importBackup = function(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const importedData = JSON.parse(e.target.result); if (importedData.clients) { showCustomDialog('Προσοχή', 'Τα τρέχοντα δεδομένα θα αντικατασταθούν;', 'confirm', () => { appData = importedData; sanitizeDataStructure(); saveData(); showCustomDialog('Επιτυχία', 'Επαναφορά επιτυχής!'); }); } } catch (err) { showCustomDialog('Σφάλμα', 'Λάθος αρχείο.'); } }; reader.readAsText(file); event.target.value = ''; };
+        window.exportToCSV = function() { const yearReceipts = appData.receipts.filter(r => new Date(r.date).getFullYear() === currentAppYear).sort((a,b) => new Date(b.date) - new Date(a.date)); if (yearReceipts.length === 0) { showCustomDialog('Προσοχή', 'Δεν υπάρχουν δεδομένα.'); return; } let csv = "data:text/csv;charset=utf-8,\uFEFFΗμερομηνία,Πελάτης,Ποσό,Περίοδος,Σχόλια\n"; yearReceipts.forEach(r => { csv += `${formatDate(r.date)},${r.client},${r.amount.toString().replace('.', ',')},${r.period || ''},${(r.comments || '').replace(/,/g, ' ')}\n`; }); const link = document.createElement("a"); link.href = encodeURI(csv); link.download = `Receipts_${currentAppYear}.csv`; document.body.appendChild(link); link.click(); link.remove(); };
 
         if (document.getElementById('date')) document.getElementById('date').valueAsDate = new Date();
-        loadLocalData();
-        updateUI();
-        initApp(); 
+        loadLocalData(); updateUI(); initApp(); 
         
-        window.showTab = window.showTab || showTab;
-        window.changeYear = window.changeYear || changeYear;
-        window.switchCrmModule = window.switchCrmModule || switchCrmModule;
-        window.renderTasksModule = window.renderTasksModule || renderTasksModule;
-        window.openClientProfile = window.openClientProfile || openClientProfile;
-        window.closeClientProfile = window.closeClientProfile || closeClientProfile;
-        window.saveClientProfile = window.saveClientProfile || saveClientProfile;
-        window.addCustomFieldRow = window.addCustomFieldRow || addCustomFieldRow;
-        window.saveLiabilityType = window.saveLiabilityType || saveLiabilityType;
-        window.deleteLiabilityType = window.deleteLiabilityType || deleteLiabilityType;
-        window.switchLiabilityType = window.switchLiabilityType || switchLiabilityType;
-        window.saveLiabilityCell = window.saveLiabilityCell || saveLiabilityCell;
-        window.editReceipt = window.editReceipt || editReceipt;
-        window.cancelEditReceipt = window.cancelEditReceipt || cancelEditReceipt;
+        window.showTab = window.showTab || showTab; window.changeYear = window.changeYear || changeYear; window.switchCrmModule = window.switchCrmModule || switchCrmModule; window.renderTasksModule = window.renderTasksModule || renderTasksModule; window.openClientProfile = window.openClientProfile || openClientProfile; window.closeClientProfile = window.closeClientProfile || closeClientProfile; window.saveClientProfile = window.saveClientProfile || saveClientProfile; window.addCustomFieldRow = window.addCustomFieldRow || addCustomFieldRow; window.saveLiabilityType = window.saveLiabilityType || saveLiabilityType; window.deleteLiabilityType = window.deleteLiabilityType || deleteLiabilityType; window.switchLiabilityType = window.switchLiabilityType || switchLiabilityType; window.saveLiabilityCell = window.saveLiabilityCell || saveLiabilityCell; window.editReceipt = window.editReceipt || editReceipt; window.cancelEditReceipt = window.cancelEditReceipt || cancelEditReceipt;
+        window.copyToClipboard = window.copyToClipboard || copyToClipboard;
+        window.openClientFolder = window.openClientFolder || openClientFolder;
+        window.renameLiabilityType = window.renameLiabilityType || renameLiabilityType;
 
-        if (appData.clients.length === 0) {
-            window.switchCrmModule('clients');
-        } else {
-            window.switchCrmModule('receipts');
-        }
-
+        if (appData.clients.length === 0) { window.switchCrmModule('clients'); } else { window.switchCrmModule('receipts'); }
     </script>
 </body>
 </html>
