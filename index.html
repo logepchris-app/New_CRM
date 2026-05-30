@@ -162,7 +162,7 @@
 
             <div id="newReceipt" class="tab-content hidden max-w-2xl mx-auto">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-6 border-b pb-2">Καταχώρηση Νέας Είσπραξης</h2>
+                    <h2 id="formReceiptTitle" class="text-xl font-bold text-gray-800 mb-6 border-b pb-2">Καταχώρηση Νέας Είσπραξης</h2>
                     <form id="receiptForm" onsubmit="window.saveReceipt(event)" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Πελάτης *</label>
@@ -192,8 +192,11 @@
                             <textarea id="comments" rows="3" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500" placeholder="π.χ. Προκαταβολή έργου..."></textarea>
                         </div>
 
-                        <div class="pt-4">
-                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-lg transition-colors flex justify-center items-center gap-2">
+                        <div class="pt-4 flex gap-3">
+                            <button type="button" id="btnCancelEdit" onclick="window.cancelEditReceipt()" class="hidden w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 rounded-lg transition-colors">
+                                Ακύρωση
+                            </button>
+                            <button type="submit" id="btnSaveReceipt" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-lg transition-colors flex justify-center items-center gap-2">
                                 <i class="fas fa-save"></i> Αποθήκευση Είσπραξης
                             </button>
                         </div>
@@ -219,7 +222,7 @@
                                     <th class="p-4 font-semibold">Ποσό</th>
                                     <th class="p-4 font-semibold">Περίοδος</th>
                                     <th class="p-4 font-semibold">Σχόλια</th>
-                                    <th class="p-4 font-semibold text-center">Διαγραφή</th>
+                                    <th class="p-4 font-semibold text-center">Ενέργειες</th>
                                 </tr>
                             </thead>
                             <tbody id="historyTableBody" class="divide-y divide-gray-100">
@@ -487,6 +490,7 @@
         let isCloudEnabled = false;
         let db, auth, userDocRef;
         window.currentLiabilityTypeId = null; // Keeps track of active tab in Liabilities
+        window.editingReceiptId = null;       // Κρατάει το ID της είσπραξης που επεξεργαζόμαστε
 
         // Ensure new CRM arrays exist in legacy data
         function sanitizeDataStructure() {
@@ -581,19 +585,17 @@
 
                 window.logout = function() {
                     signOut(auth).then(() => {
-                        // Καθαρισμός τοπικών δεδομένων για ασφάλεια κατά το logout
                         appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {} };
                         updateUI();
                     });
                 };
 
-                // Παρακολούθηση Κατάστασης Χρήστη
+                // Παρακολούθηση Κατάστασης Χτήστη
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         isCloudEnabled = true;
-                        document.getElementById('login-screen').classList.add('hidden'); // Κρύβουμε το lock overlay
+                        document.getElementById('login-screen').classList.add('hidden');
                         
-                        // Η βάση γίνεται πλέον προσωπική ανά UID χρήστη
                         userDocRef = doc(db, 'crm_users', user.uid);
                         
                         onSnapshot(userDocRef, (docSnap) => {
@@ -602,8 +604,8 @@
                                 sanitizeDataStructure();
                                 saveLocalData();
                             } else {
-                                loadLocalData(); // Αν είναι νέος χρήστης, τραβάει τα τοπικά δεδομένα
-                                saveData();      // Και τα ανεβάζει στον δικό του χώρο
+                                loadLocalData();
+                                saveData();
                             }
                             updateUI();
                             document.getElementById('cloud-status').innerHTML = `<i class="fas fa-cloud text-green-400" title="Συνδέθηκε ως: ${user.email}"></i> <span class="hidden sm:inline" title="${user.email}">Συγχρονίζεται</span>`;
@@ -613,7 +615,7 @@
                         });
                     } else {
                         isCloudEnabled = false;
-                        document.getElementById('login-screen').classList.remove('hidden'); // Εμφάνιση οθόνης σύνδεσης
+                        document.getElementById('login-screen').classList.remove('hidden');
                         document.getElementById('cloud-status').innerHTML = '<i class="fas fa-lock text-red-300"></i> <span class="hidden sm:inline">Κλειδωμένο</span>';
                     }
                 });
@@ -885,8 +887,9 @@
                         <td class="p-4 text-green-600 font-bold">${formatCurrency(r.amount)}</td>
                         <td class="p-4 text-gray-500">${r.period || '-'}</td>
                         <td class="p-4 text-gray-500 text-sm max-w-xs truncate" title="${r.comments || ''}">${r.comments || '-'}</td>
-                        <td class="p-4 text-center">
-                            <button onclick="window.deleteReceipt('${r.id}')" class="text-gray-400 hover:text-indigo-600 p-2 rounded-lg hover:bg-indigo-50 transition-colors"><i class="fas fa-trash"></i></button>
+                        <td class="p-4 text-center whitespace-nowrap">
+                            <button onclick="window.editReceipt('${r.id}')" class="text-gray-400 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition-colors mr-1" title="Επεξεργασία"><i class="fas fa-edit"></i></button>
+                            <button onclick="window.deleteReceipt('${r.id}')" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors" title="Διαγραφή"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>
                 `;
@@ -1134,6 +1137,7 @@
             showCustomDialog('Επιτυχία', 'Η καρτέλα ενημερώθηκε!');
         };
 
+        // --- ΕΞΥΠΝΗ ΑΠΟΘΗΚΕΥΣΗ & ΕΠΕΞΕΡΓΑΣΙΑ ΕΙΣΠΡΑΞΕΩΝ ---
         window.saveReceipt = function(e) {
             e.preventDefault();
             const client = document.getElementById('clientSelect').value;
@@ -1142,21 +1146,64 @@
             
             if (!client || !amount || !date) return;
             
+            const period = document.getElementById('period').value;
+            const comments = document.getElementById('comments').value;
             const receiptYear = new Date(date).getFullYear();
-            appData.receipts.push({
-                id: Date.now().toString(), client, amount, date,
-                period: document.getElementById('period').value,
-                comments: document.getElementById('comments').value
-            });
+
+            if (window.editingReceiptId) {
+                const index = appData.receipts.findIndex(r => r.id === window.editingReceiptId);
+                if (index > -1) {
+                    appData.receipts[index] = { id: window.editingReceiptId, client, amount, date, period, comments };
+                }
+                showCustomDialog('Επιτυχία', 'Η είσπραξη ενημερώθηκε!');
+            } else {
+                appData.receipts.push({
+                    id: Date.now().toString(), client, amount, date, period, comments
+                });
+            }
             
-            document.getElementById('receiptForm').reset();
-            document.getElementById('date').valueAsDate = new Date();
+            window.cancelEditReceipt();
             
             if (receiptYear !== currentAppYear) {
                 currentAppYear = receiptYear;
                 document.getElementById('globalYear').value = currentAppYear;
             }
             saveData();
+        };
+
+        window.editReceipt = function(id) {
+            const receipt = appData.receipts.find(r => r.id === id);
+            if (!receipt) return;
+
+            window.editingReceiptId = id;
+            window.showTab('newReceipt');
+
+            document.getElementById('clientSelect').value = receipt.client;
+            document.getElementById('amount').value = receipt.amount;
+            document.getElementById('date').value = receipt.date;
+            document.getElementById('period').value = receipt.period || '';
+            document.getElementById('comments').value = receipt.comments || '';
+
+            document.getElementById('formReceiptTitle').innerHTML = '<i class="fas fa-edit text-blue-500 mr-2"></i>Επεξεργασία Είσπραξης';
+            const btnSave = document.getElementById('btnSaveReceipt');
+            btnSave.innerHTML = '<i class="fas fa-save"></i> Ενημέρωση';
+            btnSave.classList.replace('bg-indigo-600', 'bg-blue-600');
+            btnSave.classList.replace('hover:bg-indigo-700', 'hover:bg-blue-700');
+            document.getElementById('btnCancelEdit').classList.remove('hidden');
+        };
+
+        window.cancelEditReceipt = function() {
+            window.editingReceiptId = null;
+            document.getElementById('receiptForm').reset();
+            document.getElementById('date').valueAsDate = new Date();
+
+            document.getElementById('formReceiptTitle').textContent = 'Καταχώρηση Νέας Είσπραξης';
+            const btnSave = document.getElementById('btnSaveReceipt');
+            btnSave.innerHTML = '<i class="fas fa-save"></i> Αποθήκευση Είσπραξης';
+            btnSave.classList.replace('bg-blue-600', 'bg-indigo-600');
+            btnSave.classList.replace('hover:bg-blue-700', 'hover:bg-indigo-700');
+            document.getElementById('btnCancelEdit').classList.add('hidden');
+            
             window.showTab('history');
         };
 
@@ -1293,6 +1340,8 @@
         window.deleteLiabilityType = window.deleteLiabilityType || deleteLiabilityType;
         window.switchLiabilityType = window.switchLiabilityType || switchLiabilityType;
         window.saveLiabilityCell = window.saveLiabilityCell || saveLiabilityCell;
+        window.editReceipt = window.editReceipt || editReceipt;
+        window.cancelEditReceipt = window.cancelEditReceipt || cancelEditReceipt;
 
         if (appData.clients.length === 0) {
             window.switchCrmModule('clients');
