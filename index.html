@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New CRM</title>
+    <title>New CRM | Logep</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -417,7 +417,6 @@
                     </div>
                 </div>
 
-                <!-- ΝΕΟ ΣΤΟΙΧΕΙΟ: Υπαγωγή σε Λίστες -->
                 <hr class="my-6 border-gray-100">
                 <h4 class="font-bold text-gray-800 mb-2 text-sm uppercase tracking-wider"><i class="fas fa-list-check text-indigo-500 mr-2"></i>Υπαγωγή σε Λίστες Υποχρεώσεων</h4>
                 <p class="text-xs text-gray-500 mb-4">Επίλεξε σε ποιους πίνακες υποχρεώσεων θέλεις να εμφανίζεται ο συγκεκριμένος πελάτης.</p>
@@ -468,9 +467,19 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // ==========================================
+        // ΛΙΣΤΑ ΕΠΙΤΡΕΠΟΜΕΝΩΝ ΧΡΗΣΤΩΝ (WHITELIST)
+        // ==========================================
+        const ALLOWED_EMAILS = [
+            'logepchris@gmail.com' // Βάλε εδώ το δικό σου email
+            // ,'pelatis1@gmail.com' // Βγάλε τα '//' για να προσθέσεις κάποιον
+            // ,'pelatis2@yahoo.gr'
+        ];
+        // ==========================================
+
         // Global State (LOGEp CRM)
         let appData = {
-            clients: [],         // Array of { name, targets, isActive, assignedLiabilities, ... }
+            clients: [],         
             receipts: [],        
             liabilities: [],     
             tasks: [],           
@@ -581,6 +590,15 @@
 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
+                        // --- ΕΛΕΓΧΟΣ ΠΡΟΣΒΑΣΗΣ (Whitelist Switch) ---
+                        if (!ALLOWED_EMAILS.includes(user.email.toLowerCase())) {
+                            signOut(auth).then(() => {
+                                showCustomDialog('Πρόσβαση Αρνήθηκε', `Ο λογαριασμός ${user.email} δεν έχει ενεργή συνδρομή. Παρακαλώ επικοινωνήστε με τη Logep.`);
+                            });
+                            return; // Αποτροπή περαιτέρω εκτέλεσης
+                        }
+                        // ---------------------------------------------
+
                         isCloudEnabled = true;
                         document.getElementById('login-screen').classList.add('hidden');
                         
@@ -877,7 +895,6 @@
             if (sortedReceipts.length === 0) tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-500">Καμία είσπραξη για το έτος ${currentAppYear}.</td></tr>`;
         }
 
-        // Η συνάρτηση που σχεδιάζει τον πίνακα υποχρεώσεων με το νέο Φίλτρο!
         function renderLiabilitiesModule() {
             const container = document.getElementById('liabilitiesTableBody');
             const tabsContainer = document.getElementById('liabilitiesTabs');
@@ -898,7 +915,6 @@
                 </button>
             `).join('');
 
-            // ΕΔΩ ΕΙΝΑΙ Η ΜΑΓΕΙΑ ΤΟΥ ΦΙΛΤΡΟΥ: Δείχνει μόνο πελάτες που είναι Ενεργοί ΚΑΙ έχουν την τρέχουσα Λίστα στις επιλογές τους
             const activeClients = appData.clients.map((c, idx) => ({...c, originalIndex: idx}))
                                                  .filter(c => c.isActive !== false)
                                                  .filter(c => !c.assignedLiabilities || c.assignedLiabilities.includes(window.currentLiabilityTypeId))
@@ -1030,7 +1046,6 @@
             window.closeTargetModal();
         };
 
-        // --- ΑΝΟΙΓΜΑ ΚΑΡΤΕΛΑΣ ΠΕΛΑΤΗ (Με λειτουργία Checkbox για τις λίστες) ---
         window.openClientProfile = function(index) {
             const client = appData.clients[index];
             document.getElementById('profileClientIndex').value = index;
@@ -1043,7 +1058,6 @@
             document.getElementById('profileGemi').value = client.gemi || '';
             document.getElementById('profileMyData').value = client.mydata || '';
 
-            // Χτίσιμο των Checkboxes για τις Λίστες Υποχρεώσεων
             const liabContainer = document.getElementById('profileLiabilitiesCheckboxes');
             liabContainer.innerHTML = '';
             
@@ -1051,7 +1065,6 @@
                 liabContainer.innerHTML = '<p class="text-sm text-gray-400 italic">Δεν υπάρχουν διαθέσιμες λίστες. Φτιάξε πρώτα μερικές στις "Ρυθμίσεις".</p>';
             } else {
                 appData.liabilityTypes.forEach(lt => {
-                    // Αν είναι παλιός πελάτης χωρίς 'assignedLiabilities', θεωρούμε ότι είναι σε όλες
                     const isChecked = !client.assignedLiabilities || client.assignedLiabilities.includes(lt.id);
                     liabContainer.innerHTML += `
                         <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-indigo-50 transition-colors bg-white shadow-sm">
@@ -1087,7 +1100,6 @@
             container.appendChild(row);
         };
 
-        // --- ΑΠΟΘΗΚΕΥΣΗ ΚΑΡΤΕΛΑΣ (Μαζί με τις επιλογές για τις λίστες) ---
         window.saveClientProfile = function() {
             const index = document.getElementById('profileClientIndex').value;
             const oldName = appData.clients[index].name;
@@ -1099,7 +1111,6 @@
                 showCustomDialog('Σφάλμα', 'Υπάρχει ήδη άλλος πελάτης με αυτό το όνομα.'); return;
             }
 
-            // Συγκέντρωση των επιλεγμένων Λιστών
             const assignedLiabilities = [];
             document.querySelectorAll('.profile-liability-cb:checked').forEach(cb => {
                 assignedLiabilities.push(cb.value);
@@ -1121,7 +1132,7 @@
             client.efka = document.getElementById('profileEfka').value;
             client.gemi = document.getElementById('profileGemi').value;
             client.mydata = document.getElementById('profileMyData').value;
-            client.assignedLiabilities = assignedLiabilities; // Αποθήκευση της υπαγωγής
+            client.assignedLiabilities = assignedLiabilities; 
             client.customFields = customFields;
 
             if (oldName !== newName) {
