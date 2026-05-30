@@ -9,6 +9,19 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
 
+    <div id="login-screen" class="fixed inset-0 bg-indigo-900 z-50 flex flex-col items-center justify-center text-white transition-opacity duration-500">
+        <div class="bg-white/10 p-10 rounded-2xl backdrop-blur-md text-center shadow-2xl border border-white/20 max-w-md w-full mx-4">
+            <i class="fas fa-layer-group text-6xl mb-6 text-indigo-300"></i>
+            <h1 class="text-4xl font-black mb-2 tracking-tight">New <span class="font-light">CRM</span></h1>
+            <p class="text-indigo-200 mb-8 text-sm">Απαιτείται ταυτοποίηση για την πρόσβαση στα δεδομένα</p>
+            
+            <button onclick="window.loginWithGoogle()" class="w-full bg-white text-gray-800 font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-3">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6" alt="Google">
+                Είσοδος με Google
+            </button>
+        </div>
+    </div>
+
     <nav class="text-white shadow-lg z-20 relative bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2529&auto=format&fit=crop');">
         <div class="absolute inset-0 bg-indigo-900/80 backdrop-blur-md z-0 pointer-events-none"></div>
         
@@ -26,8 +39,11 @@
 
                 <div class="flex items-center space-x-3">
                     <label for="globalYear" class="text-sm font-medium text-indigo-100 hidden sm:inline drop-shadow-sm">Έτος:</label>
-                    <select id="globalYear" onchange="window.changeYear()" class="bg-white/10 backdrop-blur-md border border-white/30 text-white text-sm rounded-lg focus:ring-white focus:border-white block p-2 cursor-pointer font-bold outline-none shadow-sm">
+                    <select id="globalYear" onchange="window.changeYear()" class="bg-white/10 backdrop-blur-md border border-white/30 text-white text-sm rounded-lg focus:ring-white focus:border-white block p-2 cursor-pointer font-bold outline-none shadow-sm mr-1">
                         </select>
+                    <button onclick="window.logout()" class="text-sm font-medium text-indigo-100 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors" title="Αποσύνδεση">
+                        <i class="fas fa-sign-out-alt text-lg"></i>
+                    </button>
                 </div>
             </div>
             
@@ -90,9 +106,9 @@
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Δημιουργία Νέου Πελάτη</h2>
-                <div class="flex gap-2">
-                    <input type="text" id="newClientName" placeholder="Επωνυμία / Όνομα πελάτη..." class="flex-1 border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
-                    <button onclick="window.addClient()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold transition-colors whitespace-nowrap shadow-sm">
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="newClientName" placeholder="Επωνυμία / Όνομα πελάτη..." class="w-full border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
+                    <button onclick="window.addClient()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold transition-colors whitespace-nowrap shadow-sm flex items-center justify-center">
                         <i class="fas fa-plus mr-1"></i> Άνοιγμα Πελάτη
                     </button>
                 </div>
@@ -309,9 +325,9 @@
                 <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2"><i class="fas fa-list text-indigo-500 mr-2"></i>Λίστες Υποχρεώσεων</h2>
                 <p class="text-sm text-gray-500 mb-6">Δημιούργησε τις κατηγορίες υποχρεώσεων (π.χ. ΦΠΑ, ΑΠΔ, myDATA). Για κάθε κατηγορία δημιουργείται αυτόματα ένας ετήσιος πίνακας 12 στηλών στην καρτέλα "Υποχρεώσεις".</p>
                 
-                <form onsubmit="window.saveLiabilityType(event)" class="flex gap-3 mb-8">
-                    <input type="text" id="liabTypeTitle" required class="flex-1 border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" placeholder="Ονομασία Νέας Λίστας (π.χ. ΦΠΑ)...">
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
+                <form onsubmit="window.saveLiabilityType(event)" class="flex flex-col sm:flex-row gap-3 mb-8">
+                    <input type="text" id="liabTypeTitle" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" placeholder="Ονομασία Νέας Λίστας (π.χ. ΦΠΑ)...">
+                    <button type="submit" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm">
                         <i class="fas fa-plus"></i> Προσθήκη
                     </button>
                 </form>
@@ -454,7 +470,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global State (LOGEp CRM Data Structure)
@@ -538,10 +554,9 @@
             setTimeout(() => { dialog.classList.add('hidden'); }, 300);
         }
 
-        // --- NEW FIREBASE CLOUD SYNC LOGIC ---
+        // --- FIREBASE GOOGLE AUTH & CLOUD SYNC ---
         function initApp() {
             try {
-                // Τα δικά σου κλειδιά απευθείας στον κώδικα
                 const firebaseConfig = {
                     apiKey: "AIzaSyDlQGXb7M2xpQ7yfjojF1VPuPgEV7slUGU",
                     authDomain: "fstracker-47c31.firebaseapp.com",
@@ -554,35 +569,52 @@
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
+                const provider = new GoogleAuthProvider();
 
-                // Ανώνυμη σύνδεση για να παρακάμπτει τους κανόνες ασφαλείας
-                signInAnonymously(auth).catch((error) => {
-                    console.error("Auth error:", error);
-                    fallbackToLocal();
-                });
+                // Λειτουργία Login / Logout
+                window.loginWithGoogle = function() {
+                    signInWithPopup(auth, provider).catch((error) => {
+                        console.error("Σφάλμα σύνδεσης:", error);
+                        showCustomDialog('Σφάλμα', 'Η σύνδεση απέτυχε. Δοκίμασε ξανά.');
+                    });
+                };
 
+                window.logout = function() {
+                    signOut(auth).then(() => {
+                        // Καθαρισμός τοπικών δεδομένων για ασφάλεια κατά το logout
+                        appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {} };
+                        updateUI();
+                    });
+                };
+
+                // Παρακολούθηση Κατάστασης Χρήστη
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         isCloudEnabled = true;
+                        document.getElementById('login-screen').classList.add('hidden'); // Κρύβουμε το lock overlay
                         
-                        // Σταθερό έγγραφο για να βλέπουν όλες οι συσκευές σου τα ίδια δεδομένα!
-                        userDocRef = doc(db, 'crm_data', 'main_data');
+                        // Η βάση γίνεται πλέον προσωπική ανά UID χρήστη
+                        userDocRef = doc(db, 'crm_users', user.uid);
                         
                         onSnapshot(userDocRef, (docSnap) => {
                             if (docSnap.exists()) {
-                                appData = docSnap.data(); // Ανάκτηση των δεδομένων
+                                appData = docSnap.data();
                                 sanitizeDataStructure();
-                                saveLocalData(); // Κρατάμε και τοπικό αντίγραφο
+                                saveLocalData();
                             } else {
-                                loadLocalData(); // Αν είναι νέα η βάση, παίρνουμε τα τοπικά σου
-                                saveData();      // Και τα στέλνουμε στο Cloud
+                                loadLocalData(); // Αν είναι νέος χρήστης, τραβάει τα τοπικά δεδομένα
+                                saveData();      // Και τα ανεβάζει στον δικό του χώρο
                             }
                             updateUI();
-                            document.getElementById('cloud-status').innerHTML = '<i class="fas fa-cloud text-indigo-300" title="Συγχρονίστηκε στο Cloud"></i> <span class="hidden sm:inline">Συγχρονίζεται</span>';
+                            document.getElementById('cloud-status').innerHTML = `<i class="fas fa-cloud text-green-400" title="Συνδέθηκε ως: ${user.email}"></i> <span class="hidden sm:inline" title="${user.email}">Συγχρονίζεται</span>`;
                         }, (error) => {
                             console.error("Snapshot error:", error);
                             fallbackToLocal();
                         });
+                    } else {
+                        isCloudEnabled = false;
+                        document.getElementById('login-screen').classList.remove('hidden'); // Εμφάνιση οθόνης σύνδεσης
+                        document.getElementById('cloud-status').innerHTML = '<i class="fas fa-lock text-red-300"></i> <span class="hidden sm:inline">Κλειδωμένο</span>';
                     }
                 });
             } catch (e) {
@@ -676,13 +708,11 @@
             document.getElementById(`subnav-${moduleName}`).classList.remove('hidden');
 
             document.querySelectorAll('.crm-nav-btn').forEach(el => {
-                // Change classes for the indigo transparent design
                 el.classList.remove('bg-white', 'text-indigo-900', 'font-bold');
                 el.classList.add('text-indigo-100', 'font-medium', 'hover:bg-white/20');
             });
             const activeBtn = document.getElementById(`nav-${moduleName}`);
             if(activeBtn) {
-                // Apply active classes for the indigo transparent design
                 activeBtn.classList.remove('text-indigo-100', 'font-medium', 'hover:bg-white/20');
                 activeBtn.classList.add('bg-white', 'text-indigo-900', 'font-bold');
             }
@@ -705,29 +735,19 @@
             }
         };
 
-        // Populate all Client Dropdowns across the app
         function populateClientDropdowns() {
-            // Sort clients alphabetically
             const sortedClients = [...appData.clients].sort((a, b) => a.name.localeCompare(b.name));
-            
-            // Reusable string generator
             const generateOptions = (defaultText) => {
                 let html = `<option value="">${defaultText}</option>`;
                 sortedClients.forEach(c => { html += `<option value="${c.name}">${c.name}</option>`; });
                 return html;
             };
 
-            // Receipts Form (Required)
             document.getElementById('clientSelect').innerHTML = generateOptions("Επίλεξε πελάτη...");
-            
-            // Tasks Form (Required)
             document.getElementById('taskClient').innerHTML = generateOptions("Επίλεξε πελάτη *");
-            
-            // Tasks Filter (Optional)
             document.getElementById('taskFilterClient').innerHTML = generateOptions("Όλοι οι Πελάτες");
         }
 
-        // Master UI Updater
         function updateUI() {
             initYearSelector();
             populateClientDropdowns();
@@ -739,7 +759,6 @@
             renderConfigModule();
         }
 
-        // --- Render Config (Ρυθμίσεις / Liability Types) ---
         function renderConfigModule() {
             const list = document.getElementById('liabilityTypesList');
             if(!list) return;
@@ -760,13 +779,11 @@
             });
         }
 
-        // --- Render Clients (Master List) ---
         function renderClientsModule() {
             const clientsList = document.getElementById('clientsList');
             clientsList.innerHTML = '';
             document.getElementById('totalClientsCount').textContent = `${appData.clients.length} Πελάτες`;
             
-            // Sort clients alphabetically for the view
             const sortedClients = [...appData.clients].map((c, originalIndex) => ({...c, originalIndex}))
                                                       .sort((a,b) => a.name.localeCompare(b.name));
 
@@ -799,11 +816,9 @@
             }
         }
 
-        // --- Render Receipts ---
         function renderReceiptsModule() {
             const yearReceipts = appData.receipts.filter(r => new Date(r.date).getFullYear() === currentAppYear);
 
-            // Dashboard Totals
             let totalTarget = 0;
             appData.clients.forEach(c => { if(c.targets && c.targets[currentAppYear]) totalTarget += parseFloat(c.targets[currentAppYear]); });
             const totalCollected = yearReceipts.reduce((sum, r) => sum + parseFloat(r.amount), 0);
@@ -816,11 +831,9 @@
             document.getElementById('dashTotalPercent').textContent = progressPercent.toFixed(1) + '%';
             document.getElementById('dashTotalProgressBar').style.width = progressPercent + '%';
 
-            // Dashboard Client Rows (Horizontal)
             const clientsGrid = document.getElementById('dashboardClientsGrid');
             clientsGrid.innerHTML = '';
             
-            // Sort by collected amount descending
             const clientsPerformance = appData.clients.map(client => {
                 const cTarget = (client.targets && client.targets[currentAppYear]) ? parseFloat(client.targets[currentAppYear]) : 0;
                 const cCollected = yearReceipts.filter(r => r.client === client.name).reduce((sum, r) => sum + parseFloat(r.amount), 0);
@@ -861,7 +874,6 @@
             });
             if (clientsGrid.innerHTML === '') clientsGrid.innerHTML = `<p class="text-gray-500 text-sm italic p-4 bg-white rounded-lg border border-dashed text-center">Δεν υπάρχουν δεδομένα. Ορίστε στόχους στην καρτέλα "Πελάτες".</p>`;
 
-            // History Table
             const tbody = document.getElementById('historyTableBody');
             tbody.innerHTML = '';
             const sortedReceipts = [...yearReceipts].sort((a,b) => new Date(b.date) - new Date(a.date));
@@ -882,31 +894,26 @@
             if (sortedReceipts.length === 0) tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-500">Καμία είσπραξη για το έτος ${currentAppYear}.</td></tr>`;
         }
 
-        // --- Render Liabilities (New Grid View) ---
         function renderLiabilitiesModule() {
             const container = document.getElementById('liabilitiesTableBody');
             const tabsContainer = document.getElementById('liabilitiesTabs');
             
-            // Check if lists exist
             if (!appData.liabilityTypes || appData.liabilityTypes.length === 0) {
                 tabsContainer.innerHTML = '';
                 container.innerHTML = `<tr><td colspan="13" class="p-8 text-center text-gray-500 bg-white">Δεν υπάρχουν κατηγορίες. Πήγαινε στις "Ρυθμίσεις" για να φτιάξεις μία (π.χ. ΦΠΑ).</td></tr>`;
                 return;
             }
 
-            // Set default active tab
             if (!window.currentLiabilityTypeId || !appData.liabilityTypes.find(t => t.id === window.currentLiabilityTypeId)) {
                 window.currentLiabilityTypeId = appData.liabilityTypes[0].id;
             }
 
-            // Render Tabs
             tabsContainer.innerHTML = appData.liabilityTypes.map(type => `
                 <button onclick="window.switchLiabilityType('${type.id}')" class="px-6 py-2.5 font-bold text-sm whitespace-nowrap border-b-[3px] transition-colors outline-none ${type.id === window.currentLiabilityTypeId ? 'border-indigo-600 text-indigo-900 bg-white rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'}">
                     ${type.title}
                 </button>
             `).join('');
 
-            // Get active clients mapped with original index for safe JS parameters
             const activeClients = appData.clients.map((c, idx) => ({...c, originalIndex: idx}))
                                                  .filter(c => c.isActive !== false)
                                                  .sort((a,b) => a.name.localeCompare(b.name));
@@ -917,7 +924,6 @@
                 return;
             }
 
-            // Build Grid Rows
             activeClients.forEach(c => {
                 let rowHTML = `<tr class="hover:bg-indigo-50/30 border-b border-gray-100 bg-white group transition-colors">
                     <td class="p-3 border-r border-gray-100 font-bold text-gray-800 text-sm sticky left-0 bg-white group-hover:bg-indigo-50/50 z-10 max-w-[250px] truncate" title="${c.name}">${c.name}</td>`;
@@ -939,7 +945,6 @@
             });
         }
 
-        // --- Render Tasks ---
         window.renderTasksModule = function() {
             const tasksList = document.getElementById('tasksList');
             tasksList.innerHTML = '';
@@ -947,7 +952,6 @@
             const filterStatus = document.getElementById('taskFilterStatus').value;
             const filterClient = document.getElementById('taskFilterClient').value;
 
-            // Apply Filters
             let filteredTasks = appData.tasks.filter(t => {
                 let matchStatus = (filterStatus === 'all') || 
                                   (filterStatus === 'pending' && !t.isCompleted) || 
@@ -956,7 +960,6 @@
                 return matchStatus && matchClient;
             });
 
-            // Sort
             filteredTasks.sort((a,b) => {
                 if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1;
                 if (!a.date && !b.date) return 0;
@@ -989,7 +992,6 @@
             }
         };
 
-        // --- Client Actions ---
         window.addClient = function() {
             const nameInput = document.getElementById('newClientName');
             const name = nameInput.value.trim();
@@ -997,7 +999,6 @@
                 if (appData.clients.find(c => c.name.toLowerCase() === name.toLowerCase())) {
                     showCustomDialog('Προσοχή', 'Αυτός ο πελάτης υπάρχει ήδη.'); return;
                 }
-                // Add with default isActive = true
                 appData.clients.push({ name: name, targets: {}, isActive: true });
                 nameInput.value = '';
                 saveData();
@@ -1043,7 +1044,6 @@
             window.closeTargetModal();
         };
 
-        // --- Client Profile (Καρτέλα Πελάτη) Actions ---
         window.openClientProfile = function(index) {
             const client = appData.clients[index];
             document.getElementById('profileClientIndex').value = index;
@@ -1117,7 +1117,6 @@
                 appData.receipts.forEach(r => { if(r.client === oldName) r.client = newName; });
                 appData.tasks.forEach(t => { if(t.client === oldName) t.client = newName; });
                 
-                // Migrate Liability Cells if name changes (Complex key mapping)
                 const newCells = {};
                 Object.keys(appData.liabilityCells).forEach(key => {
                     if (key.includes(`_${oldName}_`)) {
@@ -1135,7 +1134,6 @@
             showCustomDialog('Επιτυχία', 'Η καρτέλα ενημερώθηκε!');
         };
 
-        // --- Receipts Actions ---
         window.saveReceipt = function(e) {
             e.preventDefault();
             const client = document.getElementById('clientSelect').value;
@@ -1169,7 +1167,6 @@
             });
         };
 
-        // --- Liability Grid Actions ---
         window.saveLiabilityType = function(e) {
             e.preventDefault();
             const title = document.getElementById('liabTypeTitle').value.trim();
@@ -1204,7 +1201,6 @@
             saveData(); 
         };
 
-        // --- Tasks Actions ---
         window.saveTask = function(e) {
             e.preventDefault();
             const title = document.getElementById('taskTitle').value;
@@ -1233,7 +1229,6 @@
             appData.tasks = appData.tasks.filter(t => t.id !== id); saveData();
         };
 
-        // --- Backup & Export ---
         window.exportBackup = function() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
             const dl = document.createElement('a');
