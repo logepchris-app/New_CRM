@@ -9,6 +9,7 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
 
+    <!-- Login Screen Overlay -->
     <div id="login-screen" class="fixed inset-0 bg-indigo-900 z-50 flex flex-col items-center justify-center text-white transition-opacity duration-500">
         <div class="bg-white/10 p-10 rounded-2xl backdrop-blur-md text-center shadow-2xl border border-white/20 max-w-md w-full mx-4">
             <i class="fas fa-layer-group text-6xl mb-6 text-indigo-300"></i>
@@ -22,11 +23,13 @@
         </div>
     </div>
 
+    <!-- Top Navigation Bar -->
     <nav class="text-white shadow-lg z-20 relative bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2529&auto=format&fit=crop');">
         <div class="absolute inset-0 bg-indigo-900/80 backdrop-blur-md z-0 pointer-events-none"></div>
         
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="flex justify-between items-center h-16">
+                <!-- Brand -->
                 <div class="flex items-center gap-3 pr-4">
                     <div class="bg-white/90 text-indigo-900 p-2 rounded-lg shadow-sm backdrop-blur-sm">
                         <i class="fas fa-layer-group text-xl"></i>
@@ -37,10 +40,11 @@
                     </div>
                 </div>
 
+                <!-- Global Actions -->
                 <div class="flex items-center space-x-3">
                     <label for="globalYear" class="text-sm font-medium text-indigo-100 hidden sm:inline drop-shadow-sm">Έτος:</label>
                     <select id="globalYear" onchange="window.changeYear()" class="bg-white/10 backdrop-blur-md border border-white/30 text-white text-sm rounded-lg focus:ring-white focus:border-white block p-2 cursor-pointer font-bold outline-none shadow-sm mr-1">
-                        </select>
+                    </select>
                     <button onclick="window.logout()" class="text-sm font-medium text-indigo-100 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors" title="Αποσύνδεση">
                         <i class="fas fa-sign-out-alt text-lg"></i>
                     </button>
@@ -58,48 +62,42 @@
         </div>
     </nav>
 
+    <!-- Sub Navigation Bar -->
     <nav class="bg-white shadow-sm border-b border-gray-200 z-10 relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
             <div id="subnav-clients" class="subnav-container flex overflow-x-auto py-3 space-x-6 text-sm">
                 <span class="font-bold text-gray-800 border-b-2 border-gray-800 pb-1 whitespace-nowrap"><i class="fas fa-address-book mr-1"></i> Πελατολόγιο & Στόχοι</span>
             </div>
-
             <div id="subnav-receipts" class="subnav-container hidden flex overflow-x-auto py-3 space-x-6 text-sm">
                 <button onclick="window.showTab('dashboard')" id="tab-dashboard" class="tab-btn font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1 whitespace-nowrap"><i class="fas fa-chart-pie mr-1"></i> Dashboard</button>
                 <button onclick="window.showTab('newReceipt')" id="tab-newReceipt" class="tab-btn font-medium text-gray-500 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 pb-1 whitespace-nowrap"><i class="fas fa-plus-circle mr-1"></i> Νέα Είσπραξη</button>
                 <button onclick="window.showTab('history')" id="tab-history" class="tab-btn font-medium text-gray-500 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 pb-1 whitespace-nowrap"><i class="fas fa-list-ul mr-1"></i> Ιστορικό</button>
             </div>
-
             <div id="subnav-liabilities" class="subnav-container hidden flex overflow-x-auto py-3 space-x-6 text-sm">
                 <span class="font-bold text-gray-800 border-b-2 border-gray-800 pb-1 whitespace-nowrap"><i class="fas fa-file-invoice-dollar mr-1"></i> Λίστα Υποχρεώσεων</span>
             </div>
-
             <div id="subnav-tasks" class="subnav-container hidden flex overflow-x-auto py-3 space-x-6 text-sm">
                 <span class="font-bold text-gray-800 border-b-2 border-gray-800 pb-1 whitespace-nowrap"><i class="fas fa-tasks mr-1"></i> To-Do List & Φίλτρα</span>
             </div>
-
             <div id="subnav-config" class="subnav-container hidden flex overflow-x-auto py-3 space-x-6 text-sm">
                 <span class="font-bold text-gray-800 border-b-2 border-gray-800 pb-1 whitespace-nowrap"><i class="fas fa-cogs mr-1"></i> Παράμετροι & Καταχωρήσεις Συστήματος</span>
             </div>
-
             <div id="subnav-settings" class="subnav-container hidden flex overflow-x-auto py-3 space-x-6 text-sm">
                 <span class="font-bold text-gray-800 border-b-2 border-gray-800 pb-1 whitespace-nowrap"><i class="fas fa-database mr-1"></i> Διαχείριση Δεδομένων</span>
             </div>
-            
         </div>
     </nav>
 
+    <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
+        <!-- MODULE 0: ΠΕΛΑΤΕΣ -->
         <div id="module-clients" class="crm-module block max-w-4xl mx-auto">
             <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r-lg">
                 <div class="flex">
                     <div class="flex-shrink-0"><i class="fas fa-info-circle text-indigo-500"></i></div>
                     <div class="ml-3">
-                        <p class="text-sm text-indigo-700">
-                            Οι Πελάτες είναι ο πυρήνας του CRM. Άνοιξε εδώ τον πελάτη σου για να μπορέσεις να τον επιλέξεις στις Εισπράξεις, στις Υποχρεώσεις και στα Tasks.
-                        </p>
+                        <p class="text-sm text-indigo-700">Οι Πελάτες είναι ο πυρήνας του CRM. Άνοιξε εδώ τον πελάτη σου για να μπορέσεις να τον επιλέξεις στις Εισπράξεις, στις Υποχρεώσεις και στα Tasks.</p>
                     </div>
                 </div>
             </div>
@@ -119,13 +117,13 @@
                     <h3 class="font-bold text-gray-700">Λίστα Πελατών & Στόχοι (<span class="display-year text-indigo-600"></span>)</h3>
                     <span class="text-sm text-gray-500" id="totalClientsCount">0 Πελάτες</span>
                 </div>
-                <ul id="clientsList" class="divide-y divide-gray-100">
-                    </ul>
+                <ul id="clientsList" class="divide-y divide-gray-100"></ul>
             </div>
         </div>
 
+        <!-- MODULE 1: ΕΙΣΠΡΑΞΕΙΣ -->
         <div id="module-receipts" class="crm-module hidden">
-            
+            <!-- Tab 1: Dashboard -->
             <div id="dashboard" class="tab-content block">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
                     <h2 class="text-xl font-bold text-gray-800 mb-4">Συνολική Εικόνα (<span class="display-year"></span>)</h2>
@@ -143,7 +141,6 @@
                             <p id="dashTotalRemaining" class="text-3xl font-bold text-orange-900 mt-1">0 €</p>
                         </div>
                     </div>
-                    
                     <div class="mt-6">
                         <div class="flex justify-between text-sm font-medium mb-1">
                             <span class="text-gray-700">Πρόοδος Έτους</span>
@@ -154,12 +151,11 @@
                         </div>
                     </div>
                 </div>
-
                 <h3 class="text-lg font-bold text-gray-800 mb-4 mt-8">Ανάλυση ανά Πελάτη (<span class="display-year"></span>)</h3>
-                <div id="dashboardClientsGrid" class="flex flex-col gap-4">
-                    </div>
+                <div id="dashboardClientsGrid" class="flex flex-col gap-4"></div>
             </div>
 
+            <!-- Tab 2: New Receipt -->
             <div id="newReceipt" class="tab-content hidden max-w-2xl mx-auto">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h2 id="formReceiptTitle" class="text-xl font-bold text-gray-800 mb-6 border-b pb-2">Καταχώρηση Νέας Είσπραξης</h2>
@@ -170,7 +166,6 @@
                                 <option value="">Επίλεξε πελάτη...</option>
                             </select>
                         </div>
-
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Ποσό (€) *</label>
@@ -181,21 +176,16 @@
                                 <input type="date" id="date" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
                             </div>
                         </div>
-
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Περίοδος Αναφοράς</label>
                             <input type="text" id="period" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500" placeholder="π.χ. Ιανουάριος - Μάρτιος 2024">
                         </div>
-
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Σχόλια / Αιτιολογία</label>
                             <textarea id="comments" rows="3" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500" placeholder="π.χ. Προκαταβολή έργου..."></textarea>
                         </div>
-
                         <div class="pt-4 flex gap-3">
-                            <button type="button" id="btnCancelEdit" onclick="window.cancelEditReceipt()" class="hidden w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 rounded-lg transition-colors">
-                                Ακύρωση
-                            </button>
+                            <button type="button" id="btnCancelEdit" onclick="window.cancelEditReceipt()" class="hidden w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 rounded-lg transition-colors">Ακύρωση</button>
                             <button type="submit" id="btnSaveReceipt" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-lg transition-colors flex justify-center items-center gap-2">
                                 <i class="fas fa-save"></i> Αποθήκευση Είσπραξης
                             </button>
@@ -204,6 +194,7 @@
                 </div>
             </div>
 
+            <!-- Tab 3: History -->
             <div id="history" class="tab-content hidden">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <h2 class="text-xl font-bold text-gray-800">Ιστορικό Εισπράξεων (<span class="display-year"></span>)</h2>
@@ -211,7 +202,6 @@
                         <i class="fas fa-file-excel"></i> Εξαγωγή CSV
                     </button>
                 </div>
-                
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm">
@@ -225,29 +215,30 @@
                                     <th class="p-4 font-semibold text-center">Ενέργειες</th>
                                 </tr>
                             </thead>
-                            <tbody id="historyTableBody" class="divide-y divide-gray-100">
-                                </tbody>
+                            <tbody id="historyTableBody" class="divide-y divide-gray-100"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- MODULE 2: ΥΠΟΧΡΕΩΣΕΙΣ -->
         <div id="module-liabilities" class="crm-module hidden max-w-[95%] mx-auto">
             <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r-lg">
                 <div class="flex">
                     <div class="flex-shrink-0"><i class="fas fa-table text-indigo-500"></i></div>
                     <div class="ml-3">
                         <p class="text-sm text-indigo-700">
-                            <strong>Πίνακες Υποχρεώσεων (<span class="display-year text-indigo-900 font-bold"></span>):</strong> Εδώ εμφανίζονται οι πίνακες για τους <strong>Ενεργούς Πελάτες</strong>. Μπορείς να γράψεις ελεύθερα ημερομηνίες ή κείμενο (π.χ. Posted). Για να δημιουργήσεις νέα λίστα, πήγαινε στις <strong>Ρυθμίσεις</strong>. 
+                            <strong>Πίνακες Υποχρεώσεων (<span class="display-year text-indigo-900 font-bold"></span>):</strong> Εδώ εμφανίζονται οι πελάτες που έχεις επιλέξει να υπάγονται στην εκάστοτε υποχρέωση (μέσα από την καρτέλα τους).
                         </p>
                     </div>
                 </div>
             </div>
 
-            <div class="flex overflow-x-auto space-x-2 border-b border-gray-200 mb-4" id="liabilitiesTabs">
-                </div>
+            <!-- Tabs for Liability Types -->
+            <div class="flex overflow-x-auto space-x-2 border-b border-gray-200 mb-4" id="liabilitiesTabs"></div>
 
+            <!-- The Data Grid -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse min-w-max">
@@ -268,15 +259,14 @@
                                 <th class="p-3 border-b border-gray-200 font-semibold text-center w-[100px]">12</th>
                             </tr>
                         </thead>
-                        <tbody id="liabilitiesTableBody" class="divide-y divide-gray-100">
-                            </tbody>
+                        <tbody id="liabilitiesTableBody" class="divide-y divide-gray-100"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
+        <!-- MODULE 3: TASKS -->
         <div id="module-tasks" class="crm-module hidden max-w-4xl mx-auto">
-            
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                 <div class="bg-indigo-600 p-6 text-white flex justify-between items-center flex-wrap gap-4">
                     <div>
@@ -288,13 +278,10 @@
                 <div class="p-4 border-b border-gray-100 bg-gray-50">
                     <form onsubmit="window.saveTask(event)" class="flex flex-col sm:flex-row gap-3">
                         <input type="text" id="taskTitle" required placeholder="Τι πρέπει να κάνεις;" class="flex-1 border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
-                        
                         <select id="taskClient" required class="sm:w-48 border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm bg-white client-dropdown">
                             <option value="">Επίλεξε πελάτη *</option>
                         </select>
-
                         <input type="date" id="taskDate" class="sm:w-40 border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-sm" title="Προθεσμία">
-                        
                         <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold transition-colors shadow-sm">
                             <i class="fas fa-plus"></i> Προσθήκη
                         </button>
@@ -313,17 +300,15 @@
                         </select>
                         <select id="taskFilterClient" onchange="window.renderTasksModule()" class="border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 w-full sm:w-auto client-dropdown">
                             <option value="">Όλοι οι Πελάτες</option>
-                            </select>
+                        </select>
                     </div>
                 </div>
-
-                <ul id="tasksList" class="divide-y divide-gray-100 max-h-[60vh] overflow-y-auto bg-gray-50/50">
-                    </ul>
+                <ul id="tasksList" class="divide-y divide-gray-100 max-h-[60vh] overflow-y-auto bg-gray-50/50"></ul>
             </div>
         </div>
 
+        <!-- MODULE 4: ΡΥΘΜΙΣΕΙΣ -->
         <div id="module-config" class="crm-module hidden max-w-4xl mx-auto">
-            
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2"><i class="fas fa-list text-indigo-500 mr-2"></i>Λίστες Υποχρεώσεων</h2>
                 <p class="text-sm text-gray-500 mb-6">Δημιούργησε τις κατηγορίες υποχρεώσεων (π.χ. ΦΠΑ, ΑΠΔ, myDATA). Για κάθε κατηγορία δημιουργείται αυτόματα ένας ετήσιος πίνακας 12 στηλών στην καρτέλα "Υποχρεώσεις".</p>
@@ -336,12 +321,11 @@
                 </form>
 
                 <h4 class="font-bold text-gray-700 mb-3 text-sm uppercase tracking-wider">Υπάρχουσες Λίστες</h4>
-                <ul id="liabilityTypesList" class="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-                    </ul>
+                <ul id="liabilityTypesList" class="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden bg-gray-50"></ul>
             </div>
-
         </div>
 
+        <!-- MODULE 5: BACKUP -->
         <div id="module-settings" class="crm-module hidden max-w-2xl mx-auto">
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
                 <div class="flex items-center gap-3 mb-4 border-b pb-4">
@@ -373,17 +357,18 @@
 
     </main>
 
+    <!-- Modal Dialogs -->
     <div id="customDialog" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center transition-opacity duration-300 opacity-0">
         <div id="customDialogContent" class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 transform scale-95 transition-transform duration-300 overflow-hidden">
             <div class="p-6">
                 <h3 id="dialogTitle" class="text-lg font-bold text-gray-900 mb-2">Title</h3>
                 <p id="dialogMessage" class="text-gray-600">Message</p>
             </div>
-            <div class="bg-gray-50 px-6 py-3 flex justify-end gap-3" id="dialogButtons">
-                </div>
+            <div class="bg-gray-50 px-6 py-3 flex justify-end gap-3" id="dialogButtons"></div>
         </div>
     </div>
 
+    <!-- Target Set Modal -->
     <div id="targetModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
         <div class="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full mx-4">
             <h3 class="text-lg font-bold text-gray-900 mb-4">Ορισμός Στόχου (<span class="display-year text-indigo-600"></span>)</h3>
@@ -397,6 +382,7 @@
         </div>
     </div>
 
+    <!-- Client Profile Modal (Καρτέλα Πελάτη) -->
     <div id="clientProfileModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center py-4">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-full flex flex-col overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
@@ -418,7 +404,6 @@
                 <div class="mb-6">
                     <label class="block text-sm font-bold text-gray-700 mb-1">Επωνυμία / Όνομα Πελάτη *</label>
                     <input type="text" id="profileName" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 font-bold text-lg text-indigo-900 shadow-sm" required>
-                    <p class="text-xs text-gray-500 mt-1">Αν αλλάξεις το όνομα, θα ενημερωθούν αυτόματα και όλες οι εγγραφές του.</p>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -430,6 +415,14 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Λήξη Σχέσης</label>
                         <input type="date" id="profileEndDate" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
                     </div>
+                </div>
+
+                <!-- ΝΕΟ ΣΤΟΙΧΕΙΟ: Υπαγωγή σε Λίστες -->
+                <hr class="my-6 border-gray-100">
+                <h4 class="font-bold text-gray-800 mb-2 text-sm uppercase tracking-wider"><i class="fas fa-list-check text-indigo-500 mr-2"></i>Υπαγωγή σε Λίστες Υποχρεώσεων</h4>
+                <p class="text-xs text-gray-500 mb-4">Επίλεξε σε ποιους πίνακες υποχρεώσεων θέλεις να εμφανίζεται ο συγκεκριμένος πελάτης.</p>
+                <div id="profileLiabilitiesCheckboxes" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+                    <!-- Checkboxes injected by JS -->
                 </div>
 
                 <hr class="my-6 border-gray-100">
@@ -459,9 +452,7 @@
                     <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wider">Επιπλέον Πεδία (Custom)</h4>
                     <button type="button" onclick="window.addCustomFieldRow()" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium bg-indigo-50 px-3 py-1 rounded-full"><i class="fas fa-plus mr-1"></i>Προσθήκη</button>
                 </div>
-                
-                <div id="profileCustomFields" class="space-y-3">
-                    </div>
+                <div id="profileCustomFields" class="space-y-3"></div>
             </div>
 
             <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
@@ -471,35 +462,34 @@
         </div>
     </div>
 
+    <!-- Core App Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global State (LOGEp CRM Data Structure)
+        // Global State (LOGEp CRM)
         let appData = {
-            clients: [],         // Array of { name, targets, isActive, ... }
-            receipts: [],        // Array of { id, date, client, amount, period, comments }
-            liabilities: [],     // Legacy
-            tasks: [],           // Array of { id, title, client, date, isCompleted, createdAt }
-            liabilityTypes: [],  // Array of { id, title } (e.g. ΦΠΑ, ΑΠΔ)
-            liabilityCells: {}   // Object storing grid cells: { "2024_LT1_Client1_1": "Posted" }
+            clients: [],         // Array of { name, targets, isActive, assignedLiabilities, ... }
+            receipts: [],        
+            liabilities: [],     
+            tasks: [],           
+            liabilityTypes: [],  
+            liabilityCells: {}   
         };
 
         let currentAppYear = new Date().getFullYear();
         let isCloudEnabled = false;
         let db, auth, userDocRef;
-        window.currentLiabilityTypeId = null; // Keeps track of active tab in Liabilities
-        window.editingReceiptId = null;       // Κρατάει το ID της είσπραξης που επεξεργαζόμαστε
+        window.currentLiabilityTypeId = null; 
+        window.editingReceiptId = null;       
 
-        // Ensure new CRM arrays exist in legacy data
         function sanitizeDataStructure() {
             if (!appData.liabilities) appData.liabilities = [];
             if (!appData.tasks) appData.tasks = [];
             if (!appData.liabilityTypes) appData.liabilityTypes = [];
             if (!appData.liabilityCells) appData.liabilityCells = {};
             
-            // Migrate old clients to active by default
             if(appData.clients) {
                 appData.clients.forEach(c => {
                     if (c.isActive === undefined) c.isActive = true;
@@ -558,7 +548,7 @@
             setTimeout(() => { dialog.classList.add('hidden'); }, 300);
         }
 
-        // --- FIREBASE GOOGLE AUTH & CLOUD SYNC ---
+        // --- FIREBASE CLOUD ---
         function initApp() {
             try {
                 const firebaseConfig = {
@@ -575,7 +565,6 @@
                 db = getFirestore(app);
                 const provider = new GoogleAuthProvider();
 
-                // Λειτουργία Login / Logout
                 window.loginWithGoogle = function() {
                     signInWithPopup(auth, provider).catch((error) => {
                         console.error("Σφάλμα σύνδεσης:", error);
@@ -590,7 +579,6 @@
                     });
                 };
 
-                // Παρακολούθηση Κατάστασης Χτήστη
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         isCloudEnabled = true;
@@ -644,15 +632,7 @@
 
         function saveData() {
             if (isCloudEnabled && userDocRef) {
-                setDoc(userDocRef, appData)
-                    .then(() => {
-                        saveLocalData();
-                        updateUI();
-                    })
-                    .catch(e => {
-                        console.error("Save Error:", e);
-                        saveLocalData();
-                    });
+                setDoc(userDocRef, appData).then(() => { saveLocalData(); updateUI(); }).catch(e => { saveLocalData(); });
             } else {
                 saveLocalData();
             }
@@ -897,6 +877,7 @@
             if (sortedReceipts.length === 0) tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-500">Καμία είσπραξη για το έτος ${currentAppYear}.</td></tr>`;
         }
 
+        // Η συνάρτηση που σχεδιάζει τον πίνακα υποχρεώσεων με το νέο Φίλτρο!
         function renderLiabilitiesModule() {
             const container = document.getElementById('liabilitiesTableBody');
             const tabsContainer = document.getElementById('liabilitiesTabs');
@@ -917,13 +898,15 @@
                 </button>
             `).join('');
 
+            // ΕΔΩ ΕΙΝΑΙ Η ΜΑΓΕΙΑ ΤΟΥ ΦΙΛΤΡΟΥ: Δείχνει μόνο πελάτες που είναι Ενεργοί ΚΑΙ έχουν την τρέχουσα Λίστα στις επιλογές τους
             const activeClients = appData.clients.map((c, idx) => ({...c, originalIndex: idx}))
                                                  .filter(c => c.isActive !== false)
+                                                 .filter(c => !c.assignedLiabilities || c.assignedLiabilities.includes(window.currentLiabilityTypeId))
                                                  .sort((a,b) => a.name.localeCompare(b.name));
             container.innerHTML = '';
 
             if (activeClients.length === 0) {
-                container.innerHTML = `<tr><td colspan="13" class="p-8 text-center text-gray-500 bg-white">Δεν υπάρχουν Ενεργοί Πελάτες. Άνοιξε την καρτέλα πελάτη για να τους ενεργοποιήσεις.</td></tr>`;
+                container.innerHTML = `<tr><td colspan="13" class="p-8 text-center text-gray-500 bg-white">Δεν υπάρχουν Πελάτες που να υπάγονται σε αυτή τη λίστα. Πήγαινε στην Καρτέλα Πελάτη για να τους προσθέσεις.</td></tr>`;
                 return;
             }
 
@@ -1047,6 +1030,7 @@
             window.closeTargetModal();
         };
 
+        // --- ΑΝΟΙΓΜΑ ΚΑΡΤΕΛΑΣ ΠΕΛΑΤΗ (Με λειτουργία Checkbox για τις λίστες) ---
         window.openClientProfile = function(index) {
             const client = appData.clients[index];
             document.getElementById('profileClientIndex').value = index;
@@ -1058,6 +1042,25 @@
             document.getElementById('profileEfka').value = client.efka || '';
             document.getElementById('profileGemi').value = client.gemi || '';
             document.getElementById('profileMyData').value = client.mydata || '';
+
+            // Χτίσιμο των Checkboxes για τις Λίστες Υποχρεώσεων
+            const liabContainer = document.getElementById('profileLiabilitiesCheckboxes');
+            liabContainer.innerHTML = '';
+            
+            if (appData.liabilityTypes.length === 0) {
+                liabContainer.innerHTML = '<p class="text-sm text-gray-400 italic">Δεν υπάρχουν διαθέσιμες λίστες. Φτιάξε πρώτα μερικές στις "Ρυθμίσεις".</p>';
+            } else {
+                appData.liabilityTypes.forEach(lt => {
+                    // Αν είναι παλιός πελάτης χωρίς 'assignedLiabilities', θεωρούμε ότι είναι σε όλες
+                    const isChecked = !client.assignedLiabilities || client.assignedLiabilities.includes(lt.id);
+                    liabContainer.innerHTML += `
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-indigo-50 transition-colors bg-white shadow-sm">
+                            <input type="checkbox" class="profile-liability-cb w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" value="${lt.id}" ${isChecked ? 'checked' : ''}>
+                            <span class="ml-2 text-sm font-medium text-gray-700">${lt.title}</span>
+                        </label>
+                    `;
+                });
+            }
 
             const customContainer = document.getElementById('profileCustomFields');
             customContainer.innerHTML = '';
@@ -1084,19 +1087,23 @@
             container.appendChild(row);
         };
 
+        // --- ΑΠΟΘΗΚΕΥΣΗ ΚΑΡΤΕΛΑΣ (Μαζί με τις επιλογές για τις λίστες) ---
         window.saveClientProfile = function() {
             const index = document.getElementById('profileClientIndex').value;
             const oldName = appData.clients[index].name;
             const newName = document.getElementById('profileName').value.trim();
             const isActive = document.getElementById('profileIsActive').checked;
 
-            if (!newName) {
-                showCustomDialog('Σφάλμα', 'Η Επωνυμία είναι υποχρεωτική.'); return;
-            }
-
+            if (!newName) { showCustomDialog('Σφάλμα', 'Η Επωνυμία είναι υποχρεωτική.'); return; }
             if (oldName !== newName && appData.clients.some((c, i) => i != index && c.name.toLowerCase() === newName.toLowerCase())) {
                 showCustomDialog('Σφάλμα', 'Υπάρχει ήδη άλλος πελάτης με αυτό το όνομα.'); return;
             }
+
+            // Συγκέντρωση των επιλεγμένων Λιστών
+            const assignedLiabilities = [];
+            document.querySelectorAll('.profile-liability-cb:checked').forEach(cb => {
+                assignedLiabilities.push(cb.value);
+            });
 
             const customFields = [];
             document.querySelectorAll('.custom-field-row').forEach(row => {
@@ -1114,6 +1121,7 @@
             client.efka = document.getElementById('profileEfka').value;
             client.gemi = document.getElementById('profileGemi').value;
             client.mydata = document.getElementById('profileMyData').value;
+            client.assignedLiabilities = assignedLiabilities; // Αποθήκευση της υπαγωγής
             client.customFields = customFields;
 
             if (oldName !== newName) {
@@ -1137,7 +1145,6 @@
             showCustomDialog('Επιτυχία', 'Η καρτέλα ενημερώθηκε!');
         };
 
-        // --- ΕΞΥΠΝΗ ΑΠΟΘΗΚΕΥΣΗ & ΕΠΕΞΕΡΓΑΣΙΑ ΕΙΣΠΡΑΞΕΩΝ ---
         window.saveReceipt = function(e) {
             e.preventDefault();
             const client = document.getElementById('clientSelect').value;
@@ -1321,13 +1328,11 @@
             link.click(); link.remove();
         };
 
-        // Start App Flow
         if (document.getElementById('date')) document.getElementById('date').valueAsDate = new Date();
         loadLocalData();
         updateUI();
-        initApp(); // Connect to cloud
+        initApp(); 
         
-        // Window Exports for UI bindings
         window.showTab = window.showTab || showTab;
         window.changeYear = window.changeYear || changeYear;
         window.switchCrmModule = window.switchCrmModule || switchCrmModule;
