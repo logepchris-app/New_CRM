@@ -7,10 +7,22 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            .print-client-block { margin-bottom: 30px; page-break-inside: avoid; }
+            .print-title { font-size: 24px; font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+            .print-client-name { font-size: 18px; font-weight: bold; color: #4f46e5; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+            .print-task-item { margin-bottom: 5px; font-size: 14px; }
+            .print-task-date { color: #666; font-size: 12px; margin-left: 10px; }
+            .print-task-notes { color: #555; font-size: 12px; margin-left: 20px; font-style: italic; }
+        }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
 
-    <!-- Login Screen Overlay -->
     <div id="login-screen" class="fixed inset-0 bg-indigo-900 z-50 flex flex-col items-center justify-center text-white transition-opacity duration-500">
         <div class="bg-white/10 p-10 rounded-2xl backdrop-blur-md text-center shadow-2xl border border-white/20 max-w-md w-full mx-4">
             <i class="fas fa-layer-group text-6xl mb-6 text-indigo-300"></i>
@@ -23,7 +35,6 @@
         </div>
     </div>
 
-    <!-- Top Navigation Bar -->
     <nav class="text-white shadow-lg z-20 relative bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2529&auto=format&fit=crop');">
         <div class="absolute inset-0 bg-indigo-900/80 backdrop-blur-md z-0 pointer-events-none"></div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -34,6 +45,12 @@
                     <div id="cloud-status" class="ml-4 flex items-center gap-2 text-sm text-indigo-100 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full shadow-inner"><i class="fas fa-spinner fa-spin"></i></div>
                 </div>
                 <div class="flex items-center space-x-3">
+                    <!-- ΝΕΟ: Εμφάνιση του email του χρήστη -->
+                    <div class="hidden md:flex items-center bg-indigo-800/50 backdrop-blur-sm border border-indigo-700 rounded-lg px-3 py-1 text-sm font-medium">
+                        <i class="fas fa-user-circle text-indigo-300 mr-2"></i>
+                        <span id="userEmailBadge" class="text-indigo-50">-</span>
+                    </div>
+                    
                     <select id="globalYear" onchange="window.changeYear()" class="bg-white/10 backdrop-blur-md border border-white/30 text-white text-sm py-1 px-2 rounded-lg block cursor-pointer font-bold outline-none shadow-sm mr-1"></select>
                     <button onclick="window.logout()" class="text-sm font-medium text-indigo-100 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors" title="Αποσύνδεση"><i class="fas fa-sign-out-alt text-lg"></i></button>
                 </div>
@@ -47,28 +64,18 @@
         </div>
     </nav>
 
-    <!-- Sub Navigation Bar -->
     <nav class="bg-white shadow-sm border-b border-gray-200 z-10 relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Υπομενού Dashboard -->
-            <div id="subnav-dashboard" class="subnav-container flex py-2 space-x-6 text-sm">
-                <span class="font-bold text-gray-800 border-b-2 border-gray-800 pb-1 whitespace-nowrap"><i class="fas fa-chart-line mr-1"></i> Συνολική Εικόνα</span>
-            </div>
-            
-            <!-- Υπομενού Πελατών & Εισπράξεων -->
+            <div id="subnav-dashboard" class="subnav-container flex py-2 space-x-6 text-sm"><span class="font-bold text-gray-800 border-b-2 border-gray-800 pb-1 whitespace-nowrap"><i class="fas fa-chart-line mr-1"></i> Συνολική Εικόνα</span></div>
             <div id="subnav-clients" class="subnav-container hidden flex overflow-x-auto py-2 space-x-6 text-sm">
                 <button onclick="window.switchModuleTab('clients', 'clientsMain')" id="tab-clients-clientsMain" class="module-tab-btn font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1 whitespace-nowrap"><i class="fas fa-address-book mr-1"></i> Πελατολόγιο & Οικονομικά</button>
                 <button onclick="window.switchModuleTab('clients', 'newReceipt')" id="tab-clients-newReceipt" class="module-tab-btn font-medium text-gray-500 border-b-2 border-transparent pb-1 whitespace-nowrap"><i class="fas fa-plus-circle mr-1"></i> Νέα Είσπραξη</button>
                 <button onclick="window.switchModuleTab('clients', 'history')" id="tab-clients-history" class="module-tab-btn font-medium text-gray-500 border-b-2 border-transparent pb-1 whitespace-nowrap"><i class="fas fa-list-ul mr-1"></i> Ιστορικό Εισπράξεων</button>
             </div>
-            
-            <!-- Υπομενού Υποχρεώσεων & Tasks -->
             <div id="subnav-liabilities" class="subnav-container hidden flex overflow-x-auto py-2 space-x-6 text-sm">
                 <button onclick="window.switchModuleTab('liabilities', 'liabilitiesGrid')" id="tab-liabilities-liabilitiesGrid" class="module-tab-btn font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1 whitespace-nowrap"><i class="fas fa-file-invoice-dollar mr-1"></i> Λίστα Υποχρεώσεων</button>
                 <button onclick="window.switchModuleTab('liabilities', 'tasksMain')" id="tab-liabilities-tasksMain" class="module-tab-btn font-medium text-gray-500 border-b-2 border-transparent pb-1 whitespace-nowrap"><i class="fas fa-tasks mr-1"></i> Εργασίες (Tasks)</button>
             </div>
-            
-            <!-- Υπομενού Ρυθμίσεων -->
             <div id="subnav-config" class="subnav-container hidden flex overflow-x-auto py-2 space-x-4 text-sm">
                 <button onclick="window.switchConfigTab('general')" id="tab-config-general" class="config-tab-btn font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1">Γενικές Ρυθμίσεις</button>
                 <button onclick="window.switchConfigTab('liabilities')" id="tab-config-liabilities" class="config-tab-btn font-medium text-gray-500 border-b-2 border-transparent">Υποχρεώσεις και Tasks</button>
@@ -77,49 +84,21 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
         <!-- MODULE: DASHBOARD (4 Grids) -->
         <div id="module-dashboard" class="crm-module block max-w-7xl mx-auto">
-            <!-- Summary Numbers -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 shadow-sm">
-                    <p class="text-sm text-blue-600 font-bold uppercase tracking-wider">Συνολικός Στόχος</p>
-                    <p id="dashTotalTarget" class="text-3xl font-black text-blue-900 mt-1">0 €</p>
-                </div>
-                <div class="bg-green-50 p-4 rounded-xl border border-green-100 shadow-sm">
-                    <p class="text-sm text-green-600 font-bold uppercase tracking-wider">Σύνολο Εισπράξεων</p>
-                    <p id="dashTotalCollected" class="text-3xl font-black text-green-900 mt-1">0 €</p>
-                </div>
-                <div class="bg-orange-50 p-4 rounded-xl border border-orange-100 shadow-sm">
-                    <p class="text-sm text-orange-600 font-bold uppercase tracking-wider">Υπόλοιπο Στόχου</p>
-                    <p id="dashTotalRemaining" class="text-3xl font-black text-orange-900 mt-1">0 €</p>
-                    <div class="w-full bg-orange-200 rounded-full h-1.5 mt-3"><div id="dashTotalProgressBar" class="bg-orange-500 h-1.5 rounded-full" style="width: 0%"></div></div>
-                </div>
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 shadow-sm"><p class="text-sm text-blue-600 font-bold uppercase tracking-wider">Συνολικός Στόχος</p><p id="dashTotalTarget" class="text-3xl font-black text-blue-900 mt-1">0 €</p></div>
+                <div class="bg-green-50 p-4 rounded-xl border border-green-100 shadow-sm"><p class="text-sm text-green-600 font-bold uppercase tracking-wider">Σύνολο Εισπράξεων</p><p id="dashTotalCollected" class="text-3xl font-black text-green-900 mt-1">0 €</p></div>
+                <div class="bg-orange-50 p-4 rounded-xl border border-orange-100 shadow-sm"><p class="text-sm text-orange-600 font-bold uppercase tracking-wider">Υπόλοιπο Στόχου</p><p id="dashTotalRemaining" class="text-3xl font-black text-orange-900 mt-1">0 €</p><div class="w-full bg-orange-200 rounded-full h-1.5 mt-3"><div id="dashTotalProgressBar" class="bg-orange-500 h-1.5 rounded-full" style="width: 0%"></div></div></div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <!-- Box 1: Μέσος Όρος Ημερών Είσπραξης (vs Last Year) -->
-                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col h-72">
-                    <h3 class="text-xs font-bold text-gray-500 uppercase mb-4"><i class="fas fa-clock text-indigo-500 mr-1"></i> Μέσος Όρος Ημερών Είσπραξης (Φέτος vs Πέρυσι)</h3>
-                    <div class="flex-1 relative min-h-0"><canvas id="chartAvgCollectionDays"></canvas></div>
-                </div>
-                <!-- Box 2: Στόχος vs Είσπραξη (Συνολικά) -->
-                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col h-72">
-                    <h3 class="text-xs font-bold text-gray-500 uppercase mb-4"><i class="fas fa-chart-bar text-emerald-500 mr-1"></i> Συνολικός Στόχος vs Είσπραξη</h3>
-                    <div class="flex-1 relative min-h-0"><canvas id="chartTargetVsCollected"></canvas></div>
-                </div>
-                <!-- Box 3: Κατανομή Εσόδων -->
-                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col h-72">
-                    <h3 class="text-xs font-bold text-gray-500 uppercase mb-4"><i class="fas fa-chart-pie text-blue-500 mr-1"></i> Κατανομή: Σταθερά vs One-Off</h3>
-                    <div class="flex-1 relative min-h-0"><canvas id="chartRevenueMix"></canvas></div>
-                </div>
-                <!-- Box 4: Μηνιαία Εξέλιξη -->
-                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col h-72">
-                    <h3 class="text-xs font-bold text-gray-500 uppercase mb-4"><i class="fas fa-calendar-alt text-amber-500 mr-1"></i> Μηνιαία Ροή Εισπράξεων</h3>
-                    <div class="flex-1 relative min-h-0"><canvas id="chartMonthlyReceipts"></canvas></div>
-                </div>
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col h-72"><h3 class="text-xs font-bold text-gray-500 uppercase mb-4"><i class="fas fa-clock text-indigo-500 mr-1"></i> Μέσος Όρος Ημερών Είσπραξης (Φέτος vs Πέρυσι)</h3><div class="flex-1 relative min-h-0"><canvas id="chartAvgCollectionDays"></canvas></div></div>
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col h-72"><h3 class="text-xs font-bold text-gray-500 uppercase mb-4"><i class="fas fa-chart-bar text-emerald-500 mr-1"></i> Συνολικός Στόχος vs Είσπραξη</h3><div class="flex-1 relative min-h-0"><canvas id="chartTargetVsCollected"></canvas></div></div>
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col h-72"><h3 class="text-xs font-bold text-gray-500 uppercase mb-4"><i class="fas fa-chart-pie text-blue-500 mr-1"></i> Κατανομή: Σταθερά vs One-Off</h3><div class="flex-1 relative min-h-0"><canvas id="chartRevenueMix"></canvas></div></div>
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col h-72"><h3 class="text-xs font-bold text-gray-500 uppercase mb-4"><i class="fas fa-calendar-alt text-amber-500 mr-1"></i> Μηνιαία Ροή Εισπράξεων</h3><div class="flex-1 relative min-h-0"><canvas id="chartMonthlyReceipts"></canvas></div></div>
             </div>
             
             <h3 class="text-md font-bold text-gray-800 mb-3 mt-8 border-b pb-2">Ανάλυση ανά Πελάτη (<span class="display-year"></span>)</h3>
@@ -128,8 +107,6 @@
 
         <!-- MODULE: CLIENTS & RECEIPTS -->
         <div id="module-clients" class="crm-module hidden max-w-4xl mx-auto">
-            
-            <!-- Tab 1: Πελατολόγιο -->
             <div id="clientsMain" class="module-tab-content block">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
                     <h2 class="text-lg font-bold text-gray-800 mb-3 border-b pb-1">Δημιουργία Νέου Πελάτη</h2>
@@ -147,7 +124,6 @@
                 </div>
             </div>
 
-            <!-- Tab 2: New Receipt -->
             <div id="newReceipt" class="module-tab-content hidden max-w-2xl mx-auto">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h2 id="formReceiptTitle" class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Καταχώρηση Νέας Είσπραξης</h2>
@@ -167,7 +143,6 @@
                 </div>
             </div>
 
-            <!-- Tab 3: History -->
             <div id="history" class="module-tab-content hidden">
                 <div class="flex justify-between items-center mb-4 gap-3"><h2 class="text-lg font-bold text-gray-800">Ιστορικό Εισπράξεων (<span class="display-year"></span>)</h2><button onclick="window.exportToCSV()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><i class="fas fa-file-excel"></i> CSV</button></div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-gray-50 text-gray-700 border-b"><tr><th class="px-4 py-3 font-bold">Ημερομηνία</th><th class="px-4 py-3 font-bold">Πελάτης</th><th class="px-4 py-3 font-bold">Ποσό</th><th class="px-4 py-3 font-bold hidden md:table-cell">Περίοδος</th><th class="px-4 py-3 font-bold hidden sm:table-cell">Σχόλια</th><th class="px-4 py-3 font-bold text-center">Ενέργειες</th></tr></thead><tbody id="historyTableBody" class="divide-y divide-gray-100"></tbody></table></div></div>
@@ -176,14 +151,11 @@
 
         <!-- MODULE: LIABILITIES & TASKS -->
         <div id="module-liabilities" class="crm-module hidden max-w-[95%] mx-auto">
-            
-            <!-- Tab 1: Υποχρεώσεις -->
             <div id="liabilitiesGrid" class="module-tab-content block">
                 <div class="flex overflow-x-auto space-x-2 border-b border-gray-200 mb-4" id="liabilitiesTabs"></div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative"><div class="overflow-x-auto"><table class="w-full text-left border-collapse min-w-max text-sm"><thead class="bg-gray-50 text-gray-700"><tr><th class="px-3 py-2 border-b border-r border-gray-200 font-bold sticky left-0 bg-gray-50 z-20 min-w-[150px] max-w-[200px] shadow-[1px_0_0_0_#e5e7eb]">Πελάτης</th><th class="py-2 border-b border-r border-gray-200 font-bold text-center w-[70px]">1</th><th class="py-2 border-b border-r border-gray-200 font-bold text-center w-[70px]">2</th><th class="py-2 border-b border-r border-gray-200 font-bold text-center w-[70px]">3</th><th class="py-2 border-b border-r border-gray-200 font-bold text-center w-[70px]">4</th><th class="py-2 border-b border-r border-gray-200 font-bold text-center w-[70px]">5</th><th class="py-2 border-b border-r border-gray-200 font-bold text-center w-[70px]">6</th><th class="py-2 border-b border-r border-gray-200 font-bold text-center w-[70px]">7</th><th class="py-2 border-b border-r border-gray-200 font-bold text-center w-[70px]">8</th><th class="py-2 border-b border-r border-gray-200 font-bold text-center w-[70px]">9</th><th class="py-2 border-b border-r border-gray-200 font-bold text-center w-[70px]">10</th><th class="py-2 border-b border-r border-gray-200 font-bold text-center w-[70px]">11</th><th class="py-2 border-b border-gray-200 font-bold text-center w-[70px]">12</th></tr></thead><tbody id="liabilitiesTableBody" class="divide-y divide-gray-100"></tbody></table></div></div>
             </div>
 
-            <!-- Tab 2: Tasks -->
             <div id="tasksMain" class="module-tab-content hidden max-w-5xl mx-auto">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                     <div class="bg-indigo-600 px-5 py-4 text-white flex justify-between items-center">
@@ -202,7 +174,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                                 <select id="taskCategory" class="border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 bg-white shadow-sm"><option value="">Καμία Κατηγορία</option></select>
                                 <select id="taskRecurring" class="border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 bg-white shadow-sm text-indigo-700 font-bold"><option value="">Άπαξ (Καμία Επανάληψη)</option><option value="weekly">🔄 Κάθε Εβδομάδα</option><option value="monthly">🔄 Κάθε Μήνα</option><option value="quarterly">🔄 Κάθε 3 Μήνες</option><option value="biannually">🔄 Κάθε 6 Μήνες</option><option value="yearly">🔄 Κάθε Χρόνο</option></select>
-                                <div class="flex items-center justify-center bg-white border border-gray-300 rounded-lg p-2.5 shadow-sm"><label class="flex items-center gap-2 cursor-pointer font-bold text-sm text-indigo-700"><input type="checkbox" id="taskEmailNotify" class="w-4 h-4 text-indigo-600 rounded"> <i class="fas fa-envelope"></i> Αποστολή Email</label></div>
+                                <div class="flex items-center justify-center bg-white border border-gray-300 rounded-lg p-2.5 shadow-sm"><label class="flex items-center gap-2 cursor-pointer font-bold text-sm text-indigo-700"><input type="checkbox" id="taskEmailNotify" class="w-4 h-4 text-indigo-600 rounded"> <i class="fas fa-envelope"></i> Email</label></div>
                                 <div class="flex gap-2">
                                     <button type="button" id="btnCancelEditTask" onclick="window.cancelEditTask()" class="hidden w-1/3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-bold">Άκυρο</button>
                                     <button type="submit" id="btnSaveTask" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg font-bold shadow-sm transition-colors"><i class="fas fa-plus mr-1"></i> Προσθήκη</button>
@@ -225,10 +197,8 @@
             </div>
         </div>
 
-        <!-- MODULE 4: ΡΥΘΜΙΣΕΙΣ (Αναδιαρθρωμένο με Tabs) -->
+        <!-- MODULE: CONFIG -->
         <div id="module-config" class="crm-module hidden max-w-5xl mx-auto">
-            
-            <!-- Υπομενού 1: Γενικές Ρυθμίσεις & Backup -->
             <div id="config-panel-general" class="config-panel block bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fas fa-shield-alt text-indigo-500 mr-2"></i>Αντίγραφα Ασφαλείας (Backup)</h3>
                 <p class="text-sm text-gray-500 mb-6">Λήψη φυσικού αντιγράφου ή επαναφορά δεδομένων του CRM από τοπικό αρχείο JSON.</p>
@@ -238,7 +208,6 @@
                 </div>
             </div>
 
-            <!-- Υπομενού 2: Υποχρεώσεις και Tasks -->
             <div id="config-panel-liabilities" class="config-panel hidden grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h2 class="text-md font-bold text-gray-800 mb-4 border-b pb-2"><i class="fas fa-list text-indigo-500 mr-2"></i>Λίστες Υποχρεώσεων</h2>
@@ -258,12 +227,10 @@
                 </div>
             </div>
 
-            <!-- Υπομενού 3: Ρυθμίσεις Πελατών και Εισπράξεων (Με CSV) -->
             <div id="config-panel-biz" class="config-panel hidden bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-8">
-                <!-- Εισαγωγή Πελατών -->
                 <div>
                     <h3 class="text-md font-bold text-gray-800 mb-3 border-b pb-2"><i class="fas fa-users text-blue-600 mr-2"></i>Μαζική Εισαγωγή Πελατών (CSV)</h3>
-                    <p class="text-sm text-gray-500 mb-4 leading-relaxed">Η δομή των στηλών πρέπει να είναι: <strong>Επωνυμία, GSIS (προαιρετικό), ΕΦΚΑ (προαιρετικό), ΓΕΜΗ (προαιρετικό)</strong>.</p>
+                    <p class="text-sm text-gray-500 mb-4 leading-relaxed">Η δομή των στηλών πρέπει να είναι: <strong>Επωνυμία, GSIS, ΕΦΚΑ, ΓΕΜΗ</strong>.</p>
                     <div class="p-5 bg-gray-50 rounded-lg border border-gray-200">
                         <label class="flex items-center justify-center gap-3 bg-white border border-gray-300 rounded-xl p-4 hover:bg-gray-100 cursor-pointer shadow-sm transition-colors font-bold text-gray-700">
                             <i class="fas fa-file-import text-2xl text-blue-500"></i> Επιλογή αρχείου Πελατών
@@ -271,7 +238,6 @@
                         </label>
                     </div>
                 </div>
-                <!-- Εισαγωγή Εισπράξεων -->
                 <div>
                     <h3 class="text-md font-bold text-gray-800 mb-3 border-b pb-2"><i class="fas fa-file-invoice-dollar text-emerald-600 mr-2"></i>Μαζική Εισαγωγή Εισπράξεων (CSV)</h3>
                     <p class="text-sm text-gray-500 mb-4 leading-relaxed">Η δομή των στηλών πρέπει να είναι: <strong>Ημερομηνία (ΕΕΕΕ-ΜΜ-ΗΗ), Επωνυμία Πελάτη, Ποσό, Περίοδος, Σχόλια</strong>.</p>
@@ -283,20 +249,18 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
+        <!-- Hidden Print Area -->
+        <div id="printArea" class="hidden"></div>
     </main>
 
-    <!-- Modals -->
     <div id="customDialog" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
         <div class="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full mx-4"><h3 id="dialogTitle" class="text-lg font-bold text-gray-900 mb-2"></h3><p id="dialogMessage" class="text-gray-600 text-sm whitespace-pre-wrap mb-5"></p><div class="flex justify-end gap-3" id="dialogButtons"></div></div>
     </div>
 
-    <!-- Client Profile Modal (Με 3 Tabs Υπομενού) -->
     <div id="clientProfileModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center py-4">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl mx-4 max-h-full flex flex-col overflow-hidden">
-            <!-- Modal Header with Profile Navigation Tabs -->
             <div class="px-6 pt-4 bg-gray-50 border-b border-gray-200 flex flex-col">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="text-xl font-black text-gray-900"><i class="fas fa-id-card text-indigo-600 mr-2"></i>Καρτέλα Πελάτη</h3>
@@ -312,7 +276,6 @@
             <div class="p-6 overflow-y-auto flex-1 text-sm bg-white">
                 <input type="hidden" id="profileClientIndex">
                 
-                <!-- PANEL 1: ΣΤΑΘΕΡΑ ΣΤΟΙΧΕΙΑ -->
                 <div id="profile-panel-general" class="profile-panel block space-y-5">
                     <div class="p-3 bg-indigo-50 border border-indigo-100 rounded-lg inline-flex items-center">
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -338,7 +301,6 @@
                     <div id="profileCustomFields" class="space-y-2"></div>
                 </div>
 
-                <!-- PANEL 2: ΟΙΚΟΝΟΜΙΚΑ ΣΤΟΙΧΕΙΑ -->
                 <div id="profile-panel-financials" class="profile-panel hidden space-y-6">
                     <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm">
                         <h5 class="font-black text-gray-800 mb-3 text-sm uppercase tracking-wider"><i class="fas fa-sync text-indigo-600 mr-2"></i>Σταθερές Χρεώσεις</h5>
@@ -361,13 +323,11 @@
                     </div>
                 </div>
 
-                <!-- PANEL 3: ΥΠΑΓΩΓΗ ΣΕ ΛΙΣΤΕΣ -->
                 <div id="profile-panel-liab" class="profile-panel hidden space-y-4">
                     <h4 class="font-bold text-gray-800 mb-2 uppercase tracking-wider text-sm"><i class="fas fa-list-check text-indigo-500 mr-1"></i>Υπαγωγή στις Λίστες Υποχρεώσεων</h4>
-                    <p class="text-sm text-gray-500 mb-4">Επιλέξτε σε ποιες λίστες υποχρεώσεων 12μήνου (π.χ. ΦΠΑ, ΕΦΚΑ) υπάγεται ο πελάτης.</p>
+                    <p class="text-sm text-gray-500 mb-4">Επιλέξτε σε ποιες λίστες υποχρεώσεων 12μήνου υπάγεται ο πελάτης.</p>
                     <div id="profileLiabilitiesCheckboxes" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
                 </div>
-
             </div>
             <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 bg-gray-50">
                 <button onclick="window.closeClientProfile()" class="px-5 py-2.5 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-bold transition-colors">Ακύρωση</button>
@@ -376,13 +336,18 @@
         </div>
     </div>
 
-    <!-- App Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const ALLOWED_EMAILS = [ 'logepchris@gmail.com' , 'logepproject@gmail.com' ];
+        // ==========================================
+        // ΛΙΣΤΑ ΕΠΙΤΡΕΠΟΜΕΝΩΝ ΧΡΗΣΤΩΝ (WHITELIST)
+        // ==========================================
+        const ALLOWED_EMAILS = [
+            'logepchris@gmail.com',
+            'demo.newcrm@gmail.com'
+        ];
 
         let appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [] };
         let currentAppYear = new Date().getFullYear();
@@ -443,23 +408,47 @@
             if (link) { if (!link.startsWith('http://') && !link.startsWith('https://')) link = 'https://' + link; window.open(link, '_blank'); } else showCustomDialog('Προσοχή', 'Δεν έχει καταχωρηθεί link.');
         };
 
+        // --- FIREBASE CLOUD ---
         function initApp() {
             try {
                 const firebaseConfig = { apiKey: "AIzaSyDlQGXb7M2xpQ7yfjojF1VPuPgEV7slUGU", authDomain: "fstracker-47c31.firebaseapp.com", projectId: "fstracker-47c31", storageBucket: "fstracker-47c31.firebasestorage.app", messagingSenderId: "438637783236", appId: "1:438637783236:web:f3647de08ee205ead94191" };
                 const app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); const provider = new GoogleAuthProvider();
+                
                 window.loginWithGoogle = function() { signInWithPopup(auth, provider).catch(e => showCustomDialog('Σφάλμα', 'Η σύνδεση απέτυχε.')); };
-                window.logout = function() { signOut(auth).then(() => { appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [] }; updateUI(); }); };
+                
+                // ΔΙΟΡΘΩΣΗ: Πλήρης Εκκαθάριση Τοπικής Μνήμης
+                window.logout = function() { 
+                    signOut(auth).then(() => { 
+                        localStorage.removeItem('logepCrmDataV4');
+                        localStorage.removeItem('logepCrmDataV3');
+                        localStorage.removeItem('logepCrmData');
+                        appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [] }; 
+                        document.getElementById('userEmailBadge').textContent = '-';
+                        updateUI(); 
+                    }); 
+                };
+                
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         if (!ALLOWED_EMAILS.includes(user.email.toLowerCase())) { signOut(auth).then(() => showCustomDialog('Πρόσβαση Αρνήθηκε', `Ο λογαριασμός ${user.email} δεν έχει συνδρομή.`)); return; }
                         isCloudEnabled = true; document.getElementById('login-screen').classList.add('hidden'); userDocRef = doc(db, 'crm_users', user.uid);
-                        onSnapshot(userDocRef, (docSnap) => { if (docSnap.exists()) { appData = docSnap.data(); sanitizeDataStructure(); saveLocalData(); } else { loadLocalData(); saveData(); } updateUI(); document.getElementById('cloud-status').innerHTML = `<i class="fas fa-cloud text-green-400"></i>`; }, (e) => fallbackToLocal());
-                    } else { isCloudEnabled = false; document.getElementById('login-screen').classList.remove('hidden'); document.getElementById('cloud-status').innerHTML = '<i class="fas fa-lock text-red-300"></i>'; }
+                        
+                        document.getElementById('userEmailBadge').textContent = user.email;
+
+                        onSnapshot(userDocRef, (docSnap) => { 
+                            if (docSnap.exists()) { appData = docSnap.data(); sanitizeDataStructure(); saveLocalData(); } 
+                            else { loadLocalData(); saveData(); } 
+                            updateUI(); 
+                            document.getElementById('cloud-status').innerHTML = `<i class="fas fa-cloud text-green-400"></i> <span class="hidden sm:inline">Συγχρονίζεται</span>`; 
+                        }, (e) => fallbackToLocal());
+                    } else { 
+                        isCloudEnabled = false; document.getElementById('login-screen').classList.remove('hidden'); document.getElementById('cloud-status').innerHTML = '<i class="fas fa-lock text-red-300"></i>'; document.getElementById('userEmailBadge').textContent = '-';
+                    }
                 });
             } catch (e) { fallbackToLocal(); }
         }
 
-        function fallbackToLocal() { isCloudEnabled = false; document.getElementById('cloud-status').innerHTML = '<i class="fas fa-hdd text-indigo-300"></i>'; loadLocalData(); updateUI(); }
+        function fallbackToLocal() { isCloudEnabled = false; document.getElementById('cloud-status').innerHTML = '<i class="fas fa-hdd text-indigo-300"></i> <span class="hidden sm:inline">Τοπικά</span>'; loadLocalData(); updateUI(); }
         function loadLocalData() { const stored = localStorage.getItem('logepCrmDataV4') || localStorage.getItem('logepCrmDataV3') || localStorage.getItem('logepCrmData'); appData = stored ? JSON.parse(stored) : { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [] }; sanitizeDataStructure(); }
         function saveData() { if (isCloudEnabled && userDocRef) { setDoc(userDocRef, appData).then(() => { saveLocalData(); updateUI(); }).catch(e => saveLocalData()); } else { saveLocalData(); } }
         function saveLocalData() { localStorage.setItem('logepCrmDataV4', JSON.stringify(appData)); updateUI(); }
@@ -551,9 +540,8 @@
                             }
                         }
                     }
-                    if (importedCount > 0) { saveData(); showCustomDialog('Επιτυχία', `Εισηχθήσαν επιτυχώς ${importedCount} εισπράξεις!`); } 
-                    else { showCustomDialog('Σφάλμα', 'Δεν βρέθηκαν έγκυρες εγγραφές εισπράξεων.'); }
-                } catch (err) { showCustomDialog('Σφάλμα', 'Αδυναμία επεξεργασίας αρχείου.'); }
+                    if (importedCount > 0) { saveData(); showCustomDialog('Επιτυχία', `Εισηχθήσαν ${importedCount} εισπράξεις!`); } else { showCustomDialog('Σφάλμα', 'Δεν βρέθηκαν έγκυρες εγγραφές.'); }
+                } catch (err) { showCustomDialog('Σφάλμα', 'Αδυναμία επεξεργασίας.'); }
             };
             reader.readAsText(file); event.target.value = '';
         };
@@ -575,9 +563,8 @@
                             }
                         }
                     }
-                    if (importedCount > 0) { saveData(); showCustomDialog('Επιτυχία', `Δημιουργήθηκαν επιτυχώς ${importedCount} νέοι πελάτες!`); } 
-                    else { showCustomDialog('Προσοχή', 'Δεν βρέθηκαν νέοι πελάτες (ή υπήρχαν ήδη).'); }
-                } catch (err) { showCustomDialog('Σφάλμα', 'Αδυναμία επεξεργασίας αρχείου πελατών.'); }
+                    if (importedCount > 0) { saveData(); showCustomDialog('Επιτυχία', `Δημιουργήθηκαν ${importedCount} νέοι πελάτες!`); } else { showCustomDialog('Προσοχή', 'Δεν βρέθηκαν νέοι πελάτες.'); }
+                } catch (err) { showCustomDialog('Σφάλμα', 'Αδυναμία επεξεργασίας.'); }
             };
             reader.readAsText(file); event.target.value = '';
         };
@@ -658,7 +645,6 @@
                 document.getElementById('dashTotalProgressBar').style.width = progressPercent + '%';
             }
 
-            // --- CHART 1: Avg Days (vs Last Year) ---
             let getAvgLag = (year) => {
                 let recs = appData.receipts.filter(r => new Date(r.date).getFullYear() === year);
                 if(!recs.length) return 0;
@@ -681,14 +667,12 @@
                 window.cInstance1 = new Chart(ctx1, { type: 'bar', data: { labels: [`${currentAppYear-1}`, `${currentAppYear}`], datasets: [{ label: 'Ημέρες', data: [avgPast.toFixed(1), avgCurrent.toFixed(1)], backgroundColor: ['#94a3b8', '#4f46e5'], borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false } });
             }
 
-            // --- CHART 2: Total Target vs Total Collected ---
             let ctx2 = document.getElementById('chartTargetVsCollected');
             if(ctx2) {
                 if(window.cInstance2) window.cInstance2.destroy();
                 window.cInstance2 = new Chart(ctx2, { type: 'bar', data: { labels: ['Συνολικά Ποσά'], datasets: [{ label: 'Στόχος (€)', data: [totalTarget], backgroundColor: '#cbd5e1', borderRadius: 4 }, { label: 'Είσπραξη (€)', data: [totalCollected], backgroundColor: '#10b981', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false } });
             }
 
-            // --- CHART 3: Revenue Mix ---
             let activeClients = appData.clients.filter(c => c.isActive !== false);
             let fixedSum = 0; let oneOffSum = 0;
             activeClients.forEach(c => {
@@ -701,7 +685,6 @@
                 window.cInstance3 = new Chart(ctx3, { type: 'doughnut', data: { labels: ['Σταθερές', 'One-Off'], datasets: [{ data: [fixedSum, oneOffSum], backgroundColor: ['#3b82f6', '#f59e0b'] }] }, options: { responsive: true, maintainAspectRatio: false } });
             }
 
-            // --- CHART 4: Monthly Receipts ---
             let monthsData = new Array(12).fill(0); yearReceipts.forEach(r => { monthsData[new Date(r.date).getMonth()] += parseFloat(r.amount); });
             let ctx4 = document.getElementById('chartMonthlyReceipts');
             if(ctx4) {
@@ -709,7 +692,6 @@
                 window.cInstance4 = new Chart(ctx4, { type: 'line', data: { labels: ['Ιαν', 'Φεβ', 'Μαρ', 'Απρ', 'Μάι', 'Ιούν', 'Ιούλ', 'Αύγ', 'Σεπ', 'Οκτ', 'Νοέ', 'Δεκ'], datasets: [{ label: 'Εισπράξεις €', data: monthsData, borderColor: '#f43f5e', backgroundColor: '#f43f5e', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } });
             }
 
-            // History Table (For clients Tab)
             const tbody = document.getElementById('historyTableBody'); 
             if(tbody) {
                 tbody.innerHTML = ''; let sortedReceipts = [...yearReceipts].sort((a,b) => new Date(b.date) - new Date(a.date));
@@ -722,7 +704,6 @@
                 });
             }
             
-            // Dashboard Client Grid
             const gridContainer = document.getElementById('dashboardClientsGrid'); 
             if(gridContainer) {
                 gridContainer.innerHTML = '';
@@ -921,10 +902,16 @@
         };
         window.cancelEditReceipt = function() { window.editingReceiptId = null; document.getElementById('receiptForm').reset(); document.getElementById('btnSaveReceipt').innerHTML = '<i class="fas fa-save"></i> Αποθήκευση'; document.getElementById('btnCancelEdit').classList.add('hidden'); window.switchModuleTab('clients', 'history'); };
         window.deleteReceipt = function(id) { showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', () => { appData.receipts = appData.receipts.filter(r => r.id !== id); saveData(); }); };
-        
-        loadLocalData(); updateUI(); initApp();
-        
-        window.switchModuleTab = window.switchModuleTab || switchModuleTab; window.showTab = window.showTab || showTab; window.changeYear = window.changeYear || changeYear; window.switchCrmModule = window.switchCrmModule || switchCrmModule; window.renderTasksModule = window.renderTasksModule || renderTasksModule; window.openClientProfile = window.openClientProfile || openClientProfile; window.closeClientProfile = window.closeClientProfile || closeClientProfile; window.saveClientProfile = window.saveClientProfile || saveClientProfile; window.addCustomFieldRow = window.addCustomFieldRow || addCustomFieldRow; window.saveLiabilityType = window.saveLiabilityType || saveLiabilityType; window.deleteLiabilityType = window.deleteLiabilityType || deleteLiabilityType; window.switchLiabilityType = window.switchLiabilityType || switchLiabilityType; window.saveLiabilityCell = window.saveLiabilityCell || saveLiabilityCell; window.editReceipt = window.editReceipt || editReceipt; window.cancelEditReceipt = window.cancelEditReceipt || cancelEditReceipt; window.copyToClipboard = window.copyToClipboard || copyToClipboard; window.openClientFolder = window.openClientFolder || openClientFolder; window.renameLiabilityType = window.renameLiabilityType || renameLiabilityType; window.saveTaskCategory = window.saveTaskCategory || saveTaskCategory; window.deleteTaskCategory = window.deleteTaskCategory || deleteTaskCategory; window.renameTaskCategory = window.renameTaskCategory || renameTaskCategory; window.editTask = window.editTask || editTask; window.cancelEditTask = window.cancelEditTask || cancelEditTask; window.printTasksByClient = window.printTasksByClient || printTasksByClient; window.switchConfigTab = window.switchConfigTab || switchConfigTab; window.switchProfileTab = window.switchProfileTab || switchProfileTab; window.importReceiptsCSV = window.importReceiptsCSV || importReceiptsCSV; window.exportBackup = window.exportBackup || exportBackup; window.importBackup = window.importBackup || importBackup; window.importClientsCSV = window.importClientsCSV || importClientsCSV;
+        window.exportToCSV = function() { let csv = "data:text/csv;charset=utf-8,\uFEFFΗμερομηνία,Πελάτης,Ποσό,Περίοδος,Σχόλια\n"; appData.receipts.filter(r => new Date(r.date).getFullYear() === currentAppYear).forEach(r => { csv += `${r.date},${r.client},${r.amount},${r.period||''},${(r.comments||'').replace(/,/g,' ')}\n`; }); const l = document.createElement("a"); l.href = encodeURI(csv); l.download = `Receipts_${currentAppYear}.csv`; document.body.appendChild(l); l.click(); l.remove(); };
+
+        window.exportBackup = function() { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", "New_CRM_Full_Backup.json"); document.body.appendChild(dl); dl.click(); dl.remove(); };
+        window.importBackup = function(event) {
+            const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
+            reader.onload = function(e) { try { const importedData = JSON.parse(e.target.result); if (importedData.clients) { showCustomDialog('Προσοχή', 'Τα τρέχοντα δεδομένα θα αντικατασταθούν. Είσαι σίγουρος;', 'confirm', () => { appData = importedData; sanitizeDataStructure(); saveData(); showCustomDialog('Επιτυχία', 'Η βάση επαναφέρθηκε επιτυχώς!'); }); } } catch (err) { showCustomDialog('Σφάλμα', 'Λάθος αρχείο.'); } }; reader.readAsText(file); event.target.value = '';
+        };
+
+        if (document.getElementById('date')) document.getElementById('date').valueAsDate = new Date();
+        loadLocalData(); updateUI(); initApp(); 
         
         if (appData.clients.length === 0) { window.switchCrmModule('clients'); } else { window.switchCrmModule('dashboard'); }
     </script>
