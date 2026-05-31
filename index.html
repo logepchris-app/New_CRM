@@ -124,6 +124,9 @@
                         <div class="flex-1 relative min-h-0"><canvas id="chartTasksByCategory"></canvas></div>
                     </div>
                 </div>
+                
+                <h3 class="text-md font-bold text-gray-800 mb-3 mt-6">Ανάλυση ανά Πελάτη (<span class="display-year"></span>)</h3>
+                <div id="dashboardClientsGrid" class="flex flex-col gap-3"></div>
             </div>
 
             <div id="newReceipt" class="tab-content hidden max-w-2xl mx-auto">
@@ -173,14 +176,7 @@
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
                             <select id="taskCategory" class="border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 bg-white"><option value="">Καμία Κατηγορία</option></select>
-                            <select id="taskRecurring" class="border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 bg-white text-indigo-700 font-medium">
-                                <option value="">Άπαξ (Καμία Επανάληψη)</option>
-                                <option value="weekly">🔄 Κάθε Εβδομάδα</option>
-                                <option value="monthly">🔄 Κάθε Μήνα</option>
-                                <option value="quarterly">🔄 Κάθε 3 Μήνες</option>
-                                <option value="biannually">🔄 Κάθε 6 Μήνες</option>
-                                <option value="yearly">🔄 Κάθε Χρόνο</option>
-                            </select>
+                            <select id="taskRecurring" class="border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 bg-white text-indigo-700 font-medium"><option value="">Άπαξ (Καμία Επανάληψη)</option><option value="weekly">🔄 Κάθε Εβδομάδα</option><option value="monthly">🔄 Κάθε Μήνα</option><option value="quarterly">🔄 Κάθε 3 Μήνες</option><option value="biannually">🔄 Κάθε 6 Μήνες</option><option value="yearly">🔄 Κάθε Χρόνο</option></select>
                             <div class="flex items-center justify-center bg-white border border-gray-300 rounded-lg p-2"><label class="flex items-center gap-2 cursor-pointer font-bold text-xs text-indigo-700"><input type="checkbox" id="taskEmailNotify" class="w-4 h-4 text-indigo-600 rounded"> <i class="fas fa-envelope"></i> Αποστολή Email</label></div>
                             <div class="flex gap-2">
                                 <button type="button" id="btnCancelEditTask" onclick="window.cancelEditTask()" class="hidden w-1/3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-bold">Άκυρο</button>
@@ -446,7 +442,6 @@
             const activeBtn = document.getElementById(`tab-${tabId}`); if(activeBtn) { activeBtn.classList.remove('text-gray-500', 'border-transparent', 'font-medium'); activeBtn.classList.add('text-indigo-600', 'border-indigo-600', 'font-bold'); }
         };
 
-        // --- NEW: CONFIG PANEL TABS ROUTING ---
         window.switchConfigTab = function(tabId) {
             document.querySelectorAll('.config-panel').forEach(el => el.classList.add('hidden'));
             document.getElementById(`config-panel-${tabId}`).classList.remove('hidden');
@@ -455,7 +450,6 @@
             if(activeBtn) activeBtn.classList.add('text-indigo-600', 'border-indigo-600', 'font-bold');
         };
 
-        // --- NEW: CLIENT PROFILE MODAL TABS ROUTING ---
         window.switchProfileTab = function(tabId) {
             document.querySelectorAll('.profile-panel').forEach(el => el.classList.add('hidden'));
             document.getElementById(`profile-panel-${tabId}`).classList.remove('hidden');
@@ -480,7 +474,6 @@
             renderClientsModule(); renderReceiptsModule(); renderLiabilitiesModule(); renderTasksModule(); renderConfigModule();
         }
 
-        // --- NEW: CSV RECEIPTS MAGICAL IMPORTER ---
         window.importReceiptsCSV = function(event) {
             const file = event.target.files[0]; if (!file) return;
             const reader = new FileReader();
@@ -506,7 +499,6 @@
             reader.readAsText(file); event.target.value = '';
         };
 
-        // --- CONFIG MANAGEMENT ---
         function renderConfigModule() {
             const lList = document.getElementById('liabilityTypesList'); 
             if(lList) {
@@ -535,7 +527,6 @@
         window.saveTaskCategory = function(e) { e.preventDefault(); const t = document.getElementById('taskCatTitle').value.trim(); if(!t) return; appData.taskCategories.push({ id: 'TC'+Date.now(), title: t }); document.getElementById('taskCatTitle').value = ''; saveData(); };
         window.deleteTaskCategory = function(id) { showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', () => { appData.taskCategories = appData.taskCategories.filter(t => t.id !== id); appData.tasks.forEach(task => { if(task.category === id) task.category = ""; }); saveData(); }); };
 
-        // --- FINANCIALS INNER TAB ACTIONS ---
         window.tempFixedCharges = []; window.tempOneOffJobs = [];
         window.renderTempFinancials = function() {
             const fcList = document.getElementById('fcList'); fcList.innerHTML = '';
@@ -561,7 +552,6 @@
         window.editTempOo = function(id) { const oo = window.tempOneOffJobs.find(x => x.id === id); if(!oo) return; document.getElementById('editOoId').value = oo.id; document.getElementById('ooTitle').value = oo.title; document.getElementById('ooAmount').value = oo.amount; document.getElementById('ooDate').value = oo.date; document.getElementById('btnSaveOo').textContent = 'Ανανέωση'; };
         window.deleteTempOo = function(id) { window.tempOneOffJobs = window.tempOneOffJobs.filter(x => x.id !== id); window.renderTempFinancials(); };
 
-        // --- MODULE 0: ΠΕΛΑΤΕΣ ---
         function renderClientsModule() {
             const clientsList = document.getElementById('clientsList'); clientsList.innerHTML = '';
             const sortedClients = [...appData.clients].map((c, idx) => ({...c, originalIndex: idx})).sort((a,b) => a.name.localeCompare(b.name));
@@ -583,24 +573,26 @@
             document.getElementById('totalClientsCount').textContent = `${appData.clients.length} Πελάτες`;
         }
 
-        // --- MODULE 1: DASHBOARD & GRAPHICS (6 GRID CONFIGURATION) ---
         function renderReceiptsModule() {
             const yearReceipts = appData.receipts.filter(r => new Date(r.date).getFullYear() === currentAppYear);
             let totalTarget = 0; appData.clients.forEach(c => { if(c.isActive !== false) totalTarget += window.calculateClientTarget(c, currentAppYear); });
             const totalCollected = yearReceipts.reduce((sum, r) => sum + parseFloat(r.amount), 0);
             
-            document.getElementById('dashTotalTarget').textContent = formatCurrency(totalTarget); 
-            document.getElementById('dashTotalCollected').textContent = formatCurrency(totalCollected); 
-            document.getElementById('dashTotalRemaining').textContent = formatCurrency(Math.max(0, totalTarget - totalCollected));
-            let progressPercent = totalTarget > 0 ? Math.min(100, (totalCollected / totalTarget) * 100) : (totalCollected > 0 ? 100 : 0);
-            document.getElementById('dashTotalPercent').textContent = progressPercent.toFixed(1) + '%'; 
-            document.getElementById('dashTotalProgressBar').style.width = progressPercent + '%';
+            // Safe check before DOM update
+            const elDashTotalTarget = document.getElementById('dashTotalTarget');
+            if (elDashTotalTarget) {
+                elDashTotalTarget.textContent = formatCurrency(totalTarget); 
+                document.getElementById('dashTotalCollected').textContent = formatCurrency(totalCollected); 
+                document.getElementById('dashTotalRemaining').textContent = formatCurrency(Math.max(0, totalTarget - totalCollected));
+                let progressPercent = totalTarget > 0 ? Math.min(100, (totalCollected / totalTarget) * 100) : (totalCollected > 0 ? 100 : 0);
+                document.getElementById('dashTotalPercent').textContent = progressPercent.toFixed(1) + '%'; 
+                document.getElementById('dashTotalProgressBar').style.width = progressPercent + '%';
+            }
 
-            // --- CHART 1: ΜΕΣΟΣ ΟΡΟΣ ΗΜΕΡΩΝ ΕΙΣΠΡΑΞΗΣ ΑΝΑ ΕΤΟΣ ---
             let yearlyDaysMap = {};
             appData.receipts.forEach(r => {
                 let rYear = new Date(r.date).getFullYear(); if(!yearlyDaysMap[rYear]) yearlyDaysMap[rYear] = { sum: 0, count: 0 };
-                let lag = 12; // Βασικός μέσος όρος έναρξης
+                let lag = 12; 
                 let cObj = appData.clients.find(x => x.name === r.client);
                 if(cObj && cObj.oneOffJobs) {
                     let job = cObj.oneOffJobs.find(j => j.amount === r.amount || Math.abs(new Date(j.date) - new Date(r.date)) < 45*24*60*60*1000);
@@ -617,7 +609,6 @@
                 window.cInstance1 = new Chart(ctx1, { type: 'line', data: { labels: sortedYears.length ? sortedYears : [currentAppYear], datasets: [{ label: 'Μέσος Όρος Ημερών', data: avgDaysData.length ? avgDaysData : [12], borderColor: '#4f46e5', tension: 0.2, fill: false }] }, options: { responsive: true, maintainAspectRatio: false } });
             }
 
-            // --- CHART 2: BAR CHART ΣΤΟΧΟΣ VS ΕΙΣΠΡΑΞΗ ΑΝΑ ΠΕΛΑΤΗ ---
             let activeClients = appData.clients.filter(c => c.isActive !== false);
             let clientLabels = activeClients.map(c => c.name);
             let targetsData = activeClients.map(c => window.calculateClientTarget(c, currentAppYear));
@@ -629,7 +620,6 @@
                 window.cInstance2 = new Chart(ctx2, { type: 'bar', data: { labels: clientLabels.length ? clientLabels : ['Κανένας'], datasets: [{ label: 'Στόχος (€)', data: targetsData, backgroundColor: '#cbd5e1' }, { label: 'Είσπραξη (€)', data: collectedData, backgroundColor: '#10b981' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: false } } } });
             }
 
-            // --- CHART 3: ΚΑΤΑΝΟΜΗ ΕΣΟΔΩΝ (ΣΤΑΘΕΡΑ VS ONE-OFF) ---
             let fixedSum = 0; let oneOffSum = 0;
             activeClients.forEach(c => {
                 if(c.fixedCharges) c.fixedCharges.forEach(f => { let a = parseFloat(f.amount)||0; if(f.period==='monthly') fixedSum+=a*12; else if(f.period==='quarterly') fixedSum+=a*4; else fixedSum+=a; });
@@ -641,7 +631,6 @@
                 window.cInstance3 = new Chart(ctx3, { type: 'doughnut', data: { labels: ['Σταθερές Χρεώσεις', 'One-Off Έργα'], datasets: [{ data: [fixedSum, oneOffSum], backgroundColor: ['#3b82f6', '#f59e0b'] }] }, options: { responsive: true, maintainAspectRatio: false } });
             }
 
-            // --- CHART 4: ΜΗΝΙΑΙΑ ΡΟΗ ΕΙΣΠΡΑΞΕΩΝ ---
             let monthsData = new Array(12).fill(0); yearReceipts.forEach(r => { monthsData[new Date(r.date).getMonth()] += parseFloat(r.amount); });
             let ctx4 = document.getElementById('chartMonthlyReceipts');
             if(ctx4) {
@@ -649,7 +638,6 @@
                 window.cInstance4 = new Chart(ctx4, { type: 'bar', data: { labels: ['Ιαν', 'Φεβ', 'Μαρ', 'Απρ', 'Μάι', 'Ιούν', 'Ιούλ', 'Αύγ', 'Σεπ', 'Οκτ', 'Νοέ', 'Δεκ'], datasets: [{ label: 'Εισπράξεις €', data: monthsData, backgroundColor: '#6366f1' }] }, options: { responsive: true, maintainAspectRatio: false } });
             }
 
-            // --- CHART 5: ΥΠΟΛΟΙΠΟ ΣΤΟΧΟΥ ΑΝΑ ΠΕΛΑΤΗ ---
             let remainingData = targetsData.map((t, idx) => Math.max(0, t - collectedData[idx]));
             let ctx5 = document.getElementById('chartRemainingTarget');
             if(ctx5) {
@@ -657,7 +645,6 @@
                 window.cInstance5 = new Chart(ctx5, { type: 'bar', data: { labels: clientLabels, datasets: [{ label: 'Υπόλοιπο €', data: remainingData, backgroundColor: '#f97316' }] }, options: { responsive: true, maintainAspectRatio: false } });
             }
 
-            // --- CHART 6: TASKS ΑΝΑ ΚΑΤΗΓΟΡΙΑ ---
             let catMap = {}; appData.tasks.forEach(t => { if(!t.isCompleted) { let catId = t.category || "Uncategorized"; catMap[catId] = (catMap[catId] || 0) + 1; } });
             let catLabels = Object.keys(catMap).map(k => { const c = appData.taskCategories.find(x => x.id === k); return c ? c.title : "Χωρίς Κατηγορία"; });
             let catCounts = Object.values(catMap);
@@ -667,9 +654,8 @@
                 window.cInstance6 = new Chart(ctx6, { type: 'polarArea', data: { labels: catLabels.length ? catLabels : ['Κανένα'], datasets: [{ data: catCounts.length ? catCounts : [0], backgroundColor: ['#a855f7', '#ec4899', '#3b82f6', '#10b981', '#f59e0b'] }] }, options: { responsive: true, maintainAspectRatio: false } });
             }
 
-            // Render History Table rows
             const tbody = document.getElementById('historyTableBody'); tbody.innerHTML = '';
-            sortedReceipts = [...yearReceipts].sort((a,b) => new Date(b.date) - new Date(a.date));
+            let sortedReceipts = [...yearReceipts].sort((a,b) => new Date(b.date) - new Date(a.date));
             sortedReceipts.forEach(r => {
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50 border-b border-gray-50 text-xs">
@@ -678,22 +664,23 @@
                     </tr>`;
             });
             
-            // Build Clients Grid for visibility
-            const gridContainer = document.getElementById('dashboardClientsGrid'); gridContainer.innerHTML = '';
-            activeClients.forEach((client, idx) => {
-                let t = targetsData[idx]; let c = collectedData[idx]; let r = remainingData[idx]; let p = t > 0 ? (c / t) * 100 : 0;
-                gridContainer.innerHTML += `
-                    <div class="bg-white border border-gray-200 p-2.5 rounded-lg shadow-sm flex flex-col md:flex-row md:items-center gap-2 text-xs">
-                        <div class="md:w-1/4 font-bold text-gray-800 truncate">${client.name} <span class="text-indigo-600 ml-1">(${p.toFixed(0)}%)</span></div>
-                        <div class="md:w-1/3 w-full bg-gray-100 rounded-full h-2"><div class="bg-indigo-600 h-2 rounded-full" style="width: ${p}%"></div></div>
-                        <div class="md:w-5/12 flex justify-between font-mono text-gray-500 text-[11px]">
-                            <div>Στόχος: <span class="text-gray-900 font-bold">${formatCurrency(t)}</span></div><div>Είσπραξη: <span class="text-green-600 font-bold">${formatCurrency(c)}</span></div><div>Υπόλοιπο: <span class="text-orange-600 font-bold">${formatCurrency(r)}</span></div>
-                        </div>
-                    </div>`;
-            });
+            const gridContainer = document.getElementById('dashboardClientsGrid'); 
+            if(gridContainer) {
+                gridContainer.innerHTML = '';
+                activeClients.forEach((client, idx) => {
+                    let t = targetsData[idx]; let c = collectedData[idx]; let r = remainingData[idx]; let p = t > 0 ? (c / t) * 100 : 0;
+                    gridContainer.innerHTML += `
+                        <div class="bg-white border border-gray-200 p-2.5 rounded-lg shadow-sm flex flex-col md:flex-row md:items-center gap-2 text-xs">
+                            <div class="md:w-1/4 font-bold text-gray-800 truncate">${client.name} <span class="text-indigo-600 ml-1">(${p.toFixed(0)}%)</span></div>
+                            <div class="md:w-1/3 w-full bg-gray-100 rounded-full h-2"><div class="bg-indigo-600 h-2 rounded-full" style="width: ${p}%"></div></div>
+                            <div class="md:w-5/12 flex justify-between font-mono text-gray-500 text-[11px]">
+                                <div>Στόχος: <span class="text-gray-900 font-bold">${formatCurrency(t)}</span></div><div>Είσπραξη: <span class="text-green-600 font-bold">${formatCurrency(c)}</span></div><div>Υπόλοιπο: <span class="text-orange-600 font-bold">${formatCurrency(r)}</span></div>
+                            </div>
+                        </div>`;
+                });
+            }
         }
 
-        // --- MODULE 2: ΥΠΟΧΡΕΩΣΕΙΣ ---
         function renderLiabilitiesModule() {
             const container = document.getElementById('liabilitiesTableBody'); const tabsContainer = document.getElementById('liabilitiesTabs');
             if (!appData.liabilityTypes || appData.liabilityTypes.length === 0) { tabsContainer.innerHTML = ''; container.innerHTML = `<tr><td colspan="13" class="p-6 text-center text-gray-500 text-xs">Καμία λίστα διαθέσιμη.</td></tr>`; return; }
@@ -713,7 +700,6 @@
             });
         }
 
-        // --- MODULE 3: TASKS ---
         window.renderTasksModule = function() {
             const tasksList = document.getElementById('tasksList'); tasksList.innerHTML = '';
             const filterStatus = document.getElementById('taskFilterStatus').value; const filterClient = document.getElementById('taskFilterClient').value; const filterCat = document.getElementById('taskFilterCategory').value;
@@ -788,7 +774,6 @@
             document.getElementById('printArea').innerHTML = pHTML; window.print();
         };
 
-        // --- BACKUP & RESTORE ACTIONS ---
         window.exportBackup = function() { const dl = document.createElement('a'); dl.setAttribute("href", "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData))); dl.setAttribute("download", "NewCRM_Backup_V4.json"); document.body.appendChild(dl); dl.click(); dl.remove(); };
         window.importBackup = function(e) {
             const file = e.target.files[0]; if (!file) return; const r = new FileReader();
@@ -796,7 +781,6 @@
             r.readAsText(file); e.target.value = '';
         };
 
-        // --- MASTER CORE ACTIONS ---
         window.addClient = function() { const inp = document.getElementById('newClientName'); const n = inp.value.trim(); if(n) { if(appData.clients.some(x=>x.name.toLowerCase()===n.toLowerCase())) return; appData.clients.push({ name: n, targets: {}, isActive: true, fixedCharges: [], oneOffJobs: [] }); inp.value = ''; saveData(); } };
         window.deleteClient = function(idx) { const name = appData.clients[idx].name; if(appData.receipts.some(r=>r.client===name)||appData.tasks.some(t=>t.client===name)) return; showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', () => { appData.clients.splice(idx, 1); saveData(); }); };
         
