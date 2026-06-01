@@ -113,6 +113,7 @@
         </div>
     </nav>
 
+    <!-- Main Content Area -->
     <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
         
         <!-- MODULE: SUPER ADMIN (SaaS Management) -->
@@ -303,7 +304,6 @@
                         </form>
                     </div>
                     
-                    <!-- Filters -->
                     <div class="p-4 bg-white border-b border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between text-sm">
                         <div class="flex items-center gap-2 font-bold text-gray-500 uppercase"><i class="fas fa-filter"></i> Φίλτρα</div>
                         <div class="flex flex-wrap gap-2 w-full md:w-auto">
@@ -465,12 +465,9 @@
                             <input type="text" id="fcTitle" placeholder="Περιγραφή..." class="flex-1 min-w-[120px] border rounded-lg p-2 text-xs sm:text-sm outline-none">
                             <input type="number" id="fcAmount" placeholder="€" step="0.01" class="w-20 sm:w-24 border rounded-lg p-2 text-xs sm:text-sm outline-none">
                             <select id="fcPeriod" class="border rounded-lg p-2 text-xs sm:text-sm bg-white outline-none"><option value="monthly">Μήνα</option><option value="quarterly">Τρίμηνο</option><option value="yearly">Έτος</option></select>
-                            
-                            <!-- ΠΕΔΙΟ ΕΤΟΥΣ ΓΙΑ ΧΡΕΩΣΗ -->
                             <select id="fcYear" class="border border-indigo-200 rounded-lg p-2 text-xs sm:text-sm bg-indigo-50 font-bold text-indigo-700 outline-none">
                                 <option value="all">Όλα τα Έτη</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option>
                             </select>
-                            
                             <button type="button" id="btnSaveFc" onclick="window.saveTempFc()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-4 py-2 rounded-lg font-bold transition-colors"><i class="fas fa-plus"></i></button>
                         </div>
                         <ul id="fcList" class="space-y-2"></ul>
@@ -541,9 +538,10 @@
         </div>
     </div>
 
-    <!-- Application Script (Dynamic Loading) -->
+    <!-- JS Logic - Clean & Rebuilt -->
     <script type="module">
         const SUPER_ADMIN_EMAIL = 'logepchris@gmail.com';
+        
         window.appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [] };
         window.currentAppYear = new Date().getFullYear();
         window.isCloudEnabled = false; 
@@ -552,6 +550,8 @@
         window.currentSubStatus = "active";
         window.editingReceiptId = null;
         window.currentLiabilityTypeId = null;
+        window.tempFixedCharges = [];
+        window.tempOneOffJobs = [];
 
         const demoData = {
           "liabilityTypes": [ { "id": "LT1", "title": "ΦΠΑ" }, { "id": "LT2", "title": "ΕΦΚΑ" } ], 
@@ -606,7 +606,7 @@
                             document.getElementById('user-badge').classList.add('hidden', 'lg:flex');
                             document.getElementById('nav-superadmin').classList.add('hidden');
                             window.loggedInEmail = "";
-                            updateUI();
+                            window.updateUI();
                         });
                     };
 
@@ -619,14 +619,16 @@
                             document.getElementById('user-badge').classList.remove('hidden'); 
                             document.getElementById('user-email-text').textContent = window.loggedInEmail;
                             
-                            setupUIPermissions();
+                            window.setupUIPermissions();
 
                             onSnapshot(window.currentUserDocRef, (docSnap) => { 
-                                if (docSnap.exists()) { window.appData = docSnap.data(); sanitizeDataStructure(); saveLocalData(); } 
-                                else { window.appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [] }; saveData(); } 
-                                updateUI(); 
+                                if (docSnap.exists()) { window.appData = docSnap.data(); window.sanitizeDataStructure(); } 
+                                else { window.appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [] }; window.saveData(); } 
+                                window.updateUI(); 
                                 document.getElementById('cloud-status').innerHTML = `<i class="fas fa-cloud text-green-400"></i>`; 
-                            }, (e) => { window.isCloudEnabled = false; document.getElementById('cloud-status').innerHTML = '<i class="fas fa-hdd text-indigo-300"></i>'; loadLocalData(); updateUI(); });
+                            }, (e) => { 
+                                window.isCloudEnabled = false; document.getElementById('cloud-status').innerHTML = '<i class="fas fa-hdd text-indigo-300"></i>'; window.loadLocalData(); window.updateUI(); 
+                            });
                         } else {
                             if(!window.isCloudEnabled && window.loggedInEmail !== 'Επισκέπτης_Demo') { 
                                 document.getElementById('login-screen').classList.remove('hidden'); 
@@ -635,12 +637,11 @@
                         }
                     });
                 }
-                
                 const provider = new GoogleAuthProvider();
                 await signInWithPopup(window.firebaseAuth, provider);
             } catch (e) {
                 btn.innerHTML = originalHTML;
-                window.showCustomDialog('Σφάλμα', 'Αδυναμία σύνδεσης. Ελέγξτε τη σύνδεσή σας ή αν κόβεται από κάποιο AdBlocker.');
+                window.showCustomDialog('Σφάλμα', 'Αδυναμία σύνδεσης. Ελέγξτε το ίντερνετ σας ή τυχόν AdBlockers.');
             }
         };
 
@@ -650,10 +651,10 @@
             document.getElementById('user-badge').classList.remove('hidden', 'lg:flex');
             document.getElementById('user-badge').classList.add('flex');
             document.getElementById('user-email-text').textContent = window.loggedInEmail;
-            setupUIPermissions(); updateUI(); window.switchCrmModule('dashboard');
+            window.setupUIPermissions(); window.updateUI(); window.switchCrmModule('dashboard');
         };
 
-        function setupUIPermissions() {
+        window.setupUIPermissions = function() {
             if (window.loggedInEmail === SUPER_ADMIN_EMAIL) { 
                 document.getElementById('nav-superadmin').classList.remove('hidden'); 
                 const configSubTab = document.getElementById('tab-config-sub');
@@ -662,14 +663,13 @@
                 document.getElementById('nav-superadmin').classList.add('hidden'); 
                 const configSubTab = document.getElementById('tab-config-sub');
                 if(configSubTab) configSubTab.classList.remove('hidden');
-                
                 const tMail = document.getElementById('teamAdminEmail');
                 if(tMail) tMail.textContent = window.loggedInEmail;
-                simulateTenantSubscription();
+                window.simulateTenantSubscription();
             }
-        }
+        };
 
-        function simulateTenantSubscription() {
+        window.simulateTenantSubscription = function() {
             let currentSubEndDate = new Date(); currentSubEndDate.setFullYear(currentSubEndDate.getFullYear() + 1);
             let today = new Date(); let timeDiff = currentSubEndDate.getTime() - today.getTime();
             let daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
@@ -683,15 +683,15 @@
                 const cancelArea = document.getElementById('cancelSubArea'); if(cancelArea) cancelArea.classList.add('hidden');
                 const canceledArea = document.getElementById('canceledSubArea'); if(canceledArea) canceledArea.classList.remove('hidden');
             }
-        }
+        };
 
         window.cancelMySubscription = function() {
             window.showCustomDialog('Ακύρωση Συνδρομής', 'Είστε σίγουροι ότι θέλετε να ακυρώσετε;\nΔεν θα υπάρξουν μελλοντικές χρεώσεις. Θα διατηρήσετε την πρόσβαση μέχρι την λήξη του έτους.', 'confirm', () => {
-                window.currentSubStatus = 'canceled'; simulateTenantSubscription(); window.showCustomDialog('Ενημέρωση', 'Η συνδρομή σας ακυρώθηκε.');
+                window.currentSubStatus = 'canceled'; window.simulateTenantSubscription(); window.showCustomDialog('Ενημέρωση', 'Η συνδρομή σας ακυρώθηκε.');
             });
         };
 
-        function sanitizeDataStructure() {
+        window.sanitizeDataStructure = function() {
             if (!window.appData.clients) window.appData.clients = [];
             if (!window.appData.receipts) window.appData.receipts = [];
             if (!window.appData.tasks) window.appData.tasks = [];
@@ -704,7 +704,7 @@
                 if (!c.fixedCharges) c.fixedCharges = []; 
                 if (!c.oneOffJobs) c.oneOffJobs = [];
             });
-        }
+        };
 
         window.calculateClientTarget = function(client, year) {
             let total = 0;
@@ -719,30 +719,38 @@
             return total;
         };
 
-        function loadLocalData() { const stored = localStorage.getItem('logepCrmDataV4'); window.appData = stored ? JSON.parse(stored) : { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [] }; sanitizeDataStructure(); }
-        function saveData() { 
+        window.loadLocalData = function() { const stored = localStorage.getItem('logepCrmDataV4'); window.appData = stored ? JSON.parse(stored) : { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [] }; window.sanitizeDataStructure(); };
+        
+        // --- Core UI and Save ---
+        window.saveData = function() { 
             if (window.isCloudEnabled && window.currentUserDocRef) { 
-                setDoc(window.currentUserDocRef, window.appData).then(() => { saveLocalData(); updateUI(); }).catch(e => saveLocalData()); 
+                // Αποθήκευση στο Cloud
+                import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").then(({setDoc}) => {
+                    setDoc(window.currentUserDocRef, window.appData).then(() => { window.updateUI(); }).catch(e => { console.error(e); window.updateUI(); });
+                });
+            } else if (!window.isCloudEnabled && window.loggedInEmail === 'Επισκέπτης_Demo') { 
+                // Σε Demo μην σώζεις πουθενά, απλά κάνε update
+                window.updateUI(); 
             } else { 
-                if(!window.isCloudEnabled && window.loggedInEmail === 'Επισκέπτης_Demo') { window.renderDashboardModule(); window.renderReceiptsModule(); window.renderTasksModule(); window.renderLiabilitiesModule(); } else { saveLocalData(); } 
+                // Τοπική αποθήκευση
+                localStorage.setItem('logepCrmDataV4', JSON.stringify(window.appData)); window.updateUI(); 
             } 
-        }
-        function saveLocalData() { localStorage.setItem('logepCrmDataV4', JSON.stringify(window.appData)); updateUI(); }
+        };
 
-        const formatCurrency = (amount) => new Intl.NumberFormat('el-GR', { style: 'currency', currency: 'EUR' }).format(amount);
-        const formatDate = (dateStr) => { if(!dateStr) return '-'; return new Date(dateStr).toLocaleDateString('el-GR'); };
+        window.formatCurrency = (amount) => new Intl.NumberFormat('el-GR', { style: 'currency', currency: 'EUR' }).format(amount);
+        window.formatDate = (dateStr) => { if(!dateStr) return '-'; return new Date(dateStr).toLocaleDateString('el-GR'); };
         window.copyToClipboard = function(id) { const el = document.getElementById(id); if(el && el.value) { navigator.clipboard.writeText(el.value); window.showCustomDialog('Αντιγραφή', 'Το κείμενο αντιγράφηκε!'); } };
         window.openClientFolder = function() { const link = document.getElementById('profileFolderLink').value; if(link) window.open(link.startsWith('http') ? link : 'https://'+link, '_blank'); };
 
-        function initYearSelector() {
+        window.initYearSelector = function() {
             const select = document.getElementById('globalYear'); if(!select) return; select.innerHTML = ''; const cy = new Date().getFullYear(); let years = new Set([cy]);
             for (let i = 1; i <= 5; i++) years.add(cy - i); years.add(cy + 1);
             window.appData.receipts.forEach(r => { if(r.date) years.add(new Date(r.date).getFullYear()); }); let sortedYears = Array.from(years).sort((a,b) => b - a);
             sortedYears.forEach(y => { const opt = document.createElement('option'); opt.value = y; opt.textContent = y; if (y === window.currentAppYear) opt.selected = true; select.appendChild(opt); });
             document.querySelectorAll('.display-year').forEach(el => el.textContent = window.currentAppYear);
-        }
+        };
 
-        window.changeYear = function() { window.currentAppYear = parseInt(document.getElementById('globalYear').value); document.querySelectorAll('.display-year').forEach(el => el.textContent = window.currentAppYear); updateUI(); };
+        window.changeYear = function() { window.currentAppYear = parseInt(document.getElementById('globalYear').value); document.querySelectorAll('.display-year').forEach(el => el.textContent = window.currentAppYear); window.updateUI(); };
 
         window.switchModuleTab = function(moduleName, tabId) {
             document.querySelectorAll(`#module-${moduleName} .module-tab-content`).forEach(el => el.classList.add('hidden'));
@@ -771,21 +779,21 @@
         window.switchConfigTab = function(tabId) { document.querySelectorAll('.config-panel').forEach(el => el.classList.add('hidden')); document.getElementById(`config-panel-${tabId}`).classList.remove('hidden'); document.querySelectorAll('.config-tab-btn').forEach(el => { el.classList.remove('text-indigo-600', 'border-indigo-600', 'font-bold'); el.classList.add('text-gray-500', 'border-transparent', 'font-medium'); }); const btn = document.getElementById(`tab-config-${tabId}`); if(btn) btn.classList.add('text-indigo-600', 'border-indigo-600', 'font-bold'); };
         window.switchProfileTab = function(tabId) { document.querySelectorAll('.profile-panel').forEach(el => el.classList.add('hidden')); document.getElementById(`profile-panel-${tabId}`).classList.remove('hidden'); document.querySelectorAll('.profile-tab-btn').forEach(el => { el.classList.remove('text-indigo-600', 'border-indigo-600', 'font-bold'); el.classList.add('text-gray-500', 'border-transparent'); }); const btn = document.getElementById(`tab-profile-${tabId}`); if(btn) btn.classList.add('text-indigo-600', 'border-indigo-600', 'font-bold'); };
 
-        function populateDropdowns() {
+        window.populateDropdowns = function() {
             const sorted = [...window.appData.clients].sort((a,b)=>a.name.localeCompare(b.name));
             const opts = '<option value="">Επιλογή...</option>' + sorted.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
-            if(document.getElementById('clientSelect')) document.getElementById('clientSelect').innerHTML = opts;
-            if(document.getElementById('taskClient')) document.getElementById('taskClient').innerHTML = opts;
-            if(document.getElementById('taskFilterClient')) document.getElementById('taskFilterClient').innerHTML = '<option value="">Όλοι οι Πελάτες</option>' + opts;
+            const cs = document.getElementById('clientSelect'); if(cs) cs.innerHTML = opts;
+            const tc = document.getElementById('taskClient'); if(tc) tc.innerHTML = opts;
+            const tf = document.getElementById('taskFilterClient'); if(tf) tf.innerHTML = '<option value="">Όλοι οι Πελάτες</option>' + opts;
             
             const cats = '<option value="">Καμία Κατηγορία</option>' + (window.appData.taskCategories||[]).map(c=>`<option value="${c.id}">${c.title}</option>`).join('');
-            if(document.getElementById('taskCategory')) document.getElementById('taskCategory').innerHTML = cats;
-            if(document.getElementById('taskFilterCategory')) document.getElementById('taskFilterCategory').innerHTML = '<option value="all">Όλες οι Κατηγορίες</option>' + cats;
-        }
+            const cc = document.getElementById('taskCategory'); if(cc) cc.innerHTML = cats;
+            const cf = document.getElementById('taskFilterCategory'); if(cf) cf.innerHTML = '<option value="all">Όλες οι Κατηγορίες</option>' + cats;
+        };
 
-        function updateUI() { 
-            initYearSelector(); 
-            populateDropdowns();
+        window.updateUI = function() { 
+            window.initYearSelector(); 
+            window.populateDropdowns();
             window.renderClientsModule(); 
             window.renderDashboardModule(); 
             window.renderReceiptsModule();
@@ -793,9 +801,9 @@
             window.renderLiabilitiesModule();
             window.renderConfigModule();
             if(window.loggedInEmail === SUPER_ADMIN_EMAIL) window.renderSuperAdminPanel(); 
-        }
+        };
 
-        // --- SUPER ADMIN SAAS FUNCTIONS ---
+        // --- SUPER ADMIN SAAS ---
         window.openAddTenantModal = function() { document.getElementById('addTenantModal').classList.remove('hidden'); };
         window.closeAddTenantModal = function() { document.getElementById('addTenantModal').classList.add('hidden'); document.getElementById('newTenantName').value = ''; document.getElementById('newTenantEmail').value = ''; document.getElementById('newTenantDuration').value = '12'; };
         window.saveTenant = function(e) {
@@ -805,10 +813,9 @@
             const start = new Date(); const end = new Date(); end.setMonth(end.getMonth() + duration);
             if(!window.appData.saasTenants) window.appData.saasTenants = [];
             window.appData.saasTenants.push({ id: 'tenant_' + Date.now(), name: name, adminEmail: email, start: start.toISOString().split('T')[0], end: end.toISOString().split('T')[0], status: 'active' });
-            saveData(); window.closeAddTenantModal(); window.showCustomDialog('Επιτυχία!', `Το γραφείο ${name} προστέθηκε!`); window.renderSuperAdminPanel();
+            window.saveData(); window.closeAddTenantModal(); window.showCustomDialog('Επιτυχία!', `Το γραφείο ${name} προστέθηκε!`); 
         };
-        window.deleteTenant = function(idx) { window.showCustomDialog('Διαγραφή', 'Σίγουρα θέλετε να διαγράψετε αυτόν τον συνδρομητή;', 'confirm', () => { window.appData.saasTenants.splice(idx, 1); saveData(); window.renderSuperAdminPanel(); }); };
-
+        window.deleteTenant = function(idx) { window.showCustomDialog('Διαγραφή', 'Σίγουρα θέλετε να διαγράψετε αυτόν τον συνδρομητή;', 'confirm', () => { window.appData.saasTenants.splice(idx, 1); window.saveData(); }); };
         window.renderSuperAdminPanel = function() {
             const tbody = document.getElementById('saasTenantsTable'); if(!tbody) return; tbody.innerHTML = '';
             const searchTerm = (document.getElementById('tenantSearch') ? document.getElementById('tenantSearch').value.toLowerCase() : '');
@@ -824,12 +831,13 @@
             document.getElementById('superAdminActiveSubs').textContent = `${activeCount} Ενεργές Συνδρομές`;
         };
 
+        // --- DASHBOARD ---
         window.renderDashboardModule = function() {
             const yearReceipts = window.appData.receipts.filter(r => new Date(r.date).getFullYear() === window.currentAppYear);
             let totalTarget = 0; window.appData.clients.forEach(c => { if(c.isActive !== false) totalTarget += window.calculateClientTarget(c, window.currentAppYear); });
             const totalCollected = yearReceipts.reduce((sum, r) => sum + parseFloat(r.amount), 0);
             const elDashTotalTarget = document.getElementById('dashTotalTarget');
-            if (elDashTotalTarget) { elDashTotalTarget.textContent = formatCurrency(totalTarget); document.getElementById('dashTotalCollected').textContent = formatCurrency(totalCollected); document.getElementById('dashTotalRemaining').textContent = formatCurrency(Math.max(0, totalTarget - totalCollected)); let progressPercent = totalTarget > 0 ? Math.min(100, (totalCollected / totalTarget) * 100) : (totalCollected > 0 ? 100 : 0); document.getElementById('dashTotalProgressBar').style.width = progressPercent + '%'; }
+            if (elDashTotalTarget) { elDashTotalTarget.textContent = window.formatCurrency(totalTarget); document.getElementById('dashTotalCollected').textContent = window.formatCurrency(totalCollected); document.getElementById('dashTotalRemaining').textContent = window.formatCurrency(Math.max(0, totalTarget - totalCollected)); let progressPercent = totalTarget > 0 ? Math.min(100, (totalCollected / totalTarget) * 100) : (totalCollected > 0 ? 100 : 0); document.getElementById('dashTotalProgressBar').style.width = progressPercent + '%'; }
 
             let fixedSum = 0; let oneOffSum = 0; 
             window.appData.clients.filter(c => c.isActive !== false).forEach(c => { 
@@ -849,41 +857,32 @@
             let monthsData = new Array(12).fill(0); yearReceipts.forEach(r => { monthsData[new Date(r.date).getMonth()] += parseFloat(r.amount); });
             let ctx4 = document.getElementById('chartMonthlyReceipts'); if(ctx4) { if(window.cInstance4) window.cInstance4.destroy(); window.cInstance4 = new Chart(ctx4, { type: 'line', data: { labels: ['Ιαν', 'Φεβ', 'Μαρ', 'Απρ', 'Μάι', 'Ιούν', 'Ιούλ', 'Αύγ', 'Σεπ', 'Οκτ', 'Νοέ', 'Δεκ'], datasets: [{ label: 'Εισπράξεις €', data: monthsData, borderColor: '#f43f5e', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } }); }
 
-            const gridContainer = document.getElementById('dashboardClientsGrid'); if(gridContainer) { gridContainer.innerHTML = ''; window.appData.clients.filter(c => c.isActive !== false).forEach(client => { let t = window.calculateClientTarget(client, window.currentAppYear); let c = yearReceipts.filter(r => r.client === client.name).reduce((sum, r) => sum + parseFloat(r.amount), 0); if(t === 0 && c === 0) return; let r = Math.max(0, t - c); let p = t > 0 ? (c / t) * 100 : 0; gridContainer.innerHTML += `<div class="bg-white border p-4 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center gap-4 text-sm"><div class="md:w-1/4 font-black truncate">${client.name}</div><div class="md:w-1/3 w-full bg-gray-100 rounded-full h-2"><div class="bg-indigo-500 h-2 rounded-full" style="width: ${p}%"></div></div><div class="md:w-5/12 flex justify-between font-mono text-xs"><div>Στόχος: <b>${formatCurrency(t)}</b></div><div>Είσπραξη: <b class="text-green-600">${formatCurrency(c)}</b></div></div></div>`; }); }
+            const gridContainer = document.getElementById('dashboardClientsGrid'); if(gridContainer) { gridContainer.innerHTML = ''; window.appData.clients.filter(c => c.isActive !== false).forEach(client => { let t = window.calculateClientTarget(client, window.currentAppYear); let c = yearReceipts.filter(r => r.client === client.name).reduce((sum, r) => sum + parseFloat(r.amount), 0); if(t === 0 && c === 0) return; let r = Math.max(0, t - c); let p = t > 0 ? (c / t) * 100 : 0; gridContainer.innerHTML += `<div class="bg-white border p-4 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center gap-4 text-sm"><div class="md:w-1/4 font-black truncate">${client.name}</div><div class="md:w-1/3 w-full bg-gray-100 rounded-full h-2"><div class="bg-indigo-500 h-2 rounded-full" style="width: ${p}%"></div></div><div class="md:w-5/12 flex justify-between font-mono text-xs"><div>Στόχος: <b>${window.formatCurrency(t)}</b></div><div>Είσπραξη: <b class="text-green-600">${window.formatCurrency(c)}</b></div></div></div>`; }); }
         };
 
+        // --- CLIENTS ---
         window.renderClientsModule = function() {
             const clientsList = document.getElementById('clientsList'); if(!clientsList) return; clientsList.innerHTML = ''; const sortedClients = [...window.appData.clients].map((c, idx) => ({...c, originalIndex: idx})).sort((a,b) => a.name.localeCompare(b.name));
             sortedClients.forEach(c => { 
                 const calculatedTarget = window.calculateClientTarget(c, window.currentAppYear); 
-                clientsList.innerHTML += `<li class="px-4 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-100"><div class="flex items-center gap-3"><div class="bg-indigo-100 text-indigo-600 w-10 h-10 rounded-full flex items-center justify-center font-black">${c.name.charAt(0).toUpperCase()}</div><div><p class="font-bold text-gray-900">${c.name}</p><p class="text-sm text-gray-500">Στόχος: <span class="font-bold text-indigo-600">${formatCurrency(calculatedTarget)}</span></p></div></div><div class="flex gap-2 w-full sm:w-auto"><button onclick="window.openClientProfile(${c.originalIndex})" class="flex-1 sm:flex-none text-blue-600 bg-blue-50 px-4 py-2 rounded-lg text-sm font-bold">Καρτέλα</button><button onclick="window.deleteClient(${c.originalIndex})" class="text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg"><i class="fas fa-trash"></i></button></div></li>`; 
+                clientsList.innerHTML += `<li class="px-4 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-100"><div class="flex items-center gap-3"><div class="bg-indigo-100 text-indigo-600 w-10 h-10 rounded-full flex items-center justify-center font-black">${c.name.charAt(0).toUpperCase()}</div><div><p class="font-bold text-gray-900">${c.name}</p><p class="text-sm text-gray-500">Στόχος: <span class="font-bold text-indigo-600">${window.formatCurrency(calculatedTarget)}</span></p></div></div><div class="flex gap-2 w-full sm:w-auto"><button onclick="window.openClientProfile(${c.originalIndex})" class="flex-1 sm:flex-none text-blue-600 bg-blue-50 px-4 py-2 rounded-lg text-sm font-bold">Καρτέλα</button><button onclick="window.deleteClient(${c.originalIndex})" class="text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg"><i class="fas fa-trash"></i></button></div></li>`; 
             }); 
             document.getElementById('totalClientsCount').textContent = `${window.appData.clients.length} Πελάτες`;
         };
 
-        window.renderConfigModule = function() {
-            const lList = document.getElementById('liabilityTypesList'); if(lList) { lList.innerHTML = window.appData.liabilityTypes.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία λίστα.</li>' : window.appData.liabilityTypes.map(t => `<li class="px-4 py-3 flex justify-between items-center bg-white border-b border-gray-100"><span class="font-bold text-gray-800">${t.title}</span><button onclick="window.deleteLiabilityType('${t.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></li>`).join(''); }
-            const cList = document.getElementById('taskCategoriesList'); if(cList) { cList.innerHTML = window.appData.taskCategories.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία κατηγορία.</li>' : window.appData.taskCategories.map(c => `<li class="px-4 py-3 flex justify-between items-center bg-white border-b border-gray-100"><span class="font-bold text-gray-800">${c.title}</span><button onclick="window.deleteTaskCategory('${c.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></li>`).join(''); }
-        };
-
-        window.addClient = function() { const inp = document.getElementById('newClientName'); const n = inp.value.trim(); if(n) { if(window.appData.clients.some(x=>x.name.toLowerCase()===n.toLowerCase())) return; window.appData.clients.push({ name: n, isActive: true, fixedCharges: [], oneOffJobs: [] }); inp.value = ''; saveData(); } };
+        window.addClient = function() { const inp = document.getElementById('newClientName'); const n = inp.value.trim(); if(n) { if(window.appData.clients.some(x=>x.name.toLowerCase()===n.toLowerCase())) return; window.appData.clients.push({ name: n, isActive: true, fixedCharges: [], oneOffJobs: [] }); inp.value = ''; window.saveData(); } };
         window.deleteClient = function(idx) {
             const name = window.appData.clients[idx].name;
             if(window.appData.receipts.some(r=>r.client===name) || window.appData.tasks.some(t=>t.client===name)) { window.showCustomDialog('Σφάλμα', 'Ο πελάτης έχει καταχωρημένες εγγραφές (Εισπράξεις/Tasks). Δεν μπορεί να διαγραφεί.'); return; }
-            window.showCustomDialog('Διαγραφή', 'Είστε σίγουροι ότι θέλετε να διαγράψετε τον πελάτη;', 'confirm', () => { window.appData.clients.splice(idx,1); saveData(); });
+            window.showCustomDialog('Διαγραφή', `Είστε σίγουροι ότι θέλετε να διαγράψετε τον πελάτη: ${name};`, 'confirm', () => { window.appData.clients.splice(idx,1); window.saveData(); });
         };
 
-        window.exportBackup = function() { const dl = document.createElement('a'); dl.setAttribute("href", "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.appData))); dl.setAttribute("download", "NewCRM_Backup.json"); dl.click(); };
-        window.importBackup = function(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(evt) { try { const d = JSON.parse(evt.target.result); if(d.clients) { window.showCustomDialog('Επαναφορά', 'Τα δεδομένα θα αντικατασταθούν!', 'confirm', () => { window.appData = d; sanitizeDataStructure(); saveData(); window.showCustomDialog('Επιτυχία', 'Η βάση επαναφέρθηκε.'); }); } } catch(err) { window.showCustomDialog('Σφάλμα', 'Μη έγκυρο αρχείο.'); } }; r.readAsText(f); e.target.value=''; };
-        window.importClientsCSV = function(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(evt) { const lines = evt.target.result.split('\n'); let cnt=0; for(let i=1; i<lines.length; i++) { const cols=lines[i].split(lines[i].includes(';')?';':','); const name=cols[0]?cols[0].trim():''; if(name && !window.appData.clients.some(c=>c.name.toLowerCase()===name.toLowerCase())) { window.appData.clients.push({name, gsis:cols[1]?cols[1].trim():'', efka:cols[2]?cols[2].trim():'', gemi:cols[3]?cols[3].trim():'', isActive:true, fixedCharges:[], oneOffJobs:[]}); cnt++; } } if(cnt>0){ saveData(); window.showCustomDialog('Επιτυχία', `Εισήχθησαν ${cnt} πελάτες.`); } else window.showCustomDialog('Προσοχή', 'Δεν βρέθηκαν νέοι πελάτες.'); }; r.readAsText(f); e.target.value=''; };
-        window.importReceiptsCSV = function(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(evt) { const lines = evt.target.result.split('\n'); let cnt=0; for(let i=1; i<lines.length; i++) { const cols=lines[i].split(lines[i].includes(';')?';':','); if(cols.length>=3) { const date=cols[0].trim(); const client=cols[1].trim(); const amt=parseFloat(cols[2].trim().replace(',','.')); if(date && client && !isNaN(amt)) { window.appData.receipts.push({id:'R_'+Date.now()+Math.random(), client, amount:amt, date, period:cols[3]?cols[3].trim():'', comments:cols[4]?cols[4].trim():''}); cnt++; } } } if(cnt>0){ saveData(); window.showCustomDialog('Επιτυχία', `Εισήχθησαν ${cnt} εισπράξεις.`); } }; r.readAsText(f); e.target.value=''; };
-
-        // CLIENT PROFILE - GENERAL & FINANCIALS
+        // --- CLIENT PROFILE ---
         window.renderTempFinancials = function() {
             const fcList = document.getElementById('fcList');
             if (fcList) { fcList.innerHTML = window.tempFixedCharges.map(fc => `<li class="flex justify-between items-center bg-white p-2 sm:p-3 rounded-lg border border-gray-100 shadow-sm"><span class="text-xs sm:text-sm font-bold text-gray-700 flex flex-col sm:flex-row sm:items-center gap-1">${fc.title} <span class="text-gray-400 font-normal">(${fc.period === 'monthly' ? 'Μήνα' : fc.period === 'quarterly' ? 'Τρίμηνο' : 'Έτος'}) ${fc.year && fc.year !== 'all' ? '<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded ml-1">' + fc.year + '</span>' : ''}</span></span><div class="flex items-center gap-2"><span class="text-indigo-600 font-bold">${fc.amount}€</span><button type="button" onclick="window.editTempFc('${fc.id}')" class="text-blue-400 p-2"><i class="fas fa-edit"></i></button><button type="button" onclick="window.deleteTempFc('${fc.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); }
             const ooList = document.getElementById('ooList');
-            if (ooList) { ooList.innerHTML = window.tempOneOffJobs.map(oo => `<li class="flex justify-between items-center bg-white p-2 sm:p-3 rounded-lg border border-gray-100 shadow-sm"><span class="text-xs sm:text-sm font-bold text-gray-700 flex flex-col sm:flex-row sm:items-center gap-1">${oo.title} <span class="text-gray-400 font-normal">(${formatDate(oo.date)})</span></span><div class="flex items-center gap-2"><span class="text-emerald-600 font-bold">${oo.amount}€</span><button type="button" onclick="window.editTempOo('${oo.id}')" class="text-blue-400 p-2"><i class="fas fa-edit"></i></button><button type="button" onclick="window.deleteTempOo('${oo.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); }
+            if (ooList) { ooList.innerHTML = window.tempOneOffJobs.map(oo => `<li class="flex justify-between items-center bg-white p-2 sm:p-3 rounded-lg border border-gray-100 shadow-sm"><span class="text-xs sm:text-sm font-bold text-gray-700 flex flex-col sm:flex-row sm:items-center gap-1">${oo.title} <span class="text-gray-400 font-normal">(${window.formatDate(oo.date)})</span></span><div class="flex items-center gap-2"><span class="text-emerald-600 font-bold">${oo.amount}€</span><button type="button" onclick="window.editTempOo('${oo.id}')" class="text-blue-400 p-2"><i class="fas fa-edit"></i></button><button type="button" onclick="window.deleteTempOo('${oo.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); }
         };
 
         window.saveTempFc = function() { const id = document.getElementById('editFcId').value; const title = document.getElementById('fcTitle').value.trim(); const amount = parseFloat(document.getElementById('fcAmount').value); const period = document.getElementById('fcPeriod').value; const year = document.getElementById('fcYear') ? document.getElementById('fcYear').value : 'all'; if(!title || !amount) return; if(id) { const idx = window.tempFixedCharges.findIndex(x => x.id === id); if(idx > -1) window.tempFixedCharges[idx] = {id, title, amount, period, year}; document.getElementById('btnSaveFc').innerHTML = '<i class="fas fa-plus"></i>'; document.getElementById('editFcId').value = ''; } else { window.tempFixedCharges.push({id: 'FC'+Date.now(), title, amount, period, year}); } document.getElementById('fcTitle').value = ''; document.getElementById('fcAmount').value = ''; if (document.getElementById('fcYear')) document.getElementById('fcYear').value = 'all'; window.renderTempFinancials(); };
@@ -937,9 +936,10 @@
                 Object.keys(window.appData.liabilityCells).forEach(k => { newCells[k.includes(`_${oldName}_`) ? k.replace(`_${oldName}_`, `_${newName}_`) : k] = window.appData.liabilityCells[k]; });
                 window.appData.liabilityCells = newCells;
             }
-            saveData(); window.closeClientProfile();
+            window.saveData(); window.closeClientProfile();
         };
 
+        // --- RECEIPTS ---
         window.saveReceipt = function(e) {
             e.preventDefault();
             const client = document.getElementById('clientSelect').value; const amount = parseFloat(document.getElementById('amount').value);
@@ -949,7 +949,7 @@
                 const idx = window.appData.receipts.findIndex(r=>r.id===window.editingReceiptId);
                 if(idx>-1) window.appData.receipts[idx] = {id:window.editingReceiptId, client, amount, date, period, comments};
             } else { window.appData.receipts.push({id:'R'+Date.now(), client, amount, date, period, comments}); }
-            window.cancelEditReceipt(); saveData();
+            window.cancelEditReceipt(); window.saveData();
         };
         window.editReceipt = function(id) {
             const r = window.appData.receipts.find(x=>x.id===id); if(!r) return;
@@ -962,7 +962,7 @@
             document.getElementById('btnSaveReceipt').innerHTML='<i class="fas fa-save"></i> Αποθήκευση'; document.getElementById('btnCancelEdit').classList.add('hidden');
             window.switchModuleTab('clients', 'history');
         };
-        window.deleteReceipt = function(id) { window.showCustomDialog('Διαγραφή','Σίγουρα θέλετε να διαγράψετε την είσπραξη;','confirm',()=>{ window.appData.receipts = window.appData.receipts.filter(r=>r.id!==id); saveData(); }); };
+        window.deleteReceipt = function(id) { window.showCustomDialog('Διαγραφή','Σίγουρα θέλετε να διαγράψετε την είσπραξη;','confirm',()=>{ window.appData.receipts = window.appData.receipts.filter(r=>r.id!==id); window.saveData(); }); };
         window.exportToCSV = function() {
             let csv="data:text/csv;charset=utf-8,\uFEFFΗμερομηνία,Πελάτης,Ποσό,Περίοδος,Σχόλια\n";
             window.appData.receipts.filter(r=>new Date(r.date).getFullYear()===window.currentAppYear).forEach(r=>{ csv+=`${r.date},${r.client},${r.amount},${r.period||''},${(r.comments||'').replace(/,/g,' ')}\n`; });
@@ -972,9 +972,10 @@
             const tbody = document.getElementById('historyTableBody'); if(!tbody) return;
             const yearReceipts = window.appData.receipts.filter(r => new Date(r.date).getFullYear() === window.currentAppYear);
             tbody.innerHTML = ''; let sorted = [...yearReceipts].sort((a,b) => new Date(b.date) - new Date(a.date));
-            sorted.forEach(r => { tbody.innerHTML += `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="px-4 py-3">${formatDate(r.date)}</td><td class="px-4 py-3 font-bold">${r.client}</td><td class="px-4 py-3 text-green-600 font-bold">${formatCurrency(r.amount)}</td><td class="px-4 py-3 hidden md:table-cell">${r.period||'-'}</td><td class="px-4 py-3 text-center"><button onclick="window.editReceipt('${r.id}')" class="text-blue-500 p-2"><i class="fas fa-edit"></i></button><button onclick="window.deleteReceipt('${r.id}')" class="text-red-500 p-2"><i class="fas fa-trash"></i></button></td></tr>`; });
+            sorted.forEach(r => { tbody.innerHTML += `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="px-4 py-3">${window.formatDate(r.date)}</td><td class="px-4 py-3 font-bold">${r.client}</td><td class="px-4 py-3 text-green-600 font-bold">${window.formatCurrency(r.amount)}</td><td class="px-4 py-3 hidden md:table-cell">${r.period||'-'}</td><td class="px-4 py-3 text-center"><button onclick="window.editReceipt('${r.id}')" class="text-blue-500 p-2"><i class="fas fa-edit"></i></button><button onclick="window.deleteReceipt('${r.id}')" class="text-red-500 p-2"><i class="fas fa-trash"></i></button></td></tr>`; });
         };
 
+        // --- TASKS ---
         window.saveTask = function(e) {
             e.preventDefault();
             const title = document.getElementById('taskTitle').value.trim(); const client = document.getElementById('taskClient').value;
@@ -986,7 +987,7 @@
                 const idx = window.appData.tasks.findIndex(t=>t.id===editingId);
                 if(idx>-1) { window.appData.tasks[idx].title=title; window.appData.tasks[idx].client=client; window.appData.tasks[idx].date=date; window.appData.tasks[idx].category=cat; window.appData.tasks[idx].recurring=rec; }
             } else { window.appData.tasks.push({id:'T'+Date.now(), title, client, date, category:cat, recurring:rec, isCompleted:false}); }
-            window.cancelEditTask(); saveData();
+            window.cancelEditTask(); window.saveData();
         };
         window.editTask = function(id) {
             const t = window.appData.tasks.find(x=>x.id===id); if(!t) return;
@@ -998,7 +999,7 @@
             document.getElementById('editingTaskId').value=''; document.getElementById('taskTitle').value=''; document.getElementById('taskClient').value=''; document.getElementById('taskDate').value='';
             document.getElementById('taskCategory').value=''; document.getElementById('taskRecurring').value=''; document.getElementById('btnSaveTask').textContent='Προσθήκη'; document.getElementById('btnCancelEditTask').classList.add('hidden');
         };
-        window.deleteTask = function(id) { window.showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', ()=>{ window.appData.tasks=window.appData.tasks.filter(t=>t.id!==id); saveData(); }); };
+        window.deleteTask = function(id) { window.showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', ()=>{ window.appData.tasks=window.appData.tasks.filter(t=>t.id!==id); window.saveData(); }); };
         window.toggleTask = function(id) {
             const t = window.appData.tasks.find(x=>x.id===id); if(!t) return;
             t.isCompleted = !t.isCompleted;
@@ -1008,7 +1009,7 @@
                 window.appData.tasks.push({id:'T'+Date.now(), title:t.title, client:t.client, date:d.toISOString().split('T')[0], category:t.category, recurring:t.recurring, isCompleted:false});
                 t.recurring=''; window.showCustomDialog('Επανάληψη', 'Δημιουργήθηκε το επόμενο task!');
             }
-            saveData();
+            window.saveData();
         };
         window.printTasksByClient = function() { window.showCustomDialog('Εκτύπωση', 'Εκτύπωση Tasks (Ενεργό στο Web)'); };
         
@@ -1026,12 +1027,13 @@
                 const isOverdue = !t.isCompleted && t.date && new Date(t.date) < new Date(new Date().setHours(0,0,0,0));
                 let catName = ""; if(t.category) { const cObj = window.appData.taskCategories.find(c => c.id === t.category); if(cObj) catName = `<span class="text-[10px] bg-orange-100 text-orange-800 px-2 py-0.5 rounded ml-2">${cObj.title}</span>`; }
                 let recText = t.recurring ? `<span class="text-xs text-indigo-500 ml-2"><i class="fas fa-sync-alt"></i></span>` : "";
-                tasksList.innerHTML += `<li class="px-5 py-4 flex items-center justify-between hover:bg-gray-50 border-b border-gray-100 ${t.isCompleted ? 'opacity-60' : ''}"><div class="flex items-start gap-3"><input type="checkbox" ${t.isCompleted ? 'checked' : ''} onchange="window.toggleTask('${t.id}')" class="mt-1 w-5 h-5 text-indigo-600 rounded"><div><p class="font-bold ${t.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}">${t.title} ${recText} ${catName}</p><div class="flex gap-4 mt-1 text-xs"><span class="text-gray-500 font-bold"><i class="fas fa-user mr-1"></i>${t.client}</span><span class="${isOverdue ? 'text-red-600 font-bold bg-red-50 px-1 rounded' : 'text-gray-500'}"><i class="far fa-calendar-alt mr-1"></i>${formatDate(t.date)}</span></div></div></div><div class="flex gap-2"><button onclick="window.editTask('${t.id}')" class="text-blue-500 p-2"><i class="fas fa-edit"></i></button><button onclick="window.deleteTask('${t.id}')" class="text-red-500 p-2"><i class="fas fa-trash"></i></button></div></li>`;
+                tasksList.innerHTML += `<li class="px-5 py-4 flex items-center justify-between hover:bg-gray-50 border-b border-gray-100 ${t.isCompleted ? 'opacity-60' : ''}"><div class="flex items-start gap-3"><input type="checkbox" ${t.isCompleted ? 'checked' : ''} onchange="window.toggleTask('${t.id}')" class="mt-1 w-5 h-5 text-indigo-600 rounded"><div><p class="font-bold ${t.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}">${t.title} ${recText} ${catName}</p><div class="flex gap-4 mt-1 text-xs"><span class="text-gray-500 font-bold"><i class="fas fa-user mr-1"></i>${t.client}</span><span class="${isOverdue ? 'text-red-600 font-bold bg-red-50 px-1 rounded' : 'text-gray-500'}"><i class="far fa-calendar-alt mr-1"></i>${window.formatDate(t.date)}</span></div></div></div><div class="flex gap-2"><button onclick="window.editTask('${t.id}')" class="text-blue-500 p-2"><i class="fas fa-edit"></i></button><button onclick="window.deleteTask('${t.id}')" class="text-red-500 p-2"><i class="fas fa-trash"></i></button></div></li>`;
             });
         };
 
-        window.switchLiabilityType = function(id) { window.currentLiabilityTypeId = id; updateUI(); };
-        window.saveLiabilityCell = function(typeId, cIdx, m, val) { const cName = window.appData.clients[cIdx].name; window.appData.liabilityCells[`${window.currentAppYear}_${typeId}_${cName}_${m}`] = val; saveData(); };
+        // --- LIABILITIES ---
+        window.switchLiabilityType = function(id) { window.currentLiabilityTypeId = id; window.updateUI(); };
+        window.saveLiabilityCell = function(typeId, cIdx, m, val) { const cName = window.appData.clients[cIdx].name; window.appData.liabilityCells[`${window.currentAppYear}_${typeId}_${cName}_${m}`] = val; window.saveData(); };
         
         window.renderLiabilitiesModule = function() {
             const container = document.getElementById('liabilitiesTableBody'); const tabsContainer = document.getElementById('liabilitiesTabs'); if(!container || !tabsContainer) return;
@@ -1048,23 +1050,25 @@
             });
         };
 
-        window.saveLiabilityType = function(e) { e.preventDefault(); const t = document.getElementById('liabTypeTitle').value.trim(); if(t) { window.appData.liabilityTypes.push({ id: 'LT'+Date.now(), title: t }); document.getElementById('liabTypeTitle').value = ''; saveData(); } };
-        window.deleteLiabilityType = function(id) { window.showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', () => { window.appData.liabilityTypes = window.appData.liabilityTypes.filter(x=>x.id!==id); saveData(); }); };
-        window.saveTaskCategory = function(e) { e.preventDefault(); const t = document.getElementById('taskCatTitle').value.trim(); if(t) { window.appData.taskCategories.push({ id: 'TC'+Date.now(), title: t }); document.getElementById('taskCatTitle').value = ''; saveData(); } };
-        window.deleteTaskCategory = function(id) { window.showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', () => { window.appData.taskCategories = window.appData.taskCategories.filter(x=>x.id!==id); saveData(); }); };
+        window.saveLiabilityType = function(e) { e.preventDefault(); const t = document.getElementById('liabTypeTitle').value.trim(); if(t) { window.appData.liabilityTypes.push({ id: 'LT'+Date.now(), title: t }); document.getElementById('liabTypeTitle').value = ''; window.saveData(); } };
+        window.deleteLiabilityType = function(id) { window.showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', () => { window.appData.liabilityTypes = window.appData.liabilityTypes.filter(x=>x.id!==id); window.saveData(); }); };
+        window.saveTaskCategory = function(e) { e.preventDefault(); const t = document.getElementById('taskCatTitle').value.trim(); if(t) { window.appData.taskCategories.push({ id: 'TC'+Date.now(), title: t }); document.getElementById('taskCatTitle').value = ''; window.saveData(); } };
+        window.deleteTaskCategory = function(id) { window.showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', () => { window.appData.taskCategories = window.appData.taskCategories.filter(x=>x.id!==id); window.saveData(); }); };
 
+        // --- CONFIG ---
         window.renderConfigModule = function() {
             const lList = document.getElementById('liabilityTypesList'); if(lList) { lList.innerHTML = window.appData.liabilityTypes.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία λίστα.</li>' : window.appData.liabilityTypes.map(t => `<li class="px-4 py-3 flex justify-between items-center bg-white border-b border-gray-100"><span class="font-bold text-gray-800">${t.title}</span><button onclick="window.deleteLiabilityType('${t.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></li>`).join(''); }
             const cList = document.getElementById('taskCategoriesList'); if(cList) { cList.innerHTML = window.appData.taskCategories.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία κατηγορία.</li>' : window.appData.taskCategories.map(c => `<li class="px-4 py-3 flex justify-between items-center bg-white border-b border-gray-100"><span class="font-bold text-gray-800">${c.title}</span><button onclick="window.deleteTaskCategory('${c.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></li>`).join(''); }
         };
 
         window.exportBackup = function() { const dl = document.createElement('a'); dl.setAttribute("href", "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.appData))); dl.setAttribute("download", "NewCRM_Backup.json"); dl.click(); };
-        window.importBackup = function(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(evt) { try { const d = JSON.parse(evt.target.result); if(d.clients) { window.showCustomDialog('Επαναφορά', 'Τα δεδομένα θα αντικατασταθούν!', 'confirm', () => { window.appData = d; sanitizeDataStructure(); saveData(); window.showCustomDialog('Επιτυχία', 'Η βάση επαναφέρθηκε.'); }); } } catch(err) { window.showCustomDialog('Σφάλμα', 'Μη έγκυρο αρχείο.'); } }; r.readAsText(f); e.target.value=''; };
-        window.importClientsCSV = function(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(evt) { const lines = evt.target.result.split('\n'); let cnt=0; for(let i=1; i<lines.length; i++) { const cols=lines[i].split(lines[i].includes(';')?';':','); const name=cols[0]?cols[0].trim():''; if(name && !window.appData.clients.some(c=>c.name.toLowerCase()===name.toLowerCase())) { window.appData.clients.push({name, gsis:cols[1]?cols[1].trim():'', efka:cols[2]?cols[2].trim():'', gemi:cols[3]?cols[3].trim():'', isActive:true, fixedCharges:[], oneOffJobs:[]}); cnt++; } } if(cnt>0){ saveData(); window.showCustomDialog('Επιτυχία', `Εισήχθησαν ${cnt} πελάτες.`); } else window.showCustomDialog('Προσοχή', 'Δεν βρέθηκαν νέοι πελάτες.'); }; r.readAsText(f); e.target.value=''; };
-        window.importReceiptsCSV = function(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(evt) { const lines = evt.target.result.split('\n'); let cnt=0; for(let i=1; i<lines.length; i++) { const cols=lines[i].split(lines[i].includes(';')?';':','); if(cols.length>=3) { const date=cols[0].trim(); const client=cols[1].trim(); const amt=parseFloat(cols[2].trim().replace(',','.')); if(date && client && !isNaN(amt)) { window.appData.receipts.push({id:'R_'+Date.now()+Math.random(), client, amount:amt, date, period:cols[3]?cols[3].trim():'', comments:cols[4]?cols[4].trim():''}); cnt++; } } } if(cnt>0){ saveData(); window.showCustomDialog('Επιτυχία', `Εισήχθησαν ${cnt} εισπράξεις.`); } }; r.readAsText(f); e.target.value=''; };
+        window.importBackup = function(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(evt) { try { const d = JSON.parse(evt.target.result); if(d.clients) { window.showCustomDialog('Επαναφορά', 'Τα δεδομένα θα αντικατασταθούν!', 'confirm', () => { window.appData = d; window.sanitizeDataStructure(); window.saveData(); window.showCustomDialog('Επιτυχία', 'Η βάση επαναφέρθηκε.'); }); } } catch(err) { window.showCustomDialog('Σφάλμα', 'Μη έγκυρο αρχείο.'); } }; r.readAsText(f); e.target.value=''; };
+        
+        window.importClientsCSV = function(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(evt) { const lines = evt.target.result.split('\n'); let cnt=0; for(let i=1; i<lines.length; i++) { const cols=lines[i].split(lines[i].includes(';')?';':','); const name=cols[0]?cols[0].trim():''; if(name && !window.appData.clients.some(c=>c.name.toLowerCase()===name.toLowerCase())) { window.appData.clients.push({name, gsis:cols[1]?cols[1].trim():'', efka:cols[2]?cols[2].trim():'', gemi:cols[3]?cols[3].trim():'', isActive:true, fixedCharges:[], oneOffJobs:[]}); cnt++; } } if(cnt>0){ window.saveData(); window.showCustomDialog('Επιτυχία', `Εισήχθησαν ${cnt} πελάτες.`); } else window.showCustomDialog('Προσοχή', 'Δεν βρέθηκαν νέοι πελάτες.'); }; r.readAsText(f); e.target.value=''; };
+        window.importReceiptsCSV = function(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(evt) { const lines = evt.target.result.split('\n'); let cnt=0; for(let i=1; i<lines.length; i++) { const cols=lines[i].split(lines[i].includes(';')?';':','); if(cols.length>=3) { const date=cols[0].trim(); const client=cols[1].trim(); const amt=parseFloat(cols[2].trim().replace(',','.')); if(date && client && !isNaN(amt)) { window.appData.receipts.push({id:'R_'+Date.now()+Math.random(), client, amount:amt, date, period:cols[3]?cols[3].trim():'', comments:cols[4]?cols[4].trim():''}); cnt++; } } } if(cnt>0){ window.saveData(); window.showCustomDialog('Επιτυχία', `Εισήχθησαν ${cnt} εισπράξεις.`); } }; r.readAsText(f); e.target.value=''; };
 
-        // Initialize App
-        loadLocalData(); 
+        // INITIALIZE APP ON LOAD
+        window.loadLocalData(); 
         
     </script>
 </body>
