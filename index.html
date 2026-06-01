@@ -19,6 +19,11 @@
             .print-task-date { color: #666; font-size: 12px; margin-left: 10px; }
             .print-task-notes { color: #555; font-size: 12px; margin-left: 20px; font-style: italic; }
         }
+        /* Custom scrollbar for Super Admin table */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
@@ -61,7 +66,10 @@
                     <button onclick="window.logout()" class="text-sm font-medium text-indigo-100 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors" title="Αποσύνδεση"><i class="fas fa-sign-out-alt text-lg"></i></button>
                 </div>
             </div>
-            <div class="flex overflow-x-auto space-x-1 text-sm sm:text-base border-t border-white/20 pt-1 pb-1">
+            <div class="flex overflow-x-auto space-x-1 text-sm sm:text-base border-t border-white/20 pt-1 pb-1" id="main-nav-container">
+                <!-- SUPER ADMIN TAB (Hidden by default) -->
+                <button onclick="window.switchCrmModule('superadmin')" id="nav-superadmin" class="hidden crm-nav-btn px-4 py-2 rounded-t-lg font-bold bg-amber-500 text-gray-900 transition-colors whitespace-nowrap shadow-sm"><i class="fas fa-crown mr-2"></i>Admin Panel</button>
+                
                 <button onclick="window.switchCrmModule('dashboard')" id="nav-dashboard" class="crm-nav-btn px-4 py-2 rounded-t-lg font-bold bg-white text-indigo-900 transition-colors whitespace-nowrap shadow-sm"><i class="fas fa-chart-pie mr-2"></i>Dashboard</button>
                 <button onclick="window.switchCrmModule('clients')" id="nav-clients" class="crm-nav-btn px-4 py-2 rounded-t-lg font-medium text-indigo-100 hover:text-white hover:bg-white/20 transition-all whitespace-nowrap"><i class="fas fa-users mr-2"></i>Πελάτες & Εισπράξεις</button>
                 <button onclick="window.switchCrmModule('liabilities')" id="nav-liabilities" class="crm-nav-btn px-4 py-2 rounded-t-lg font-medium text-indigo-100 hover:text-white hover:bg-white/20 transition-all whitespace-nowrap"><i class="fas fa-file-invoice-dollar mr-2"></i>Υποχρεώσεις & Tasks</button>
@@ -73,6 +81,9 @@
     <!-- Sub Navigation Bar -->
     <nav class="bg-white shadow-sm border-b border-gray-200 z-10 relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div id="subnav-superadmin" class="subnav-container hidden flex py-2 space-x-6 text-sm">
+                <span class="font-bold text-amber-600 border-b-2 border-amber-600 pb-1 whitespace-nowrap"><i class="fas fa-users-cog mr-1"></i> Διαχείριση Συνδρομητών</span>
+            </div>
             <div id="subnav-dashboard" class="subnav-container flex py-2 space-x-6 text-sm">
                 <span class="font-bold text-gray-800 border-b-2 border-gray-800 pb-1 whitespace-nowrap"><i class="fas fa-chart-line mr-1"></i> Συνολική Εικόνα</span>
             </div>
@@ -90,8 +101,9 @@
             
             <div id="subnav-config" class="subnav-container hidden flex overflow-x-auto py-2 space-x-4 text-sm">
                 <button onclick="window.switchConfigTab('general')" id="tab-config-general" class="config-tab-btn font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1 whitespace-nowrap">Γενικές Ρυθμίσεις</button>
-                <button onclick="window.switchConfigTab('liabilities')" id="tab-config-liabilities" class="config-tab-btn font-medium text-gray-500 border-b-2 border-transparent whitespace-nowrap">Υποχρεώσεις και Tasks</button>
-                <button onclick="window.switchConfigTab('biz')" id="tab-config-biz" class="config-tab-btn font-medium text-gray-500 border-b-2 border-transparent whitespace-nowrap">Ρυθμίσεις Πελατών και Εισπράξεων</button>
+                <button onclick="window.switchConfigTab('liabilities')" id="tab-config-liabilities" class="config-tab-btn font-medium text-gray-500 border-b-2 border-transparent whitespace-nowrap">Υποχρεώσεις & Tasks</button>
+                <button onclick="window.switchConfigTab('biz')" id="tab-config-biz" class="config-tab-btn font-medium text-gray-500 border-b-2 border-transparent whitespace-nowrap">Ρυθμίσεις Εισαγωγής</button>
+                <button onclick="window.switchConfigTab('sub')" id="tab-config-sub" class="config-tab-btn font-medium text-gray-500 border-b-2 border-transparent whitespace-nowrap"><i class="fas fa-star text-amber-400 mr-1"></i>Συνδρομή & Ομάδα</button>
             </div>
         </div>
     </nav>
@@ -99,6 +111,46 @@
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
+        <!-- MODULE: SUPER ADMIN (Μόνο για τον Ιδιοκτήτη) -->
+        <div id="module-superadmin" class="crm-module hidden max-w-7xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-gray-900 to-indigo-900 px-6 py-4 flex justify-between items-center text-white">
+                    <h2 class="text-xl font-black tracking-tight"><i class="fas fa-server mr-2 text-amber-400"></i>Διαχείριση Πελατών (SaaS)</h2>
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-medium border border-white/30" id="superAdminActiveSubs">0 Ενεργές Συνδρομές</span>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex flex-wrap gap-4 mb-6 items-end justify-between">
+                        <div class="w-full md:w-1/3">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Αναζήτηση Γραφείου</label>
+                            <input type="text" placeholder="Email ή Όνομα Γραφείου..." class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-lg text-sm flex items-center gap-2 transition-colors shadow-sm">
+                            <i class="fas fa-plus"></i> Νέος Συνδρομητής
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead class="bg-gray-50 text-gray-600 border-b border-gray-200">
+                                <tr>
+                                    <th class="px-4 py-3 font-bold uppercase tracking-wider text-xs">Λογιστικό Γραφείο</th>
+                                    <th class="px-4 py-3 font-bold uppercase tracking-wider text-xs">Admin Email</th>
+                                    <th class="px-4 py-3 font-bold uppercase tracking-wider text-xs">Λήξη</th>
+                                    <th class="px-4 py-3 font-bold uppercase tracking-wider text-xs">Υπόλοιπο</th>
+                                    <th class="px-4 py-3 font-bold uppercase tracking-wider text-xs">Κατάσταση</th>
+                                    <th class="px-4 py-3 font-bold text-center uppercase tracking-wider text-xs">Ενέργειες</th>
+                                </tr>
+                            </thead>
+                            <tbody id="saasTenantsTable" class="divide-y divide-gray-100">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- MODULE: DASHBOARD -->
         <div id="module-dashboard" class="crm-module block max-w-7xl mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -142,8 +194,6 @@
 
         <!-- MODULE: CLIENTS & RECEIPTS -->
         <div id="module-clients" class="crm-module hidden max-w-4xl mx-auto">
-            
-            <!-- Tab 1: Πελατολόγιο -->
             <div id="clientsMain" class="module-tab-content block">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
                     <h2 class="text-lg font-bold text-gray-800 mb-3 border-b pb-1">Δημιουργία Νέου Πελάτη</h2>
@@ -161,7 +211,6 @@
                 </div>
             </div>
 
-            <!-- Tab 2: New Receipt -->
             <div id="newReceipt" class="module-tab-content hidden max-w-2xl mx-auto">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h2 id="formReceiptTitle" class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Καταχώρηση Νέας Είσπραξης</h2>
@@ -181,7 +230,6 @@
                 </div>
             </div>
 
-            <!-- Tab 3: History -->
             <div id="history" class="module-tab-content hidden">
                 <div class="flex justify-between items-center mb-4 gap-3">
                     <h2 class="text-lg font-bold text-gray-800">Ιστορικό Εισπράξεων (<span class="display-year"></span>)</h2>
@@ -209,8 +257,6 @@
 
         <!-- MODULE: LIABILITIES & TASKS -->
         <div id="module-liabilities" class="crm-module hidden max-w-[95%] mx-auto">
-            
-            <!-- Tab 1: Υποχρεώσεις -->
             <div id="liabilitiesGrid" class="module-tab-content block">
                 <div class="flex overflow-x-auto space-x-2 border-b border-gray-200 mb-4" id="liabilitiesTabs"></div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
@@ -228,7 +274,6 @@
                 </div>
             </div>
 
-            <!-- Tab 2: Tasks -->
             <div id="tasksMain" class="module-tab-content hidden max-w-5xl mx-auto">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                     <div class="bg-indigo-600 px-5 py-4 text-white flex justify-between items-center">
@@ -256,7 +301,7 @@
                                 </select>
                                 <div class="flex items-center justify-center bg-white border border-gray-300 rounded-lg p-2.5 shadow-sm">
                                     <label class="flex items-center gap-2 cursor-pointer font-bold text-sm text-indigo-700">
-                                        <input type="checkbox" id="taskEmailNotify" class="w-4 h-4 text-indigo-600 rounded"> <i class="fas fa-envelope"></i> Αποστολή Email
+                                        <input type="checkbox" id="taskEmailNotify" class="w-4 h-4 text-indigo-600 rounded"> <i class="fas fa-envelope"></i> Email
                                     </label>
                                 </div>
                                 <div class="flex gap-2">
@@ -284,7 +329,6 @@
         <!-- MODULE 4: ΡΥΘΜΙΣΕΙΣ -->
         <div id="module-config" class="crm-module hidden max-w-5xl mx-auto">
             
-            <!-- Υπομενού 1: Γενικές Ρυθμίσεις & Backup -->
             <div id="config-panel-general" class="config-panel block bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fas fa-shield-alt text-indigo-500 mr-2"></i>Αντίγραφα Ασφαλείας (Backup)</h3>
                 <p class="text-sm text-gray-500 mb-6">Λήψη φυσικού αντιγράφου ή επαναφορά δεδομένων του CRM από τοπικό αρχείο JSON.</p>
@@ -294,7 +338,6 @@
                 </div>
             </div>
 
-            <!-- Υπομενού 2: Υποχρεώσεις και Tasks -->
             <div id="config-panel-liabilities" class="config-panel hidden grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h2 class="text-md font-bold text-gray-800 mb-4 border-b pb-2"><i class="fas fa-list text-indigo-500 mr-2"></i>Λίστες Υποχρεώσεων</h2>
@@ -314,11 +357,10 @@
                 </div>
             </div>
 
-            <!-- Υπομενού 3: Ρυθμίσεις Πελατών και Εισπράξεων (Με CSV) -->
             <div id="config-panel-biz" class="config-panel hidden bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-8">
                 <div>
                     <h3 class="text-md font-bold text-gray-800 mb-3 border-b pb-2"><i class="fas fa-users text-blue-600 mr-2"></i>Μαζική Εισαγωγή Πελατών (CSV)</h3>
-                    <p class="text-sm text-gray-500 mb-4 leading-relaxed">Η δομή των στηλών πρέπει να είναι: <strong>Επωνυμία, GSIS (προαιρετικό), ΕΦΚΑ (προαιρετικό), ΓΕΜΗ (προαιρετικό)</strong>.</p>
+                    <p class="text-sm text-gray-500 mb-4 leading-relaxed">Δομή: <strong>Επωνυμία, GSIS, ΕΦΚΑ, ΓΕΜΗ</strong>.</p>
                     <div class="p-5 bg-gray-50 rounded-lg border border-gray-200">
                         <label class="flex items-center justify-center gap-3 bg-white border border-gray-300 rounded-xl p-4 hover:bg-gray-100 cursor-pointer shadow-sm transition-colors font-bold text-gray-700">
                             <i class="fas fa-file-import text-2xl text-blue-500"></i> Επιλογή αρχείου Πελατών
@@ -328,12 +370,70 @@
                 </div>
                 <div>
                     <h3 class="text-md font-bold text-gray-800 mb-3 border-b pb-2"><i class="fas fa-file-invoice-dollar text-emerald-600 mr-2"></i>Μαζική Εισαγωγή Εισπράξεων (CSV)</h3>
-                    <p class="text-sm text-gray-500 mb-4 leading-relaxed">Η δομή των στηλών πρέπει να είναι: <strong>Ημερομηνία (ΕΕΕΕ-ΜΜ-ΗΗ), Επωνυμία Πελάτη, Ποσό, Περίοδος, Σχόλια</strong>.</p>
+                    <p class="text-sm text-gray-500 mb-4 leading-relaxed">Δομή: <strong>Ημερομηνία (ΕΕΕΕ-ΜΜ-ΗΗ), Επωνυμία Πελάτη, Ποσό, Περίοδος, Σχόλια</strong>.</p>
                     <div class="p-5 bg-gray-50 rounded-lg border border-gray-200">
                         <label class="flex items-center justify-center gap-3 bg-white border border-gray-300 rounded-xl p-4 hover:bg-gray-100 cursor-pointer shadow-sm transition-colors font-bold text-gray-700">
                             <i class="fas fa-cloud-upload-alt text-2xl text-emerald-500"></i> Επιλογή αρχείου Εισπράξεων
                             <input type="file" id="csvFileImport" accept=".csv" class="hidden" onchange="window.importReceiptsCSV(event)">
                         </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ΝΕΟ ΥΠΟΜΕΝΟΥ: ΣΥΝΔΡΟΜΗ & ΟΜΑΔΑ (Μόνο για τον πελάτη) -->
+            <div id="config-panel-sub" class="config-panel hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Στοιχεία Συνδρομής -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-4 py-1 rounded-bl-lg" id="clientSubStatusBadge">ΕΝΕΡΓΗ</div>
+                        <h3 class="text-lg font-black text-gray-900 mb-1"><i class="fas fa-star text-amber-400 mr-2"></i>Η Συνδρομή σας</h3>
+                        <p class="text-sm text-gray-500 mb-6">Σχέδιο: <span class="font-bold text-gray-800">New CRM Pro (Ετήσιο)</span></p>
+                        
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-bold text-gray-700">Ημέρες που απομένουν:</span>
+                                <span class="text-xl font-black text-indigo-600" id="clientSubDaysLeft">345</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-indigo-600 h-2 rounded-full" style="width: 90%" id="clientSubProgress"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-3 text-right">Λήγει: <span class="font-bold" id="clientSubEndDate">15/05/2027</span></p>
+                        </div>
+                        
+                        <div class="border-t border-gray-100 pt-5 text-center" id="cancelSubArea">
+                            <p class="text-xs text-gray-500 mb-3 italic">Αν ακυρώσετε, θα διατηρήσετε την πρόσβαση στα δεδομένα σας μέχρι το τέλος της τρέχουσας περιόδου.</p>
+                            <button onclick="window.cancelMySubscription()" class="text-red-500 hover:text-red-700 hover:bg-red-50 font-bold px-4 py-2 rounded-lg text-sm transition-colors w-full border border-red-100">
+                                Ακύρωση Συνδρομής
+                            </button>
+                        </div>
+                        <div id="canceledSubArea" class="hidden border-t border-gray-100 pt-5 text-center">
+                            <div class="bg-amber-50 text-amber-800 p-3 rounded-lg border border-amber-200 text-sm font-bold">
+                                <i class="fas fa-exclamation-triangle mr-1"></i> Η συνδρομή σας έχει ακυρωθεί και δεν θα ανανεωθεί.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Διαχείριση Ομάδας -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="text-lg font-black text-gray-900 mb-1"><i class="fas fa-users text-blue-500 mr-2"></i>Η Ομάδα του Γραφείου</h3>
+                        <p class="text-sm text-gray-500 mb-6">Διαχειριστείτε ποια emails έχουν πρόσβαση στη βάση σας.</p>
+                        
+                        <div class="flex gap-2 mb-6">
+                            <input type="email" placeholder="Email νέου συνεργάτη..." class="flex-1 border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-indigo-500">
+                            <button class="bg-gray-800 hover:bg-gray-900 text-white font-bold px-4 py-2.5 rounded-lg text-sm transition-colors">Προσθήκη</button>
+                        </div>
+                        
+                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Ενεργα Μελη</h4>
+                        <ul class="space-y-2">
+                            <li class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                <span class="text-sm font-bold text-gray-800" id="teamAdminEmail">admin@office.gr</span>
+                                <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold">Ιδιοκτήτης</span>
+                            </li>
+                            <li class="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-200">
+                                <span class="text-sm font-medium text-gray-600">maria.employee@gmail.com</span>
+                                <button class="text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -439,103 +539,79 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const ALLOWED_EMAILS = [ 'logepchris@gmail.com', 'demo.newcrm@gmail.com' ];
+        // --- SUPER ADMIN EMAIL ---
+        const SUPER_ADMIN_EMAIL = 'logepchris@gmail.com';
+        
+        // Για την ώρα κρατάμε την λίστα για να μην κλειδωθείς έξω, 
+        // σε κανονικό SaaS αυτό ελέγχεται από τη βάση.
+        const ALLOWED_EMAILS = [ SUPER_ADMIN_EMAIL, 'demo.newcrm@gmail.com' ];
 
         let appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [] };
         let currentAppYear = new Date().getFullYear();
         let isCloudEnabled = false; 
         let db, auth, userDocRef;
+        let loggedInEmail = "";
+        
         window.currentLiabilityTypeId = null; 
         window.editingReceiptId = null;       
+
+        // --- SIMULATED SAAS TENANTS DATABASE (ΓΙΑ ΤΟ SUPER ADMIN PANEL) ---
+        let mockTenantsDB = [
+            { id: "tenant_1", name: "Λογιστική Σύμβουλοι Α.Ε.", adminEmail: "office1@gmail.com", start: "2025-05-15", end: "2026-05-15", status: "active" },
+            { id: "tenant_2", name: "Papadopoulos & Assoc", adminEmail: "papadopoulos@yahoo.gr", start: "2024-01-10", end: "2026-01-10", status: "active" },
+            { id: "tenant_3", name: "Tax Experts IKE", adminEmail: "tax@experts.gr", start: "2025-02-01", end: "2026-02-01", status: "canceled" }
+        ];
 
         const demoData = {
           "liabilityTypes": [ { "id": "LT1", "title": "ΦΠΑ" }, { "id": "LT2", "title": "ΕΦΚΑ" }, { "id": "LT3", "title": "myDATA" } ],
           "taskCategories": [ { "id": "TC1", "title": "Φορολογικά" }, { "id": "TC2", "title": "Εργατικά" }, { "id": "TC3", "title": "Επικοινωνία" } ],
           "clients": [
-            {
-              "name": "Alpha Tech Α.Ε.", "isActive": true, "gsis": "alpha_user / pass123", "efka": "alpha_efka", "gemi": "123456789000",
-              "assignedLiabilities": ["LT1", "LT2", "LT3"],
-              "fixedCharges": [ { "id": "FC1", "title": "Τήρηση Γ' Κατηγορίας", "amount": 300, "period": "monthly" } ],
-              "oneOffJobs": [ { "id": "OO1", "title": "Τροποποίηση Καταστατικού", "amount": 500, "date": "2026-03-15" } ]
-            },
-            {
-              "name": "Cafe Ο Φάρος (Ε.Ε.)", "isActive": true, "assignedLiabilities": ["LT1", "LT2"],
-              "fixedCharges": [ { "id": "FC3", "title": "Τήρηση Β' Κατηγορίας", "amount": 150, "period": "monthly" } ], "oneOffJobs": []
-            },
-            {
-              "name": "Παπαδόπουλος Νίκος", "isActive": true, "assignedLiabilities": ["LT1"],
-              "fixedCharges": [ { "id": "FC4", "title": "Ετήσια Φορολογική", "amount": 400, "period": "yearly" } ], "oneOffJobs": []
-            }
+            { "name": "Alpha Tech Α.Ε.", "isActive": true, "gsis": "alpha_user", "assignedLiabilities": ["LT1", "LT2", "LT3"], "fixedCharges": [ { "id": "FC1", "title": "Τήρηση Γ' Κατηγορίας", "amount": 300, "period": "monthly" } ], "oneOffJobs": [ { "id": "OO1", "title": "Τροποποίηση Καταστατικού", "amount": 500, "date": "2026-03-15" } ] },
+            { "name": "Cafe Ο Φάρος (Ε.Ε.)", "isActive": true, "assignedLiabilities": ["LT1", "LT2"], "fixedCharges": [ { "id": "FC3", "title": "Τήρηση Β' Κατηγορίας", "amount": 150, "period": "monthly" } ], "oneOffJobs": [] },
+            { "name": "Παπαδόπουλος Νίκος", "isActive": true, "assignedLiabilities": ["LT1"], "fixedCharges": [ { "id": "FC4", "title": "Ετήσια Φορολογική", "amount": 400, "period": "yearly" } ], "oneOffJobs": [] }
           ],
           "receipts": [
             { "id": "R1", "client": "Alpha Tech Α.Ε.", "amount": 400, "date": "2026-01-10", "period": "Ιανουάριος" },
             { "id": "R2", "client": "Alpha Tech Α.Ε.", "amount": 400, "date": "2026-02-12", "period": "Φεβρουάριος" },
-            { "id": "R4", "client": "Cafe Ο Φάρος (Ε.Ε.)", "amount": 150, "date": "2026-01-15", "period": "Ιανουάριος" },
-            { "id": "R5", "client": "Cafe Ο Φάρος (Ε.Ε.)", "amount": 150, "date": "2026-02-18", "period": "Φεβρουάριος" },
-            { "id": "R8", "client": "Παπαδόπουλος Νίκος", "amount": 200, "date": "2026-05-10", "period": "Προκαταβολή" },
-            { "id": "R9", "client": "Alpha Tech Α.Ε.", "amount": 400, "date": "2025-12-10", "period": "Δεκέμβριος 2025" }
+            { "id": "R4", "client": "Cafe Ο Φάρος (Ε.Ε.)", "amount": 150, "date": "2026-01-15", "period": "Ιανουάριος" }
           ],
           "tasks": [
             { "id": "T1", "title": "Υποβολή ΦΠΑ", "client": "Cafe Ο Φάρος (Ε.Ε.)", "date": "2026-04-30", "category": "TC1", "recurring": "quarterly", "isCompleted": true },
-            { "id": "T2", "title": "ΑΠΔ Μαΐου", "client": "Alpha Tech Α.Ε.", "date": "2026-05-31", "category": "TC2", "recurring": "monthly", "isCompleted": false },
-            { "id": "T3", "title": "Τηλέφωνο για υπόλοιπα", "client": "Παπαδόπουλος Νίκος", "date": "2026-05-15", "category": "TC3", "recurring": "", "isCompleted": false }
+            { "id": "T2", "title": "ΑΠΔ", "client": "Alpha Tech Α.Ε.", "date": "2026-05-31", "category": "TC2", "recurring": "monthly", "isCompleted": false }
           ],
-          "liabilityCells": {
-            "2026_LT1_Alpha Tech Α.Ε._1": "OK", "2026_LT1_Alpha Tech Α.Ε._4": "ΕΚΚΡΕΜΕΙ"
-          }
+          "liabilityCells": { "2026_LT1_Alpha Tech Α.Ε._1": "OK" }
         };
 
         window.loginAsGuest = function() {
             appData = JSON.parse(JSON.stringify(demoData));
             isCloudEnabled = false;
+            loggedInEmail = 'Επισκέπτης_Demo';
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('cloud-status').innerHTML = `<i class="fas fa-vial text-yellow-400" title="Demo Sandbox"></i>`;
             document.getElementById('user-badge').classList.remove('hidden');
-            document.getElementById('user-email-text').textContent = 'Επισκέπτης_Demo';
+            document.getElementById('user-email-text').textContent = loggedInEmail;
+            setupUIPermissions();
             updateUI();
             window.switchCrmModule('dashboard');
         };
 
         function sanitizeDataStructure() {
-            if (!appData.liabilities) appData.liabilities = []; 
-            if (!appData.tasks) appData.tasks = []; 
-            if (!appData.liabilityTypes) appData.liabilityTypes = [];
-            if (!appData.liabilityCells) appData.liabilityCells = {}; 
-            if (!appData.taskCategories) appData.taskCategories = [];
-            if (appData.clients) {
-                appData.clients.forEach(c => { 
-                    if (c.isActive === undefined) c.isActive = true; 
-                    if (!c.fixedCharges) c.fixedCharges = []; 
-                    if (!c.oneOffJobs) c.oneOffJobs = [];
-                });
-            }
+            if (!appData.liabilities) appData.liabilities = []; if (!appData.tasks) appData.tasks = []; if (!appData.liabilityTypes) appData.liabilityTypes = [];
+            if (!appData.liabilityCells) appData.liabilityCells = {}; if (!appData.taskCategories) appData.taskCategories = [];
+            if (appData.clients) { appData.clients.forEach(c => { if (c.isActive === undefined) c.isActive = true; if (!c.fixedCharges) c.fixedCharges = []; if (!c.oneOffJobs) c.oneOffJobs = []; }); }
         }
 
         window.calculateClientTarget = function(client, year) {
             let total = 0;
-            if (client.fixedCharges) {
-                client.fixedCharges.forEach(fc => {
-                    let amt = parseFloat(fc.amount) || 0;
-                    if (fc.period === 'monthly') total += amt * 12; 
-                    else if (fc.period === 'quarterly') total += amt * 4; 
-                    else if (fc.period === 'yearly') total += amt;
-                });
-            }
-            if (client.oneOffJobs) { 
-                client.oneOffJobs.forEach(job => { 
-                    if (job.date && new Date(job.date).getFullYear() === year) total += parseFloat(job.amount) || 0; 
-                }); 
-            }
+            if (client.fixedCharges) { client.fixedCharges.forEach(fc => { let amt = parseFloat(fc.amount) || 0; if (fc.period === 'monthly') total += amt * 12; else if (fc.period === 'quarterly') total += amt * 4; else if (fc.period === 'yearly') total += amt; }); }
+            if (client.oneOffJobs) { client.oneOffJobs.forEach(job => { if (job.date && new Date(job.date).getFullYear() === year) total += parseFloat(job.amount) || 0; }); }
             return total;
         };
 
         function initApp() {
             try {
                 const firebaseConfig = { apiKey: "AIzaSyDlQGXb7M2xpQ7yfjojF1VPuPgEV7slUGU", authDomain: "fstracker-47c31.firebaseapp.com", projectId: "fstracker-47c31", storageBucket: "fstracker-47c31.firebasestorage.app", messagingSenderId: "438637783236", appId: "1:438637783236:web:f3647de08ee205ead94191" };
-                const app = initializeApp(firebaseConfig); 
-                auth = getAuth(app); 
-                db = getFirestore(app); 
-                const provider = new GoogleAuthProvider();
+                const app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); const provider = new GoogleAuthProvider();
                 
                 window.loginWithGoogle = function() { signInWithPopup(auth, provider).catch(e => showCustomDialog('Σφάλμα', 'Η σύνδεση απέτυχε.')); };
                 window.logout = function() { 
@@ -543,36 +619,36 @@
                         appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [] }; 
                         localStorage.removeItem('logepCrmDataV4');
                         document.getElementById('user-badge').classList.add('hidden');
+                        document.getElementById('nav-superadmin').classList.add('hidden');
+                        loggedInEmail = "";
                         updateUI(); 
                     }); 
                 };
                 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
-                        if (!ALLOWED_EMAILS.includes(user.email.toLowerCase())) { 
-                            signOut(auth).then(() => showCustomDialog('Πρόσβαση Αρνήθηκε', `Ο λογαριασμός ${user.email} δεν έχει συνδρομή.`)); 
-                            return; 
+                        loggedInEmail = user.email.toLowerCase();
+                        if (!ALLOWED_EMAILS.includes(loggedInEmail)) { 
+                            signOut(auth).then(() => showCustomDialog('Πρόσβαση Αρνήθηκε', `Ο λογαριασμός ${user.email} δεν έχει συνδρομή.`)); return; 
                         }
+                        
                         isCloudEnabled = true; 
                         document.getElementById('login-screen').classList.add('hidden'); 
-                        userDocRef = doc(db, 'crm_users', user.uid);
+                        userDocRef = doc(db, 'crm_users', user.uid); // Σε κανονικό SaaS, εδώ διαβάζουμε το Tenant ID.
+                        
                         document.getElementById('user-badge').classList.remove('hidden'); 
                         document.getElementById('user-email-text').textContent = user.email;
                         
+                        setupUIPermissions();
+
                         onSnapshot(userDocRef, (docSnap) => { 
-                            if (docSnap.exists()) { 
-                                appData = docSnap.data(); 
-                                sanitizeDataStructure(); 
-                                saveLocalData(); 
-                            } else { 
-                                loadLocalData(); 
-                                saveData(); 
-                            } 
+                            if (docSnap.exists()) { appData = docSnap.data(); sanitizeDataStructure(); saveLocalData(); } 
+                            else { loadLocalData(); saveData(); } 
                             updateUI(); 
                             document.getElementById('cloud-status').innerHTML = `<i class="fas fa-cloud text-green-400"></i>`; 
                         }, (e) => fallbackToLocal());
                     } else { 
-                        if(!isCloudEnabled && document.getElementById('user-email-text').textContent !== 'Επισκέπτης_Demo') { 
+                        if(!isCloudEnabled && loggedInEmail !== 'Επισκέπτης_Demo') { 
                             document.getElementById('login-screen').classList.remove('hidden'); 
                             document.getElementById('cloud-status').innerHTML = '<i class="fas fa-lock text-red-300"></i>'; 
                         } 
@@ -581,54 +657,105 @@
             } catch (e) { fallbackToLocal(); }
         }
 
-        function fallbackToLocal() { 
-            isCloudEnabled = false; 
-            document.getElementById('cloud-status').innerHTML = '<i class="fas fa-hdd text-indigo-300"></i>'; 
-            loadLocalData(); 
-            updateUI(); 
+        // --- NEW: UI PERMISSIONS (SUPER ADMIN vs TENANT) ---
+        function setupUIPermissions() {
+            if (loggedInEmail === SUPER_ADMIN_EMAIL) {
+                // Είσαι ο Super Admin: Δείξε το κουμπί Admin
+                document.getElementById('nav-superadmin').classList.remove('hidden');
+            } else {
+                // Είσαι πελάτης: Κρύψε το Admin, αλλά βάλε το email σου στη σελίδα της ομάδας
+                document.getElementById('nav-superadmin').classList.add('hidden');
+                const tMail = document.getElementById('teamAdminEmail');
+                if(tMail) tMail.textContent = loggedInEmail;
+            }
+            simulateTenantSubscription();
         }
-        function loadLocalData() { 
-            const stored = localStorage.getItem('logepCrmDataV4'); 
-            appData = stored ? JSON.parse(stored) : { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [] }; 
-            sanitizeDataStructure(); 
+
+        // --- NEW: SIMULATE TENANT SUBSCRIPTION STATUS ---
+        let currentSubStatus = "active"; // "active" or "canceled"
+        let currentSubEndDate = new Date();
+        currentSubEndDate.setFullYear(currentSubEndDate.getFullYear() + 1); // 1 year from now
+
+        function simulateTenantSubscription() {
+            // Αυτή η συνάρτηση υπολογίζει τις μέρες της συνδρομής του πελάτη.
+            let today = new Date();
+            let timeDiff = currentSubEndDate.getTime() - today.getTime();
+            let daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            
+            document.getElementById('clientSubDaysLeft').textContent = daysDiff;
+            document.getElementById('clientSubEndDate').textContent = currentSubEndDate.toLocaleDateString('el-GR');
+            document.getElementById('clientSubProgress').style.width = Math.max(0, Math.min(100, (daysDiff / 365) * 100)) + '%';
+
+            if(currentSubStatus === 'canceled') {
+                document.getElementById('clientSubStatusBadge').textContent = 'ΑΚΥΡΩΜΕΝΗ (ΛΗΓΕΙ)';
+                document.getElementById('clientSubStatusBadge').classList.replace('bg-green-500', 'bg-red-500');
+                document.getElementById('cancelSubArea').classList.add('hidden');
+                document.getElementById('canceledSubArea').classList.remove('hidden');
+            }
         }
-        function saveData() { 
-            if (isCloudEnabled && userDocRef) { 
-                setDoc(userDocRef, appData).then(() => { saveLocalData(); updateUI(); }).catch(e => saveLocalData()); 
-            } else { 
-                if(!isCloudEnabled && document.getElementById('user-email-text').textContent === 'Επισκέπτης_Demo') { 
-                    window.renderDashboardModule(); 
-                } else { 
-                    saveLocalData(); 
-                } 
-            } 
-        }
-        function saveLocalData() { 
-            localStorage.setItem('logepCrmDataV4', JSON.stringify(appData)); 
-            updateUI(); 
-        }
+
+        window.cancelMySubscription = function() {
+            window.showCustomDialog('Ακύρωση Συνδρομής', 'Είστε σίγουροι ότι θέλετε να ακυρώσετε;\nΔεν θα υπάρξουν μελλοντικές χρεώσεις. Θα διατηρήσετε την πρόσβαση μέχρι την λήξη του έτους.', 'confirm', () => {
+                currentSubStatus = 'canceled';
+                simulateTenantSubscription();
+                window.showCustomDialog('Ενημέρωση', 'Η συνδρομή σας μαρκαρίστηκε προς ακύρωση.');
+            });
+        };
+
+        // --- SUPER ADMIN LOGIC ---
+        window.renderSuperAdminPanel = function() {
+            const tbody = document.getElementById('saasTenantsTable');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            let activeCount = 0;
+            mockTenantsDB.forEach(t => {
+                if(t.status === 'active') activeCount++;
+                
+                let sDate = new Date(t.start); let eDate = new Date(t.end); let today = new Date();
+                let daysLeft = Math.ceil((eDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+                
+                let statusHtml = t.status === 'active' 
+                    ? `<span class="bg-green-100 text-green-700 px-2 py-1 rounded font-bold text-[10px]">ΕΝΕΡΓΗ</span>` 
+                    : `<span class="bg-red-100 text-red-700 px-2 py-1 rounded font-bold text-[10px]">ΑΚΥΡΩΜΕΝΗ</span>`;
+                
+                let rowColor = t.status === 'active' ? 'bg-white' : 'bg-red-50/30';
+                
+                tbody.innerHTML += `
+                    <tr class="${rowColor} hover:bg-gray-50 border-b border-gray-100">
+                        <td class="px-4 py-3 font-bold text-gray-900">${t.name}</td>
+                        <td class="px-4 py-3 font-medium text-gray-500">${t.adminEmail}</td>
+                        <td class="px-4 py-3 text-gray-500">${eDate.toLocaleDateString('el-GR')}</td>
+                        <td class="px-4 py-3 font-mono font-bold ${daysLeft < 30 ? 'text-orange-500' : 'text-indigo-600'}">${daysLeft} μέρες</td>
+                        <td class="px-4 py-3">${statusHtml}</td>
+                        <td class="px-4 py-3 text-center">
+                            <button onclick="window.showCustomDialog('Διαχείριση', 'Εδώ θα ανοίγει η πλήρης καρτέλα χρεώσεων του πελάτη.')" class="bg-white border border-gray-200 text-gray-600 hover:text-indigo-600 hover:border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm">
+                                Διαχείριση
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('superAdminActiveSubs').textContent = `${activeCount} Ενεργές Συνδρομές`;
+        };
+
+        function fallbackToLocal() { isCloudEnabled = false; document.getElementById('cloud-status').innerHTML = '<i class="fas fa-hdd text-indigo-300"></i>'; loadLocalData(); updateUI(); }
+        function loadLocalData() { const stored = localStorage.getItem('logepCrmDataV4'); appData = stored ? JSON.parse(stored) : { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [] }; sanitizeDataStructure(); }
+        function saveData() { if (isCloudEnabled && userDocRef) { setDoc(userDocRef, appData).then(() => { saveLocalData(); updateUI(); }).catch(e => saveLocalData()); } else { if(!isCloudEnabled && loggedInEmail === 'Επισκέπτης_Demo') { window.renderDashboardModule(); } else { saveLocalData(); } } }
+        function saveLocalData() { localStorage.setItem('logepCrmDataV4', JSON.stringify(appData)); updateUI(); }
 
         const formatCurrency = (amount) => new Intl.NumberFormat('el-GR', { style: 'currency', currency: 'EUR' }).format(amount);
         const formatDate = (dateStr) => { if(!dateStr) return '-'; return new Date(dateStr).toLocaleDateString('el-GR', { year: 'numeric', month: '2-digit', day: '2-digit' }); };
 
         function initYearSelector() {
-            const select = document.getElementById('globalYear'); 
-            if(!select) return;
-            select.innerHTML = '';
-            const currentCalendarYear = new Date().getFullYear(); 
-            let years = new Set([currentCalendarYear]);
+            const select = document.getElementById('globalYear'); if(!select) return; select.innerHTML = ''; const currentCalendarYear = new Date().getFullYear(); let years = new Set([currentCalendarYear]);
             for (let i = 1; i <= 5; i++) years.add(currentCalendarYear - i); years.add(currentCalendarYear + 1);
-            appData.receipts.forEach(r => { if(r.date) years.add(new Date(r.date).getFullYear()); });
-            let sortedYears = Array.from(years).sort((a,b) => b - a);
+            appData.receipts.forEach(r => { if(r.date) years.add(new Date(r.date).getFullYear()); }); let sortedYears = Array.from(years).sort((a,b) => b - a);
             sortedYears.forEach(year => { const opt = document.createElement('option'); opt.value = year; opt.textContent = year; if (year === currentAppYear) opt.selected = true; select.appendChild(opt); });
             document.querySelectorAll('.display-year').forEach(el => el.textContent = currentAppYear);
         }
 
-        window.changeYear = function() { 
-            currentAppYear = parseInt(document.getElementById('globalYear').value); 
-            document.querySelectorAll('.display-year').forEach(el => el.textContent = currentAppYear); 
-            updateUI(); 
-        };
+        window.changeYear = function() { currentAppYear = parseInt(document.getElementById('globalYear').value); document.querySelectorAll('.display-year').forEach(el => el.textContent = currentAppYear); updateUI(); };
 
         window.switchModuleTab = function(moduleName, tabId) {
             document.querySelectorAll(`#module-${moduleName} .module-tab-content`).forEach(el => el.classList.add('hidden'));
@@ -640,15 +767,28 @@
         window.switchCrmModule = function(moduleName) {
             document.querySelectorAll('.crm-module').forEach(el => el.classList.add('hidden')); 
             document.querySelectorAll('.subnav-container').forEach(el => el.classList.add('hidden'));
+            
             const targetMod = document.getElementById(`module-${moduleName}`); if(targetMod) targetMod.classList.remove('hidden');
             const targetSub = document.getElementById(`subnav-${moduleName}`); if(targetSub) targetSub.classList.remove('hidden');
-            document.querySelectorAll('.crm-nav-btn').forEach(el => { el.classList.remove('bg-white', 'text-indigo-900', 'font-bold'); el.classList.add('text-indigo-100', 'font-medium', 'hover:bg-white/20'); });
-            const activeBtn = document.getElementById(`nav-${moduleName}`); if(activeBtn) { activeBtn.classList.remove('text-indigo-100', 'font-medium', 'hover:bg-white/20'); activeBtn.classList.add('bg-white', 'text-indigo-900', 'font-bold'); }
+            
+            document.querySelectorAll('.crm-nav-btn').forEach(el => { 
+                el.classList.remove('bg-white', 'text-indigo-900', 'font-bold'); 
+                el.classList.remove('bg-amber-500', 'text-gray-900'); // Clean admin colors
+                el.classList.add('text-indigo-100', 'font-medium', 'hover:bg-white/20'); 
+            });
+            
+            const activeBtn = document.getElementById(`nav-${moduleName}`); 
+            if(activeBtn) { 
+                activeBtn.classList.remove('text-indigo-100', 'font-medium', 'hover:bg-white/20'); 
+                if(moduleName === 'superadmin') { activeBtn.classList.add('bg-amber-500', 'text-gray-900', 'font-bold'); }
+                else { activeBtn.classList.add('bg-white', 'text-indigo-900', 'font-bold'); }
+            }
             
             if(moduleName === 'clients') window.switchModuleTab('clients', 'clientsMain');
             if(moduleName === 'liabilities') window.switchModuleTab('liabilities', 'liabilitiesGrid');
             if(moduleName === 'config') window.switchConfigTab('general');
             if(moduleName === 'dashboard') { setTimeout(() => window.renderDashboardModule(), 50); }
+            if(moduleName === 'superadmin') { window.renderSuperAdminPanel(); }
         };
 
         window.switchConfigTab = function(tabId) {
@@ -666,68 +806,25 @@
         function populateDropdowns() {
             const sortedClients = [...appData.clients].sort((a, b) => a.name.localeCompare(b.name));
             const genOps = (def) => `<option value="">${def}</option>` + sortedClients.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-            
             const clientSelect = document.getElementById('clientSelect'); if(clientSelect) clientSelect.innerHTML = genOps("Επίλεξε πελάτη..."); 
             const taskClient = document.getElementById('taskClient'); if(taskClient) taskClient.innerHTML = genOps("Επίλεξε πελάτη *"); 
             const taskFilterClient = document.getElementById('taskFilterClient'); if(taskFilterClient) taskFilterClient.innerHTML = genOps("Όλοι οι Πελάτες");
-            
-            const catSelect = document.getElementById('taskCategory'); 
-            const filterSelect = document.getElementById('taskFilterCategory');
-            if(catSelect && filterSelect) {
-                let catHtml = '<option value="">Καμία Κατηγορία</option>' + appData.taskCategories.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
-                catSelect.innerHTML = catHtml; filterSelect.innerHTML = '<option value="all">Όλες οι Κατηγορίες</option>' + catHtml;
-            }
+            const catSelect = document.getElementById('taskCategory'); const filterSelect = document.getElementById('taskFilterCategory');
+            if(catSelect && filterSelect) { let catHtml = '<option value="">Καμία Κατηγορία</option>' + appData.taskCategories.map(c => `<option value="${c.id}">${c.title}</option>`).join(''); catSelect.innerHTML = catHtml; filterSelect.innerHTML = '<option value="all">Όλες οι Κατηγορίες</option>' + catHtml; }
         }
 
         function updateUI() {
-            initYearSelector(); 
-            populateDropdowns();
-            window.renderClientsModule(); 
-            window.renderDashboardModule(); 
-            window.renderLiabilitiesModule(); 
-            window.renderTasksModule(); 
-            window.renderConfigModule();
+            initYearSelector(); populateDropdowns(); window.renderClientsModule(); window.renderDashboardModule(); window.renderLiabilitiesModule(); window.renderTasksModule(); window.renderConfigModule();
         }
 
         window.importReceiptsCSV = function(event) {
-            const file = event.target.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const text = e.target.result; const lines = text.split('\n'); let importedCount = 0;
-                    for (let i = 1; i < lines.length; i++) {
-                        if (!lines[i].trim()) continue;
-                        const separator = lines[i].includes(';') ? ';' : ','; const cols = lines[i].split(separator);
-                        if (cols.length >= 3) {
-                            const dateStr = cols[0].trim(); const clientName = cols[1].trim(); const amountNum = parseFloat(cols[2].trim().replace(',', '.'));
-                            if (dateStr && clientName && !isNaN(amountNum)) {
-                                appData.receipts.push({ id: 'R_' + Date.now() + '_' + Math.floor(Math.random()*10000), client: clientName, amount: amountNum, date: dateStr, period: cols[3]?cols[3].trim():'', comments: cols[4]?cols[4].trim():'' });
-                                importedCount++;
-                            }
-                        }
-                    }
-                    if (importedCount > 0) { saveData(); window.showCustomDialog('Επιτυχία', `Εισηχθήσαν ${importedCount} εισπράξεις!`); } else { window.showCustomDialog('Σφάλμα', 'Λάθος δομή αρχείου.'); }
-                } catch (err) { window.showCustomDialog('Σφάλμα', 'Αδυναμία επεξεργασίας.'); }
-            }; reader.readAsText(file); event.target.value = '';
+            const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
+            reader.onload = function(e) { try { const text = e.target.result; const lines = text.split('\n'); let importedCount = 0; for (let i = 1; i < lines.length; i++) { if (!lines[i].trim()) continue; const separator = lines[i].includes(';') ? ';' : ','; const cols = lines[i].split(separator); if (cols.length >= 3) { const dateStr = cols[0].trim(); const clientName = cols[1].trim(); const amountNum = parseFloat(cols[2].trim().replace(',', '.')); if (dateStr && clientName && !isNaN(amountNum)) { appData.receipts.push({ id: 'R_' + Date.now() + '_' + Math.floor(Math.random()*10000), client: clientName, amount: amountNum, date: dateStr, period: cols[3]?cols[3].trim():'', comments: cols[4]?cols[4].trim():'' }); importedCount++; } } } if (importedCount > 0) { saveData(); window.showCustomDialog('Επιτυχία', `Εισηχθήσαν ${importedCount} εισπράξεις!`); } else { window.showCustomDialog('Σφάλμα', 'Λάθος δομή αρχείου.'); } } catch (err) { window.showCustomDialog('Σφάλμα', 'Αδυναμία επεξεργασίας.'); } }; reader.readAsText(file); event.target.value = '';
         };
 
         window.importClientsCSV = function(event) {
-            const file = event.target.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const text = e.target.result; const lines = text.split('\n'); let importedCount = 0;
-                    for (let i = 1; i < lines.length; i++) {
-                        if (!lines[i].trim()) continue;
-                        const separator = lines[i].includes(';') ? ';' : ','; const cols = lines[i].split(separator); const name = cols[0]?cols[0].trim():'';
-                        if (name && !appData.clients.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-                            appData.clients.push({ name: name, gsis: cols[1]?cols[1].trim():'', efka: cols[2]?cols[2].trim():'', gemi: cols[3]?cols[3].trim():'', targets: {}, isActive: true, fixedCharges: [], oneOffJobs: [] });
-                            importedCount++;
-                        }
-                    }
-                    if (importedCount > 0) { saveData(); window.showCustomDialog('Επιτυχία', `Εισηχθήσαν ${importedCount} νέοι πελάτες!`); } else { window.showCustomDialog('Προσοχή', 'Δεν βρέθηκαν νέοι πελάτες.'); }
-                } catch (err) { window.showCustomDialog('Σφάλμα', 'Αδυναμία επεξεργασίας αρχείου.'); }
-            }; reader.readAsText(file); event.target.value = '';
+            const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
+            reader.onload = function(e) { try { const text = e.target.result; const lines = text.split('\n'); let importedCount = 0; for (let i = 1; i < lines.length; i++) { if (!lines[i].trim()) continue; const separator = lines[i].includes(';') ? ';' : ','; const cols = lines[i].split(separator); const name = cols[0]?cols[0].trim():''; if (name && !appData.clients.some(c => c.name.toLowerCase() === name.toLowerCase())) { appData.clients.push({ name: name, gsis: cols[1]?cols[1].trim():'', efka: cols[2]?cols[2].trim():'', gemi: cols[3]?cols[3].trim():'', targets: {}, isActive: true, fixedCharges: [], oneOffJobs: [] }); importedCount++; } } if (importedCount > 0) { saveData(); window.showCustomDialog('Επιτυχία', `Εισηχθήσαν ${importedCount} νέοι πελάτες!`); } else { window.showCustomDialog('Προσοχή', 'Δεν βρέθηκαν νέοι πελάτες.'); } } catch (err) { window.showCustomDialog('Σφάλμα', 'Αδυναμία επεξεργασίας αρχείου.'); } }; reader.readAsText(file); event.target.value = '';
         };
 
         window.renderDashboardModule = function() {
@@ -736,61 +833,22 @@
             const totalCollected = yearReceipts.reduce((sum, r) => sum + parseFloat(r.amount), 0);
             
             const elDashTotalTarget = document.getElementById('dashTotalTarget');
-            if (elDashTotalTarget) {
-                elDashTotalTarget.textContent = formatCurrency(totalTarget); 
-                document.getElementById('dashTotalCollected').textContent = formatCurrency(totalCollected); 
-                document.getElementById('dashTotalRemaining').textContent = formatCurrency(Math.max(0, totalTarget - totalCollected));
-                let progressPercent = totalTarget > 0 ? Math.min(100, (totalCollected / totalTarget) * 100) : (totalCollected > 0 ? 100 : 0);
-                document.getElementById('dashTotalProgressBar').style.width = progressPercent + '%';
-            }
+            if (elDashTotalTarget) { elDashTotalTarget.textContent = formatCurrency(totalTarget); document.getElementById('dashTotalCollected').textContent = formatCurrency(totalCollected); document.getElementById('dashTotalRemaining').textContent = formatCurrency(Math.max(0, totalTarget - totalCollected)); let progressPercent = totalTarget > 0 ? Math.min(100, (totalCollected / totalTarget) * 100) : (totalCollected > 0 ? 100 : 0); document.getElementById('dashTotalProgressBar').style.width = progressPercent + '%'; }
 
-            let getAvgLag = (year) => {
-                let recs = appData.receipts.filter(r => new Date(r.date).getFullYear() === year); if(!recs.length) return 0;
-                let sum = 0; recs.forEach(r => {
-                    let lag = 12; let cObj = appData.clients.find(x => x.name === r.client);
-                    if(cObj && cObj.oneOffJobs) { let job = cObj.oneOffJobs.find(j => j.amount === r.amount); if(job) lag = Math.max(0, Math.round((new Date(r.date) - new Date(job.date)) / (1000 * 60 * 60 * 24))); }
-                    sum += lag;
-                }); return sum / recs.length;
-            };
-            let ctx1 = document.getElementById('chartAvgCollectionDays');
-            if(ctx1) { if(window.cInstance1) window.cInstance1.destroy(); window.cInstance1 = new Chart(ctx1, { type: 'bar', data: { labels: [`${currentAppYear-1}`, `${currentAppYear}`], datasets: [{ label: 'Ημέρες', data: [getAvgLag(currentAppYear-1).toFixed(1), getAvgLag(currentAppYear).toFixed(1)], backgroundColor: ['#94a3b8', '#4f46e5'] }] }, options: { responsive: true, maintainAspectRatio: false } }); }
+            let getAvgLag = (year) => { let recs = appData.receipts.filter(r => new Date(r.date).getFullYear() === year); if(!recs.length) return 0; let sum = 0; recs.forEach(r => { let lag = 12; let cObj = appData.clients.find(x => x.name === r.client); if(cObj && cObj.oneOffJobs) { let job = cObj.oneOffJobs.find(j => j.amount === r.amount); if(job) lag = Math.max(0, Math.round((new Date(r.date) - new Date(job.date)) / (1000 * 60 * 60 * 24))); } sum += lag; }); return sum / recs.length; };
+            let ctx1 = document.getElementById('chartAvgCollectionDays'); if(ctx1) { if(window.cInstance1) window.cInstance1.destroy(); window.cInstance1 = new Chart(ctx1, { type: 'bar', data: { labels: [`${currentAppYear-1}`, `${currentAppYear}`], datasets: [{ label: 'Ημέρες', data: [getAvgLag(currentAppYear-1).toFixed(1), getAvgLag(currentAppYear).toFixed(1)], backgroundColor: ['#94a3b8', '#4f46e5'] }] }, options: { responsive: true, maintainAspectRatio: false } }); }
 
-            let ctx2 = document.getElementById('chartTargetVsCollected');
-            if(ctx2) { if(window.cInstance2) window.cInstance2.destroy(); window.cInstance2 = new Chart(ctx2, { type: 'bar', data: { labels: ['Συνολικά Γραφείου (€)'], datasets: [{ label: 'Στόχος', data: [totalTarget], backgroundColor: '#cbd5e1' }, { label: 'Είσπραξη', data: [totalCollected], backgroundColor: '#10b981' }] }, options: { responsive: true, maintainAspectRatio: false } }); }
+            let ctx2 = document.getElementById('chartTargetVsCollected'); if(ctx2) { if(window.cInstance2) window.cInstance2.destroy(); window.cInstance2 = new Chart(ctx2, { type: 'bar', data: { labels: ['Συνολικά Γραφείου (€)'], datasets: [{ label: 'Στόχος', data: [totalTarget], backgroundColor: '#cbd5e1' }, { label: 'Είσπραξη', data: [totalCollected], backgroundColor: '#10b981' }] }, options: { responsive: true, maintainAspectRatio: false } }); }
 
-            let fixedSum = 0; let oneOffSum = 0;
-            appData.clients.filter(c => c.isActive !== false).forEach(c => {
-                if(c.fixedCharges) c.fixedCharges.forEach(f => { let a = parseFloat(f.amount)||0; if(f.period==='monthly') fixedSum+=a*12; else if(f.period==='quarterly') fixedSum+=a*4; else fixedSum+=a; });
-                if(c.oneOffJobs) c.oneOffJobs.forEach(j => { if(j.date && new Date(j.date).getFullYear() === currentAppYear) oneOffSum += parseFloat(j.amount)||0; });
-            });
-            let ctx3 = document.getElementById('chartRevenueMix');
-            if(ctx3) { if(window.cInstance3) window.cInstance3.destroy(); window.cInstance3 = new Chart(ctx3, { type: 'doughnut', data: { labels: ['Σταθερές', 'One-Off'], datasets: [{ data: [fixedSum, oneOffSum], backgroundColor: ['#3b82f6', '#f59e0b'] }] }, options: { responsive: true, maintainAspectRatio: false } }); }
+            let fixedSum = 0; let oneOffSum = 0; appData.clients.filter(c => c.isActive !== false).forEach(c => { if(c.fixedCharges) c.fixedCharges.forEach(f => { let a = parseFloat(f.amount)||0; if(f.period==='monthly') fixedSum+=a*12; else if(f.period==='quarterly') fixedSum+=a*4; else fixedSum+=a; }); if(c.oneOffJobs) c.oneOffJobs.forEach(j => { if(j.date && new Date(j.date).getFullYear() === currentAppYear) oneOffSum += parseFloat(j.amount)||0; }); });
+            let ctx3 = document.getElementById('chartRevenueMix'); if(ctx3) { if(window.cInstance3) window.cInstance3.destroy(); window.cInstance3 = new Chart(ctx3, { type: 'doughnut', data: { labels: ['Σταθερές', 'One-Off'], datasets: [{ data: [fixedSum, oneOffSum], backgroundColor: ['#3b82f6', '#f59e0b'] }] }, options: { responsive: true, maintainAspectRatio: false } }); }
 
             let monthsData = new Array(12).fill(0); yearReceipts.forEach(r => { monthsData[new Date(r.date).getMonth()] += parseFloat(r.amount); });
-            let ctx4 = document.getElementById('chartMonthlyReceipts');
-            if(ctx4) { if(window.cInstance4) window.cInstance4.destroy(); window.cInstance4 = new Chart(ctx4, { type: 'line', data: { labels: ['Ιαν', 'Φεβ', 'Μαρ', 'Απρ', 'Μάι', 'Ιούν', 'Ιούλ', 'Αύγ', 'Σεπ', 'Οκτ', 'Νοέ', 'Δεκ'], datasets: [{ label: 'Εισπράξεις €', data: monthsData, borderColor: '#f43f5e', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } }); }
+            let ctx4 = document.getElementById('chartMonthlyReceipts'); if(ctx4) { if(window.cInstance4) window.cInstance4.destroy(); window.cInstance4 = new Chart(ctx4, { type: 'line', data: { labels: ['Ιαν', 'Φεβ', 'Μαρ', 'Απρ', 'Μάι', 'Ιούν', 'Ιούλ', 'Αύγ', 'Σεπ', 'Οκτ', 'Νοέ', 'Δεκ'], datasets: [{ label: 'Εισπράξεις €', data: monthsData, borderColor: '#f43f5e', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } }); }
 
-            const gridContainer = document.getElementById('dashboardClientsGrid'); 
-            if(gridContainer) {
-                gridContainer.innerHTML = '';
-                appData.clients.filter(c => c.isActive !== false).forEach(client => {
-                    let t = window.calculateClientTarget(client, currentAppYear); let c = yearReceipts.filter(r => r.client === client.name).reduce((sum, r) => sum + parseFloat(r.amount), 0); if(t === 0 && c === 0) return;
-                    let r = Math.max(0, t - c); let p = t > 0 ? (c / t) * 100 : 0;
-                    gridContainer.innerHTML += `<div class="bg-white border border-gray-100 p-4 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center gap-4 text-sm"><div class="md:w-1/4 font-black text-gray-800 truncate">${client.name} <span class="text-indigo-600 ml-2 font-bold bg-indigo-50 px-2 py-0.5 rounded-full text-xs">${p.toFixed(0)}%</span></div><div class="md:w-1/3 w-full bg-gray-100 rounded-full h-2.5"><div class="bg-indigo-500 h-2.5 rounded-full" style="width: ${p}%"></div></div><div class="md:w-5/12 flex justify-between font-mono text-gray-600 text-xs"><div>Στόχος: <span class="text-gray-900 font-bold">${formatCurrency(t)}</span></div><div>Είσπραξη: <span class="text-green-600 font-bold">${formatCurrency(c)}</span></div><div>Υπόλοιπο: <span class="text-orange-600 font-bold">${formatCurrency(r)}</span></div></div></div>`;
-                });
-            }
+            const gridContainer = document.getElementById('dashboardClientsGrid'); if(gridContainer) { gridContainer.innerHTML = ''; appData.clients.filter(c => c.isActive !== false).forEach(client => { let t = window.calculateClientTarget(client, currentAppYear); let c = yearReceipts.filter(r => r.client === client.name).reduce((sum, r) => sum + parseFloat(r.amount), 0); if(t === 0 && c === 0) return; let r = Math.max(0, t - c); let p = t > 0 ? (c / t) * 100 : 0; gridContainer.innerHTML += `<div class="bg-white border border-gray-100 p-4 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center gap-4 text-sm"><div class="md:w-1/4 font-black text-gray-800 truncate">${client.name} <span class="text-indigo-600 ml-2 font-bold bg-indigo-50 px-2 py-0.5 rounded-full text-xs">${p.toFixed(0)}%</span></div><div class="md:w-1/3 w-full bg-gray-100 rounded-full h-2.5"><div class="bg-indigo-500 h-2.5 rounded-full" style="width: ${p}%"></div></div><div class="md:w-5/12 flex justify-between font-mono text-gray-600 text-xs"><div>Στόχος: <span class="text-gray-900 font-bold">${formatCurrency(t)}</span></div><div>Είσπραξη: <span class="text-green-600 font-bold">${formatCurrency(c)}</span></div><div>Υπόλοιπο: <span class="text-orange-600 font-bold">${formatCurrency(r)}</span></div></div></div>`; }); }
 
-            const tbody = document.getElementById('historyTableBody'); 
-            if(tbody) {
-                tbody.innerHTML = ''; let sortedReceipts = [...yearReceipts].sort((a,b) => new Date(b.date) - new Date(a.date));
-                sortedReceipts.forEach(r => {
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-gray-50 border-b border-gray-100">
-                            <td class="px-4 py-3 whitespace-nowrap">${formatDate(r.date)}</td><td class="px-4 py-3 font-bold text-gray-900">${r.client}</td><td class="px-4 py-3 text-green-600 font-bold">${formatCurrency(r.amount)}</td><td class="px-4 py-3 text-gray-500 hidden md:table-cell">${r.period || '-'}</td><td class="px-4 py-3 text-gray-500 max-w-xs truncate hidden sm:table-cell" title="${r.comments || ''}">${r.comments || '-'}</td>
-                            <td class="px-4 py-3 text-center whitespace-nowrap"><button onclick="window.editReceipt('${r.id}')" class="text-gray-400 hover:text-blue-600 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteReceipt('${r.id}')" class="text-gray-400 hover:text-red-600 p-2"><i class="fas fa-trash"></i></button></td>
-                        </tr>`;
-                });
-            }
+            const tbody = document.getElementById('historyTableBody'); if(tbody) { tbody.innerHTML = ''; let sortedReceipts = [...yearReceipts].sort((a,b) => new Date(b.date) - new Date(a.date)); sortedReceipts.forEach(r => { tbody.innerHTML += `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="px-4 py-3 whitespace-nowrap">${formatDate(r.date)}</td><td class="px-4 py-3 font-bold text-gray-900">${r.client}</td><td class="px-4 py-3 text-green-600 font-bold">${formatCurrency(r.amount)}</td><td class="px-4 py-3 text-gray-500 hidden md:table-cell">${r.period || '-'}</td><td class="px-4 py-3 text-gray-500 max-w-xs truncate hidden sm:table-cell" title="${r.comments || ''}">${r.comments || '-'}</td><td class="px-4 py-3 text-center whitespace-nowrap"><button onclick="window.editReceipt('${r.id}')" class="text-gray-400 hover:text-blue-600 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteReceipt('${r.id}')" class="text-gray-400 hover:text-red-600 p-2"><i class="fas fa-trash"></i></button></td></tr>`; }); }
         };
 
         window.showCustomDialog = function(title, message, type = 'alert', onConfirm = null) { const dialog = document.getElementById('customDialog'); document.getElementById('dialogTitle').textContent = title; document.getElementById('dialogMessage').textContent = message; const btnContainer = document.getElementById('dialogButtons'); btnContainer.innerHTML = ''; if (type === 'confirm') { const cancelBtn = document.createElement('button'); cancelBtn.className = 'px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-bold'; cancelBtn.textContent = 'Ακύρωση'; cancelBtn.onclick = () => dialog.classList.add('hidden'); const confirmBtn = document.createElement('button'); confirmBtn.className = 'px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm font-bold'; confirmBtn.textContent = 'Επιβεβαίωση'; confirmBtn.onclick = () => { if (onConfirm) onConfirm(); dialog.classList.add('hidden'); }; btnContainer.appendChild(cancelBtn); btnContainer.appendChild(confirmBtn); } else { const okBtn = document.createElement('button'); okBtn.className = 'px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm font-bold'; okBtn.textContent = 'ΟΚ'; okBtn.onclick = () => dialog.classList.add('hidden'); btnContainer.appendChild(okBtn); } dialog.classList.remove('hidden'); };
@@ -843,33 +901,13 @@
         window.renderTasksModule = function() { const tasksList = document.getElementById('tasksList'); if(!tasksList) return; tasksList.innerHTML = ''; const filterStatus = document.getElementById('taskFilterStatus').value; const filterClient = document.getElementById('taskFilterClient').value; const filterCat = document.getElementById('taskFilterCategory').value; let filteredTasks = appData.tasks.filter(t => { let matchStatus = (filterStatus === 'all') || (filterStatus === 'pending' && !t.isCompleted) || (filterStatus === 'completed' && t.isCompleted); let matchClient = (filterClient === '') || (t.client === filterClient); let matchCat = (filterCat === 'all') || (t.category === filterCat) || (filterCat === '' && !t.category); return matchStatus && matchClient && matchCat; }); filteredTasks.sort((a,b) => { if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1; if (!a.date && !b.date) return 0; if (!a.date) return 1; if (!b.date) return -1; return new Date(a.date) - new Date(b.date); }); filteredTasks.forEach(t => { const isOverdue = !t.isCompleted && t.date && new Date(t.date) < new Date(new Date().setHours(0,0,0,0)); let catName = ""; if(t.category) { const cObj = appData.taskCategories.find(c => c.id === t.category); if(cObj) catName = `<span class="text-[10px] bg-orange-100 text-orange-800 px-2 py-0.5 rounded-md ml-3 font-bold">${cObj.title}</span>`; } let recText = ""; if(t.recurring) { recText = `<span class="text-xs text-indigo-500 ml-3"><i class="fas fa-sync-alt"></i></span>`; } tasksList.innerHTML += `<li class="px-5 py-4 flex items-center justify-between hover:bg-indigo-50/50 group ${t.isCompleted ? 'bg-gray-50 opacity-75' : 'bg-white'} border-b border-gray-100 text-sm transition-colors"><div class="flex items-start gap-4 flex-1"><input type="checkbox" ${t.isCompleted ? 'checked' : ''} onchange="window.toggleTask('${t.id}')" class="mt-1 w-5 h-5 text-indigo-600 rounded border-gray-300 cursor-pointer"><div class="flex-1"><div class="flex flex-wrap items-center gap-1 mb-1"><p class="font-bold text-base ${t.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}">${t.title} ${recText}</p>${catName}</div><div class="flex items-center gap-4 mt-1"><span class="text-gray-500 font-bold text-xs"><i class="fas fa-user text-[10px] mr-1"></i>${t.client}</span>${t.date ? `<span class="text-xs ${isOverdue ? 'text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded' : 'text-gray-500 font-medium'}"><i class="far fa-calendar-alt mr-1"></i>${formatDate(t.date)}</span>` : ''}</div>${t.notes ? `<p class="text-xs text-gray-400 mt-1.5 italic"><i class="fas fa-comment-alt mr-1.5"></i>${t.notes}</p>` : ''}</div></div><div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-all"><button onclick="window.editTask('${t.id}')" class="text-gray-400 hover:text-blue-500 p-2 bg-white shadow-sm border border-gray-100 rounded-lg"><i class="fas fa-edit"></i></button><button onclick="window.deleteTask('${t.id}')" class="text-gray-400 hover:text-red-500 p-2 bg-white shadow-sm border border-gray-100 rounded-lg"><i class="fas fa-trash"></i></button></div></li>`; }); }
         
         window.renderConfigModule = function() {
-            const lList = document.getElementById('liabilityTypesList'); 
-            if(lList) { lList.innerHTML = appData.liabilityTypes.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία λίστα.</li>' : appData.liabilityTypes.map(t => `<li class="px-4 py-3 flex justify-between items-center bg-white hover:bg-gray-50 border-b border-gray-100 last:border-0"><span class="font-bold text-gray-800"><i class="fas fa-list-ul text-indigo-300 mr-2"></i>${t.title}</span><div><button onclick="window.renameLiabilityType('${t.id}')" class="text-gray-400 hover:text-blue-500 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteLiabilityType('${t.id}')" class="text-gray-400 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); }
-            const cList = document.getElementById('taskCategoriesList');
-            if(cList) { cList.innerHTML = appData.taskCategories.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία κατηγορία.</li>' : appData.taskCategories.map(c => `<li class="px-4 py-3 flex justify-between items-center bg-white hover:bg-gray-50 border-b border-gray-100 last:border-0"><span class="font-bold text-gray-800"><i class="fas fa-tag text-orange-300 mr-2"></i>${c.title}</span><div><button onclick="window.renameTaskCategory('${c.id}')" class="text-gray-400 hover:text-blue-500 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteTaskCategory('${c.id}')" class="text-gray-400 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); }
+            const lList = document.getElementById('liabilityTypesList'); if(lList) { lList.innerHTML = appData.liabilityTypes.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία λίστα.</li>' : appData.liabilityTypes.map(t => `<li class="px-4 py-3 flex justify-between items-center bg-white hover:bg-gray-50 border-b border-gray-100 last:border-0"><span class="font-bold text-gray-800"><i class="fas fa-list-ul text-indigo-300 mr-2"></i>${t.title}</span><div><button onclick="window.renameLiabilityType('${t.id}')" class="text-gray-400 hover:text-blue-500 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteLiabilityType('${t.id}')" class="text-gray-400 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); }
+            const cList = document.getElementById('taskCategoriesList'); if(cList) { cList.innerHTML = appData.taskCategories.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία κατηγορία.</li>' : appData.taskCategories.map(c => `<li class="px-4 py-3 flex justify-between items-center bg-white hover:bg-gray-50 border-b border-gray-100 last:border-0"><span class="font-bold text-gray-800"><i class="fas fa-tag text-orange-300 mr-2"></i>${c.title}</span><div><button onclick="window.renameTaskCategory('${c.id}')" class="text-gray-400 hover:text-blue-500 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteTaskCategory('${c.id}')" class="text-gray-400 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); }
         };
         
         window.renderClientsModule = function() {
-            const clientsList = document.getElementById('clientsList'); 
-            if(!clientsList) return;
-            clientsList.innerHTML = '';
-            const sortedClients = [...appData.clients].map((c, idx) => ({...c, originalIndex: idx})).sort((a,b) => a.name.localeCompare(b.name));
-            sortedClients.forEach(c => {
-                const calculatedTarget = window.calculateClientTarget(c, currentAppYear);
-                const activeBadge = c.isActive === false ? '<span class="ml-2 bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full">Ανενεργός</span>' : '';
-                clientsList.innerHTML += `
-                    <li class="px-5 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-gray-50 transition-colors ${c.isActive === false ? 'opacity-70' : ''}">
-                        <div class="flex items-center gap-4 flex-1">
-                            <div class="${c.isActive === false ? 'bg-gray-200 text-gray-500' : 'bg-indigo-100 text-indigo-600'} w-10 h-10 rounded-full flex items-center justify-center font-black flex-shrink-0">${c.name.charAt(0).toUpperCase()}</div>
-                            <div><p class="font-bold text-gray-900 text-base">${c.name} ${activeBadge}</p><p class="text-sm text-gray-500 mt-0.5">Στόχος ${currentAppYear}: <span class="font-bold text-indigo-600">${formatCurrency(calculatedTarget)}</span></p></div>
-                        </div>
-                        <div class="flex gap-2 w-full sm:w-auto mt-3 sm:mt-0">
-                            <button onclick="window.openClientProfile(${c.originalIndex})" class="flex-1 sm:flex-none text-blue-600 bg-blue-50 hover:bg-blue-100 px-5 py-2.5 rounded-lg text-sm font-bold border border-blue-100 shadow-sm transition-colors"><i class="fas fa-folder-open mr-2"></i>Καρτέλα</button>
-                            <button onclick="window.deleteClient(${c.originalIndex})" class="flex-1 sm:flex-none text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2.5 rounded-lg text-sm shadow-sm transition-colors" title="Διαγραφή"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </li>`;
-            });
-            document.getElementById('totalClientsCount').textContent = `${appData.clients.length} Πελάτες`;
+            const clientsList = document.getElementById('clientsList'); if(!clientsList) return; clientsList.innerHTML = ''; const sortedClients = [...appData.clients].map((c, idx) => ({...c, originalIndex: idx})).sort((a,b) => a.name.localeCompare(b.name));
+            sortedClients.forEach(c => { const calculatedTarget = window.calculateClientTarget(c, currentAppYear); const activeBadge = c.isActive === false ? '<span class="ml-2 bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full">Ανενεργός</span>' : ''; clientsList.innerHTML += `<li class="px-5 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-gray-50 transition-colors ${c.isActive === false ? 'opacity-70' : ''}"><div class="flex items-center gap-4 flex-1"><div class="${c.isActive === false ? 'bg-gray-200 text-gray-500' : 'bg-indigo-100 text-indigo-600'} w-10 h-10 rounded-full flex items-center justify-center font-black flex-shrink-0">${c.name.charAt(0).toUpperCase()}</div><div><p class="font-bold text-gray-900 text-base">${c.name} ${activeBadge}</p><p class="text-sm text-gray-500 mt-0.5">Στόχος ${currentAppYear}: <span class="font-bold text-indigo-600">${formatCurrency(calculatedTarget)}</span></p></div></div><div class="flex gap-2 w-full sm:w-auto mt-3 sm:mt-0"><button onclick="window.openClientProfile(${c.originalIndex})" class="flex-1 sm:flex-none text-blue-600 bg-blue-50 hover:bg-blue-100 px-5 py-2.5 rounded-lg text-sm font-bold border border-blue-100 shadow-sm transition-colors"><i class="fas fa-folder-open mr-2"></i>Καρτέλα</button><button onclick="window.deleteClient(${c.originalIndex})" class="flex-1 sm:flex-none text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2.5 rounded-lg text-sm shadow-sm transition-colors" title="Διαγραφή"><i class="fas fa-trash"></i></button></div></li>`; }); document.getElementById('totalClientsCount').textContent = `${appData.clients.length} Πελάτες`;
         };
 
         window.printTasksByClient = function() { const pending = appData.tasks.filter(t => !t.isCompleted); if(!pending.length) { window.showCustomDialog('Προσοχή', 'Δεν υπάρχουν εκκρεμείς εργασίες.'); return; } const uniqueClients = [...new Set(pending.map(t => t.client))].sort(); let pHTML = `<html><head><title>Εκκρεμείς Εργασίες</title><style>body { font-family: sans-serif; padding: 30px; color: #333; } .print-title { font-size: 24px; font-weight: 900; margin-bottom: 25px; border-bottom: 3px solid #1e1b4b; padding-bottom: 10px; } .print-client-block { margin-bottom: 35px; page-break-inside: avoid; } .print-client-name { font-size: 18px; font-weight: bold; color: #4f46e5; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; } .print-task-item { margin-bottom: 6px; font-size: 14px; } .print-task-date { color: #dc2626; font-size: 12px; margin-left: 10px; font-weight: bold; } .print-task-notes { color: #64748b; font-size: 12px; margin-left: 15px; font-style: italic; }</style></head><body><div class="print-title">Εκκρεμείς Εργασίες ανά Πελάτη</div>`; uniqueClients.forEach(c => { pHTML += `<div class="print-client-block"><div class="print-client-name">${c}</div>`; pending.filter(t => t.client === c).sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => { pHTML += `<div class="print-task-item">&#9642; ${t.title} <span class="print-task-date">${t.date?formatDate(t.date):''}</span></div>`; if(t.notes) pHTML += `<div class="print-task-notes">${t.notes}</div>`; }); pHTML += `</div>`; }); pHTML += `</body></html>`; const printWin = window.open('', '_blank'); printWin.document.write(pHTML); printWin.document.close(); printWin.focus(); setTimeout(() => { printWin.print(); printWin.close(); }, 300); };
