@@ -79,8 +79,8 @@
             <div class="flex overflow-x-auto space-x-1 text-xs sm:text-base border-t border-white/20 pt-1 pb-1 scrollbar-hide" id="main-nav-container">
                 <button onclick="window.switchCrmModule('superadmin')" id="nav-superadmin" class="hidden crm-nav-btn px-3 sm:px-4 py-2 rounded-t-lg font-bold bg-amber-500 text-gray-900 transition-colors whitespace-nowrap shadow-sm"><i class="fas fa-crown mr-1 sm:mr-2"></i>SaaS Admin</button>
                 <button onclick="window.switchCrmModule('dashboard')" id="nav-dashboard" class="crm-nav-btn px-3 sm:px-4 py-2 rounded-t-lg font-bold bg-white text-indigo-900 transition-colors whitespace-nowrap shadow-sm"><i class="fas fa-chart-pie mr-1 sm:mr-2"></i>Dashboard</button>
-                <button onclick="window.switchCrmModule('clients')" id="nav-clients" class="crm-nav-btn px-3 sm:px-4 py-2 rounded-t-lg font-medium text-indigo-100 hover:text-white hover:bg-white/20 transition-all whitespace-nowrap"><i class="fas fa-users mr-1 sm:mr-2"></i>Πελάτες</button>
-                <button onclick="window.switchCrmModule('liabilities')" id="nav-liabilities" class="crm-nav-btn px-3 sm:px-4 py-2 rounded-t-lg font-medium text-indigo-100 hover:text-white hover:bg-white/20 transition-all whitespace-nowrap"><i class="fas fa-file-invoice-dollar mr-1 sm:mr-2"></i>Tasks</button>
+                <button onclick="window.switchCrmModule('clients')" id="nav-clients" class="crm-nav-btn px-3 sm:px-4 py-2 rounded-t-lg font-medium text-indigo-100 hover:text-white hover:bg-white/20 transition-all whitespace-nowrap"><i class="fas fa-users mr-1 sm:mr-2"></i>Πελάτες & Εισπράξεις</button>
+                <button onclick="window.switchCrmModule('liabilities')" id="nav-liabilities" class="crm-nav-btn px-3 sm:px-4 py-2 rounded-t-lg font-medium text-indigo-100 hover:text-white hover:bg-white/20 transition-all whitespace-nowrap"><i class="fas fa-file-invoice-dollar mr-1 sm:mr-2"></i>Υποχρεώσεις & Tasks</button>
                 <button onclick="window.switchCrmModule('config')" id="nav-config" class="crm-nav-btn px-3 sm:px-4 py-2 rounded-t-lg font-medium text-indigo-100 hover:text-white hover:bg-white/20 transition-all whitespace-nowrap ml-auto"><i class="fas fa-cogs sm:mr-2"></i><span class="hidden sm:inline"> Ρυθμίσεις</span></button>
             </div>
         </div>
@@ -123,6 +123,7 @@
                     <h2 class="text-xl font-black tracking-tight"><i class="fas fa-server mr-2 text-amber-400"></i>Διαχείριση Πελατών SaaS</h2>
                     <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-medium border border-white/30" id="superAdminActiveSubs">0 Ενεργές Συνδρομές</span>
                 </div>
+                
                 <div class="p-4 sm:p-6">
                     <div class="flex flex-wrap gap-4 mb-6 items-end justify-between">
                         <div class="w-full md:w-1/3">
@@ -133,6 +134,7 @@
                             <i class="fas fa-plus"></i> Νέος Συνδρομητής
                         </button>
                     </div>
+
                     <div class="overflow-x-auto custom-scrollbar">
                         <table class="w-full text-left text-sm border-collapse min-w-max">
                             <thead class="bg-gray-50 text-gray-600 border-b border-gray-200">
@@ -188,9 +190,6 @@
                     <div class="flex-1 relative min-h-0"><canvas id="chartMonthlyReceipts"></canvas></div>
                 </div>
             </div>
-            
-            <h3 class="text-sm sm:text-md font-bold text-gray-800 mb-3 mt-8 border-b pb-2">Ανάλυση ανά Πελάτη (<span class="display-year"></span>)</h3>
-            <div id="dashboardClientsGrid" class="flex flex-col gap-3"></div>
         </div>
 
         <!-- MODULE: CLIENTS & RECEIPTS -->
@@ -244,6 +243,7 @@
                                     <th class="px-4 py-3 font-bold">Πελάτης</th>
                                     <th class="px-4 py-3 font-bold">Ποσό</th>
                                     <th class="px-4 py-3 font-bold hidden md:table-cell">Περίοδος</th>
+                                    <th class="px-4 py-3 font-bold hidden sm:table-cell">Σχόλια</th>
                                     <th class="px-4 py-3 font-bold text-center">...</th>
                                 </tr>
                             </thead>
@@ -297,10 +297,11 @@
                                     <label class="flex items-center gap-2 cursor-pointer font-bold text-xs text-indigo-700"><input type="checkbox" id="taskEmailNotify" class="w-4 h-4 rounded"> <i class="fas fa-envelope"></i> Email</label>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button type="button" id="btnCancelEditTask" onclick="window.cancelEditTask()" class="hidden w-1/3 bg-gray-200 text-gray-700 rounded-lg font-bold">Άκυρο</button>
-                                    <button type="submit" id="btnSaveTask" class="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg font-bold shadow-sm">Προσθήκη</button>
+                                    <button type="button" id="btnCancelEditTask" onclick="window.cancelEditTask()" class="hidden w-1/3 bg-gray-200 text-gray-700 rounded-lg font-bold transition-colors">Άκυρο</button>
+                                    <button type="submit" id="btnSaveTask" class="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg font-bold shadow-sm transition-colors">Προσθήκη</button>
                                 </div>
                             </div>
+                            <textarea id="taskNotes" rows="2" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm shadow-sm" placeholder="Σημειώσεις..."></textarea>
                         </form>
                     </div>
                     
@@ -328,7 +329,6 @@
                 </div>
             </div>
 
-            <!-- Καρτέλα Λίστες & Tasks -->
             <div id="config-panel-liabilities" class="config-panel hidden grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h2 class="text-md font-bold text-gray-800 mb-4 border-b pb-2"><i class="fas fa-list text-indigo-500 mr-2"></i>Λίστες Υποχρεώσεων</h2>
@@ -348,61 +348,49 @@
                 </div>
             </div>
 
-            <!-- Καρτέλα Εισαγωγής CSV -->
             <div id="config-panel-biz" class="config-panel hidden bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-8">
                 <div>
                     <h3 class="text-md font-bold text-gray-800 mb-3 border-b pb-2"><i class="fas fa-users text-blue-600 mr-2"></i>Μαζική Εισαγωγή Πελατών (CSV)</h3>
-                    <p class="text-sm text-gray-500 mb-4">Δομή: Επωνυμία, GSIS, ΕΦΚΑ, ΓΕΜΗ</p>
-                    <label class="flex items-center justify-center gap-3 bg-gray-50 border border-gray-300 rounded-xl p-4 hover:bg-gray-100 cursor-pointer shadow-sm font-bold text-gray-700">
-                        <i class="fas fa-file-import text-2xl text-blue-500"></i> Επιλογή αρχείου Πελατών
-                        <input type="file" accept=".csv" class="hidden" onchange="window.importClientsCSV(event)">
-                    </label>
+                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <label class="flex items-center justify-center gap-3 bg-white border border-gray-300 rounded-xl p-4 hover:bg-gray-100 cursor-pointer shadow-sm transition-colors font-bold text-gray-700">
+                            <i class="fas fa-file-import text-2xl text-blue-500"></i> Επιλογή αρχείου Πελατών
+                            <input type="file" id="csvClientImport" accept=".csv" class="hidden" onchange="window.importClientsCSV(event)">
+                        </label>
+                    </div>
                 </div>
                 <div>
                     <h3 class="text-md font-bold text-gray-800 mb-3 border-b pb-2"><i class="fas fa-file-invoice-dollar text-emerald-600 mr-2"></i>Μαζική Εισαγωγή Εισπράξεων (CSV)</h3>
-                    <p class="text-sm text-gray-500 mb-4">Δομή: Ημερομηνία, Επωνυμία, Ποσό, Περίοδος, Σχόλια</p>
-                    <label class="flex items-center justify-center gap-3 bg-gray-50 border border-gray-300 rounded-xl p-4 hover:bg-gray-100 cursor-pointer shadow-sm font-bold text-gray-700">
-                        <i class="fas fa-cloud-upload-alt text-2xl text-emerald-500"></i> Επιλογή αρχείου Εισπράξεων
-                        <input type="file" accept=".csv" class="hidden" onchange="window.importReceiptsCSV(event)">
-                    </label>
+                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <label class="flex items-center justify-center gap-3 bg-white border border-gray-300 rounded-xl p-4 hover:bg-gray-100 cursor-pointer shadow-sm transition-colors font-bold text-gray-700">
+                            <i class="fas fa-cloud-upload-alt text-2xl text-emerald-500"></i> Επιλογή αρχείου Εισπράξεων
+                            <input type="file" id="csvFileImport" accept=".csv" class="hidden" onchange="window.importReceiptsCSV(event)">
+                        </label>
+                    </div>
                 </div>
             </div>
 
-            <!-- Καρτέλα Συνδρομής (SaaS Tenant) -->
             <div id="config-panel-sub" class="config-panel hidden">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
                         <div class="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-4 py-1 rounded-bl-lg" id="clientSubStatusBadge">ΕΝΕΡΓΗ</div>
                         <h3 class="text-lg font-black text-gray-900 mb-1"><i class="fas fa-star text-amber-400 mr-2"></i>Η Συνδρομή σας</h3>
-                        <p class="text-sm text-gray-500 mb-6">Σχέδιο: <span class="font-bold text-gray-800">New CRM Pro</span></p>
-                        
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
                             <div class="flex justify-between items-center mb-2">
-                                <span class="text-sm font-bold text-gray-700">Ημέρες που απομένουν:</span>
+                                <span class="text-sm font-bold text-gray-700">Ημέρες:</span>
                                 <span class="text-xl font-black text-indigo-600" id="clientSubDaysLeft">345</span>
                             </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="bg-indigo-600 h-2 rounded-full" style="width: 90%" id="clientSubProgress"></div>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-3 text-right">Λήγει: <span class="font-bold" id="clientSubEndDate">-</span></p>
+                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-indigo-600 h-2 rounded-full" style="width: 90%" id="clientSubProgress"></div></div>
                         </div>
-                        
                         <div class="border-t border-gray-100 pt-5 text-center" id="cancelSubArea">
-                            <button onclick="window.cancelMySubscription()" class="text-red-500 hover:text-red-700 hover:bg-red-50 font-bold px-4 py-2 rounded-lg text-sm transition-colors w-full border border-red-100">
-                                Ακύρωση Συνδρομής
-                            </button>
+                            <button onclick="window.cancelMySubscription()" class="text-red-500 hover:text-red-700 hover:bg-red-50 font-bold px-4 py-2 rounded-lg text-sm transition-colors w-full border border-red-100">Ακύρωση Συνδρομής</button>
                         </div>
                         <div id="canceledSubArea" class="hidden border-t border-gray-100 pt-5 text-center">
-                            <div class="bg-amber-50 text-amber-800 p-3 rounded-lg border border-amber-200 text-sm font-bold">
-                                <i class="fas fa-exclamation-triangle mr-1"></i> Η συνδρομή σας έχει ακυρωθεί.
-                            </div>
+                            <div class="bg-amber-50 text-amber-800 p-3 rounded-lg border border-amber-200 text-sm font-bold"><i class="fas fa-exclamation-triangle mr-1"></i> Η συνδρομή σας έχει ακυρωθεί.</div>
                         </div>
                     </div>
-
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                         <h3 class="text-lg font-black text-gray-900 mb-1"><i class="fas fa-users text-blue-500 mr-2"></i>Ομάδα (Μελλοντική Λειτουργία)</h3>
-                        <p class="text-sm text-gray-500 mb-6">Η διαχείριση προσβάσεων συνεργατών θα προστεθεί σύντομα.</p>
-                        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200 mt-4">
                             <span class="text-sm font-bold text-gray-800 truncate" id="teamAdminEmail">-</span>
                             <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold">Ιδιοκτήτης</span>
                         </div>
@@ -430,7 +418,6 @@
             <div class="p-4 sm:p-6 overflow-y-auto flex-1 text-sm bg-white">
                 <input type="hidden" id="profileClientIndex">
                 
-                <!-- ΠΛΗΡΗ ΣΤΑΘΕΡΑ ΣΤΟΙΧΕΙΑ -->
                 <div id="profile-panel-general" class="profile-panel block space-y-5">
                     <div class="p-3 bg-indigo-50 border border-indigo-100 rounded-lg inline-flex items-center">
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -439,54 +426,42 @@
                             <span class="ml-3 font-bold text-indigo-900 text-sm">Ενεργός Πελάτης</span>
                         </label>
                     </div>
-                    <div><label class="block font-bold text-gray-700 mb-1">Επωνυμία / Όνομα Πελάτη *</label><input type="text" id="profileName" class="w-full border rounded-lg p-2.5 font-bold shadow-sm" required></div>
+                    <div><label class="block font-bold text-gray-700 mb-1">Επωνυμία / Όνομα Πελάτη *</label><input type="text" id="profileName" class="w-full border border-gray-300 rounded-lg p-2.5 font-bold shadow-sm" required></div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div><label class="block font-bold text-gray-700 mb-1 text-xs">Έναρξη</label><input type="date" id="profileStartDate" class="w-full border rounded-lg p-2.5 shadow-sm text-xs sm:text-sm"></div>
-                        <div><label class="block font-bold text-gray-700 mb-1 text-xs">Λήξη</label><input type="date" id="profileEndDate" class="w-full border rounded-lg p-2.5 shadow-sm text-xs sm:text-sm"></div>
-                        <div><label class="block font-bold text-gray-700 mb-1 text-xs">Ψηφιακός Φάκελος</label><div class="flex gap-1"><input type="text" id="profileFolderLink" placeholder="Link (π.χ. Google Drive)..." class="flex-1 border border-gray-300 rounded-lg p-2.5 text-sm shadow-sm"><button type="button" onclick="window.openClientFolder()" class="bg-blue-100 text-blue-700 px-3 rounded-lg border border-blue-200 hover:bg-blue-200 transition-colors"><i class="fas fa-external-link-alt"></i></button></div></div>
+                        <div><label class="block font-bold text-gray-700 mb-1 text-xs">Έναρξη</label><input type="date" id="profileStartDate" class="w-full border border-gray-300 rounded-lg p-2.5 shadow-sm text-xs sm:text-sm"></div>
+                        <div><label class="block font-bold text-gray-700 mb-1 text-xs">Λήξη</label><input type="date" id="profileEndDate" class="w-full border border-gray-300 rounded-lg p-2.5 shadow-sm text-xs sm:text-sm"></div>
+                        <div><label class="block font-bold text-gray-700 mb-1 text-xs">Ψηφιακός Φάκελος</label><div class="flex gap-1"><input type="text" id="profileFolderLink" placeholder="Link..." class="flex-1 border border-gray-300 rounded-lg p-2.5 text-sm shadow-sm"><button type="button" onclick="window.openClientFolder()" class="bg-blue-100 text-blue-700 px-3 rounded-lg border border-blue-200 hover:bg-blue-200"><i class="fas fa-external-link-alt"></i></button></div></div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div><label class="block font-bold text-gray-700 mb-1 text-xs">Κωδικοί GSIS</label><div class="flex gap-1"><input type="text" id="profileGsis" class="flex-1 border border-gray-300 rounded-lg p-2.5 font-mono text-xs shadow-sm"><button type="button" onclick="window.copyToClipboard('profileGsis')" class="bg-gray-100 hover:bg-gray-200 px-3 rounded-lg border border-gray-300 transition-colors"><i class="fas fa-copy"></i></button></div></div>
-                        <div><label class="block font-bold text-gray-700 mb-1 text-xs">Κωδικοί ΕΦΚΑ</label><div class="flex gap-1"><input type="text" id="profileEfka" class="flex-1 border border-gray-300 rounded-lg p-2.5 font-mono text-xs shadow-sm"><button type="button" onclick="window.copyToClipboard('profileEfka')" class="bg-gray-100 hover:bg-gray-200 px-3 rounded-lg border border-gray-300 transition-colors"><i class="fas fa-copy"></i></button></div></div>
-                        <div><label class="block font-bold text-gray-700 mb-1 text-xs">Αριθμός ΓΕΜΗ</label><div class="flex gap-1"><input type="text" id="profileGemi" class="flex-1 border border-gray-300 rounded-lg p-2.5 font-mono text-xs shadow-sm"><button type="button" onclick="window.copyToClipboard('profileGemi')" class="bg-gray-100 hover:bg-gray-200 px-3 rounded-lg border border-gray-300 transition-colors"><i class="fas fa-copy"></i></button></div></div>
-                        <div><label class="block font-bold text-gray-700 mb-1 text-xs">Κωδικοί myDATA</label><div class="flex gap-1"><input type="text" id="profileMyData" class="flex-1 border border-gray-300 rounded-lg p-2.5 font-mono text-xs shadow-sm"><button type="button" onclick="window.copyToClipboard('profileMyData')" class="bg-gray-100 hover:bg-gray-200 px-3 rounded-lg border border-gray-300 transition-colors"><i class="fas fa-copy"></i></button></div></div>
+                        <div><label class="block font-bold text-gray-700 mb-1 text-xs">Κωδικοί GSIS</label><div class="flex gap-1"><input type="text" id="profileGsis" class="flex-1 border border-gray-300 rounded-lg p-2.5 font-mono text-xs shadow-sm"><button type="button" onclick="window.copyToClipboard('profileGsis')" class="bg-gray-100 hover:bg-gray-200 px-3 rounded-lg border border-gray-300"><i class="fas fa-copy"></i></button></div></div>
+                        <div><label class="block font-bold text-gray-700 mb-1 text-xs">Κωδικοί ΕΦΚΑ</label><div class="flex gap-1"><input type="text" id="profileEfka" class="flex-1 border border-gray-300 rounded-lg p-2.5 font-mono text-xs shadow-sm"><button type="button" onclick="window.copyToClipboard('profileEfka')" class="bg-gray-100 hover:bg-gray-200 px-3 rounded-lg border border-gray-300"><i class="fas fa-copy"></i></button></div></div>
+                        <div><label class="block font-bold text-gray-700 mb-1 text-xs">Αριθμός ΓΕΜΗ</label><div class="flex gap-1"><input type="text" id="profileGemi" class="flex-1 border border-gray-300 rounded-lg p-2.5 font-mono text-xs shadow-sm"><button type="button" onclick="window.copyToClipboard('profileGemi')" class="bg-gray-100 hover:bg-gray-200 px-3 rounded-lg border border-gray-300"><i class="fas fa-copy"></i></button></div></div>
+                        <div><label class="block font-bold text-gray-700 mb-1 text-xs">Κωδικοί myDATA</label><div class="flex gap-1"><input type="text" id="profileMyData" class="flex-1 border border-gray-300 rounded-lg p-2.5 font-mono text-xs shadow-sm"><button type="button" onclick="window.copyToClipboard('profileMyData')" class="bg-gray-100 hover:bg-gray-200 px-3 rounded-lg border border-gray-300"><i class="fas fa-copy"></i></button></div></div>
                     </div>
                     <div><label class="block font-bold text-gray-700 mb-1 text-xs"><i class="fas fa-book mr-1 text-indigo-500"></i>Σημειώσεις Πελάτη</label><textarea id="profileNotes" rows="3" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm shadow-sm"></textarea></div>
                     <div class="flex justify-between items-center pt-2"><h4 class="font-bold text-gray-800 uppercase tracking-wider text-xs">Επιπλέον Πεδία</h4><button type="button" onclick="window.addCustomFieldRow()" class="text-xs text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-full"><i class="fas fa-plus"></i> Προσθήκη</button></div>
                     <div id="profileCustomFields" class="space-y-2"></div>
                 </div>
 
-                <!-- ΟΙΚΟΝΟΜΙΚΑ ΣΤΟΙΧΕΙΑ -->
                 <div id="profile-panel-financials" class="profile-panel hidden space-y-6">
                     <div class="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm">
                         <h5 class="font-black text-gray-800 mb-3 text-xs sm:text-sm uppercase"><i class="fas fa-sync text-indigo-600 mr-2"></i>Σταθερές Χρεώσεις</h5>
                         <div class="flex flex-wrap gap-2 mb-4 bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-                            <input type="hidden" id="editFcId">
-                            <input type="text" id="fcTitle" placeholder="Περιγραφή..." class="flex-1 min-w-[120px] border rounded-lg p-2 text-xs sm:text-sm outline-none">
-                            <input type="number" id="fcAmount" placeholder="€" step="0.01" class="w-20 sm:w-24 border rounded-lg p-2 text-xs sm:text-sm outline-none">
-                            <select id="fcPeriod" class="border rounded-lg p-2 text-xs sm:text-sm bg-white outline-none"><option value="monthly">Μήνα</option><option value="quarterly">Τρίμηνο</option><option value="yearly">Έτος</option></select>
-                            <select id="fcYear" class="border border-indigo-200 rounded-lg p-2 text-xs sm:text-sm bg-indigo-50 font-bold text-indigo-700 outline-none">
-                                <option value="all">Όλα τα Έτη</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option>
-                            </select>
+                            <input type="hidden" id="editFcId"><input type="text" id="fcTitle" placeholder="Περιγραφή..." class="flex-1 min-w-[120px] border rounded-lg p-2 text-xs sm:text-sm outline-none"><input type="number" id="fcAmount" placeholder="€" step="0.01" class="w-20 sm:w-24 border rounded-lg p-2 text-xs sm:text-sm outline-none"><select id="fcPeriod" class="border rounded-lg p-2 text-xs sm:text-sm bg-white outline-none"><option value="monthly">Μήνα</option><option value="quarterly">Τρίμηνο</option><option value="yearly">Έτος</option></select>
+                            <select id="fcYear" class="border border-indigo-200 rounded-lg p-2 text-xs sm:text-sm bg-indigo-50 font-bold text-indigo-700 outline-none"><option value="all">Όλα τα Έτη</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option></select>
                             <button type="button" id="btnSaveFc" onclick="window.saveTempFc()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-4 py-2 rounded-lg font-bold transition-colors"><i class="fas fa-plus"></i></button>
                         </div>
                         <ul id="fcList" class="space-y-2"></ul>
                     </div>
-
                     <div class="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm">
                         <h5 class="font-black text-gray-800 mb-3 text-xs sm:text-sm uppercase"><i class="fas fa-bolt text-emerald-600 mr-2"></i>One-Off Έργα</h5>
                         <div class="flex flex-wrap gap-2 mb-4 bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-                            <input type="hidden" id="editOoId">
-                            <input type="text" id="ooTitle" placeholder="Περιγραφή..." class="flex-1 min-w-[120px] border rounded-lg p-2 text-xs sm:text-sm outline-none">
-                            <input type="number" id="ooAmount" placeholder="€" step="0.01" class="w-20 sm:w-24 border rounded-lg p-2 text-xs sm:text-sm outline-none">
-                            <input type="date" id="ooDate" class="w-32 border rounded-lg p-2 text-xs sm:text-sm outline-none">
-                            <button type="button" id="btnSaveOo" onclick="window.saveTempOo()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-4 py-2 rounded-lg font-bold transition-colors"><i class="fas fa-plus"></i></button>
+                            <input type="hidden" id="editOoId"><input type="text" id="ooTitle" placeholder="Περιγραφή..." class="flex-1 min-w-[120px] border rounded-lg p-2 text-xs sm:text-sm outline-none"><input type="number" id="ooAmount" placeholder="€" step="0.01" class="w-20 sm:w-24 border rounded-lg p-2 text-xs sm:text-sm outline-none"><input type="date" id="ooDate" class="w-32 border rounded-lg p-2 text-xs sm:text-sm outline-none"><button type="button" id="btnSaveOo" onclick="window.saveTempOo()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-4 py-2 rounded-lg font-bold transition-colors"><i class="fas fa-plus"></i></button>
                         </div>
                         <ul id="ooList" class="space-y-2"></ul>
                     </div>
                 </div>
 
-                <!-- ΛΙΣΤΕΣ CHECKBOXES -->
                 <div id="profile-panel-liab" class="profile-panel hidden space-y-4">
                     <h4 class="font-bold text-gray-800 mb-2 uppercase tracking-wider text-sm"><i class="fas fa-list-check text-indigo-500 mr-1"></i>Υπαγωγή στις Λίστες Υποχρεώσεων</h4>
                     <div id="profileLiabilitiesCheckboxes" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
@@ -500,30 +475,17 @@
         </div>
     </div>
 
-    <!-- Add Tenant Modal (Για τον Super Admin) -->
+    <!-- Add Tenant Modal (SaaS) -->
     <div id="addTenantModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
         <div class="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4">
             <h3 class="text-lg font-bold text-gray-900 mb-4"><i class="fas fa-user-plus text-indigo-600 mr-2"></i>Νέος Συνδρομητής SaaS</h3>
             <form onsubmit="window.saveTenant(event)" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Επωνυμία Λογιστικού Γραφείου *</label>
-                    <input type="text" id="newTenantName" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-indigo-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Admin Email (Ιδιοκτήτης) *</label>
-                    <input type="email" id="newTenantEmail" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-indigo-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Διάρκεια Συνδρομής *</label>
-                    <select id="newTenantDuration" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-indigo-500">
-                        <option value="12">1 Έτος (12 Μήνες)</option>
-                        <option value="6">6 Μήνες</option>
-                        <option value="1">1 Μήνας (Δοκιμαστικό)</option>
-                    </select>
-                </div>
+                <div><label class="block text-sm font-bold text-gray-700 mb-1">Επωνυμία Λογιστικού Γραφείου *</label><input type="text" id="newTenantName" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-indigo-500"></div>
+                <div><label class="block text-sm font-bold text-gray-700 mb-1">Admin Email (Ιδιοκτήτης) *</label><input type="email" id="newTenantEmail" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-indigo-500"></div>
+                <div><label class="block text-sm font-bold text-gray-700 mb-1">Διάρκεια Συνδρομής *</label><select id="newTenantDuration" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-indigo-500"><option value="12">1 Έτος</option><option value="6">6 Μήνες</option><option value="1">1 Μήνας</option></select></div>
                 <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
                     <button type="button" onclick="window.closeAddTenantModal()" class="px-4 py-2.5 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-bold transition-colors">Ακύρωση</button>
-                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors"><i class="fas fa-check mr-1"></i> Ενεργοποίηση</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors"><i class="fas fa-check mr-1"></i> Αποθήκευση</button>
                 </div>
             </form>
         </div>
@@ -538,7 +500,6 @@
         </div>
     </div>
 
-    <!-- JS Logic - Clean & Rebuilt -->
     <script type="module">
         const SUPER_ADMIN_EMAIL = 'logepchris@gmail.com';
         
@@ -813,9 +774,9 @@
             const start = new Date(); const end = new Date(); end.setMonth(end.getMonth() + duration);
             if(!window.appData.saasTenants) window.appData.saasTenants = [];
             window.appData.saasTenants.push({ id: 'tenant_' + Date.now(), name: name, adminEmail: email, start: start.toISOString().split('T')[0], end: end.toISOString().split('T')[0], status: 'active' });
-            window.saveData(); window.closeAddTenantModal(); window.showCustomDialog('Επιτυχία!', `Το γραφείο ${name} προστέθηκε!`); 
+            window.saveData(); window.closeAddTenantModal(); window.showCustomDialog('Επιτυχία!', `Το γραφείο ${name} προστέθηκε!`); window.renderSuperAdminPanel();
         };
-        window.deleteTenant = function(idx) { window.showCustomDialog('Διαγραφή', 'Σίγουρα θέλετε να διαγράψετε αυτόν τον συνδρομητή;', 'confirm', () => { window.appData.saasTenants.splice(idx, 1); window.saveData(); }); };
+        window.deleteTenant = function(idx) { window.showCustomDialog('Διαγραφή', 'Σίγουρα θέλετε να διαγράψετε αυτόν τον συνδρομητή;', 'confirm', () => { window.appData.saasTenants.splice(idx, 1); window.saveData(); window.renderSuperAdminPanel(); }); };
         window.renderSuperAdminPanel = function() {
             const tbody = document.getElementById('saasTenantsTable'); if(!tbody) return; tbody.innerHTML = '';
             const searchTerm = (document.getElementById('tenantSearch') ? document.getElementById('tenantSearch').value.toLowerCase() : '');
@@ -1057,13 +1018,25 @@
 
         // --- CONFIG ---
         window.renderConfigModule = function() {
-            const lList = document.getElementById('liabilityTypesList'); if(lList) { lList.innerHTML = window.appData.liabilityTypes.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία λίστα.</li>' : window.appData.liabilityTypes.map(t => `<li class="px-4 py-3 flex justify-between items-center bg-white border-b border-gray-100"><span class="font-bold text-gray-800">${t.title}</span><button onclick="window.deleteLiabilityType('${t.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></li>`).join(''); }
-            const cList = document.getElementById('taskCategoriesList'); if(cList) { cList.innerHTML = window.appData.taskCategories.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία κατηγορία.</li>' : window.appData.taskCategories.map(c => `<li class="px-4 py-3 flex justify-between items-center bg-white border-b border-gray-100"><span class="font-bold text-gray-800">${c.title}</span><button onclick="window.deleteTaskCategory('${c.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></li>`).join(''); }
+            const lList = document.getElementById('liabilityTypesList'); 
+            if(lList) {
+                lList.innerHTML = window.appData.liabilityTypes.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία λίστα.</li>' : window.appData.liabilityTypes.map(t => `
+                    <li class="px-4 py-3 flex justify-between items-center bg-white border-b border-gray-100"><span class="font-bold text-gray-800">${t.title}</span>
+                    <div><button onclick="window.renameLiabilityType('${t.id}')" class="text-gray-400 hover:text-blue-500 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteLiabilityType('${t.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); 
+            }
+            const cList = document.getElementById('taskCategoriesList'); 
+            if(cList) {
+                cList.innerHTML = window.appData.taskCategories.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία κατηγορία.</li>' : window.appData.taskCategories.map(c => `
+                    <li class="px-4 py-3 flex justify-between items-center bg-white border-b border-gray-100"><span class="font-bold text-gray-800">${c.title}</span>
+                    <div><button onclick="window.renameTaskCategory('${c.id}')" class="text-gray-400 hover:text-blue-500 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteTaskCategory('${c.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); 
+            }
         };
+
+        window.renameLiabilityType = function(id) { const obj = window.appData.liabilityTypes.find(t => t.id === id); if(!obj) return; const n = prompt('Νέο όνομα λίστας:', obj.title); if(n && n.trim()) { obj.title = n.trim(); window.saveData(); } };
+        window.renameTaskCategory = function(id) { const obj = window.appData.taskCategories.find(t => t.id === id); if(!obj) return; const n = prompt('Νέο όνομα κατηγορίας:', obj.title); if(n && n.trim()) { obj.title = n.trim(); window.saveData(); } };
 
         window.exportBackup = function() { const dl = document.createElement('a'); dl.setAttribute("href", "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.appData))); dl.setAttribute("download", "NewCRM_Backup.json"); dl.click(); };
         window.importBackup = function(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(evt) { try { const d = JSON.parse(evt.target.result); if(d.clients) { window.showCustomDialog('Επαναφορά', 'Τα δεδομένα θα αντικατασταθούν!', 'confirm', () => { window.appData = d; window.sanitizeDataStructure(); window.saveData(); window.showCustomDialog('Επιτυχία', 'Η βάση επαναφέρθηκε.'); }); } } catch(err) { window.showCustomDialog('Σφάλμα', 'Μη έγκυρο αρχείο.'); } }; r.readAsText(f); e.target.value=''; };
-        
         window.importClientsCSV = function(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(evt) { const lines = evt.target.result.split('\n'); let cnt=0; for(let i=1; i<lines.length; i++) { const cols=lines[i].split(lines[i].includes(';')?';':','); const name=cols[0]?cols[0].trim():''; if(name && !window.appData.clients.some(c=>c.name.toLowerCase()===name.toLowerCase())) { window.appData.clients.push({name, gsis:cols[1]?cols[1].trim():'', efka:cols[2]?cols[2].trim():'', gemi:cols[3]?cols[3].trim():'', isActive:true, fixedCharges:[], oneOffJobs:[]}); cnt++; } } if(cnt>0){ window.saveData(); window.showCustomDialog('Επιτυχία', `Εισήχθησαν ${cnt} πελάτες.`); } else window.showCustomDialog('Προσοχή', 'Δεν βρέθηκαν νέοι πελάτες.'); }; r.readAsText(f); e.target.value=''; };
         window.importReceiptsCSV = function(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(evt) { const lines = evt.target.result.split('\n'); let cnt=0; for(let i=1; i<lines.length; i++) { const cols=lines[i].split(lines[i].includes(';')?';':','); if(cols.length>=3) { const date=cols[0].trim(); const client=cols[1].trim(); const amt=parseFloat(cols[2].trim().replace(',','.')); if(date && client && !isNaN(amt)) { window.appData.receipts.push({id:'R_'+Date.now()+Math.random(), client, amount:amt, date, period:cols[3]?cols[3].trim():'', comments:cols[4]?cols[4].trim():''}); cnt++; } } } if(cnt>0){ window.saveData(); window.showCustomDialog('Επιτυχία', `Εισήχθησαν ${cnt} εισπράξεις.`); } }; r.readAsText(f); e.target.value=''; };
 
