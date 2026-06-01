@@ -190,6 +190,9 @@
                     <div class="flex-1 relative min-h-0"><canvas id="chartMonthlyReceipts"></canvas></div>
                 </div>
             </div>
+
+            <h3 class="text-sm sm:text-md font-bold text-gray-800 mb-3 mt-8 border-b pb-2">Ανάλυση ανά Πελάτη (<span class="display-year"></span>)</h3>
+            <div id="dashboardClientsGrid" class="flex flex-col gap-3"></div>
         </div>
 
         <!-- MODULE: CLIENTS & RECEIPTS -->
@@ -243,7 +246,6 @@
                                     <th class="px-4 py-3 font-bold">Πελάτης</th>
                                     <th class="px-4 py-3 font-bold">Ποσό</th>
                                     <th class="px-4 py-3 font-bold hidden md:table-cell">Περίοδος</th>
-                                    <th class="px-4 py-3 font-bold hidden sm:table-cell">Σχόλια</th>
                                     <th class="px-4 py-3 font-bold text-center">...</th>
                                 </tr>
                             </thead>
@@ -374,13 +376,19 @@
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
                         <div class="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-4 py-1 rounded-bl-lg" id="clientSubStatusBadge">ΕΝΕΡΓΗ</div>
                         <h3 class="text-lg font-black text-gray-900 mb-1"><i class="fas fa-star text-amber-400 mr-2"></i>Η Συνδρομή σας</h3>
+                        <p class="text-sm text-gray-500 mb-6">Σχέδιο: <span class="font-bold text-gray-800">New CRM Pro</span></p>
+                        
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
                             <div class="flex justify-between items-center mb-2">
-                                <span class="text-sm font-bold text-gray-700">Ημέρες:</span>
+                                <span class="text-sm font-bold text-gray-700">Ημέρες που απομένουν:</span>
                                 <span class="text-xl font-black text-indigo-600" id="clientSubDaysLeft">345</span>
                             </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-indigo-600 h-2 rounded-full" style="width: 90%" id="clientSubProgress"></div></div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-indigo-600 h-2 rounded-full" style="width: 90%" id="clientSubProgress"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-3 text-right">Λήγει: <span class="font-bold" id="clientSubEndDate">-</span></p>
                         </div>
+                        
                         <div class="border-t border-gray-100 pt-5 text-center" id="cancelSubArea">
                             <button onclick="window.cancelMySubscription()" class="text-red-500 hover:text-red-700 hover:bg-red-50 font-bold px-4 py-2 rounded-lg text-sm transition-colors w-full border border-red-100">Ακύρωση Συνδρομής</button>
                         </div>
@@ -389,11 +397,15 @@
                         </div>
                     </div>
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <h3 class="text-lg font-black text-gray-900 mb-1"><i class="fas fa-users text-blue-500 mr-2"></i>Ομάδα (Μελλοντική Λειτουργία)</h3>
-                        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200 mt-4">
-                            <span class="text-sm font-bold text-gray-800 truncate" id="teamAdminEmail">-</span>
-                            <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold">Ιδιοκτήτης</span>
+                        <h3 class="text-lg font-black text-gray-900 mb-1"><i class="fas fa-users text-blue-500 mr-2"></i>Η Ομάδα του Γραφείου</h3>
+                        <p class="text-sm text-gray-500 mb-4">Διαχειριστείτε τα emails των συνεργατών.</p>
+                        <div class="flex gap-2 mb-4">
+                            <input type="email" id="newTeamEmail" placeholder="Email συνεργάτη..." class="flex-1 border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                            <button onclick="window.addTeamMember()" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-colors">Προσθήκη</button>
                         </div>
+                        <ul id="teamList" class="space-y-2">
+                            <!-- Populated via JS -->
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -503,7 +515,7 @@
     <script type="module">
         const SUPER_ADMIN_EMAIL = 'logepchris@gmail.com';
         
-        window.appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [] };
+        window.appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [], teamMembers: [] };
         window.currentAppYear = new Date().getFullYear();
         window.isCloudEnabled = false; 
         window.loggedInEmail = "";
@@ -528,7 +540,7 @@
           "tasks": [
             { "id": "T1", "title": "Υποβολή ΦΠΑ", "client": "Cafe Ο Φάρος (Ε.Ε.)", "date": "2026-04-30", "category": "TC1", "recurring": "quarterly", "isCompleted": true }
           ], 
-          "liabilityCells": {}, "saasTenants": []
+          "liabilityCells": {}, "saasTenants": [], "teamMembers": []
         };
 
         window.showCustomDialog = function(title, message, type = 'alert', onConfirm = null) { 
@@ -559,17 +571,6 @@
                     window.firebaseApp = initializeApp(firebaseConfig);
                     window.firebaseAuth = getAuth(window.firebaseApp);
                     window.firebaseDb = getFirestore(window.firebaseApp);
-                    
-                    window.logout = function() {
-                        signOut(window.firebaseAuth).then(() => {
-                            window.appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [] }; 
-                            localStorage.removeItem('logepCrmDataV4');
-                            document.getElementById('user-badge').classList.add('hidden', 'lg:flex');
-                            document.getElementById('nav-superadmin').classList.add('hidden');
-                            window.loggedInEmail = "";
-                            window.updateUI();
-                        });
-                    };
 
                     onAuthStateChanged(window.firebaseAuth, (user) => {
                         if (user) {
@@ -584,7 +585,7 @@
 
                             onSnapshot(window.currentUserDocRef, (docSnap) => { 
                                 if (docSnap.exists()) { window.appData = docSnap.data(); window.sanitizeDataStructure(); } 
-                                else { window.appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [] }; window.saveData(); } 
+                                else { window.appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [], teamMembers: [] }; window.saveData(); } 
                                 window.updateUI(); 
                                 document.getElementById('cloud-status').innerHTML = `<i class="fas fa-cloud text-green-400"></i>`; 
                             }, (e) => { 
@@ -603,6 +604,20 @@
             } catch (e) {
                 btn.innerHTML = originalHTML;
                 window.showCustomDialog('Σφάλμα', 'Αδυναμία σύνδεσης. Ελέγξτε το ίντερνετ σας ή τυχόν AdBlockers.');
+            }
+        };
+
+        window.logout = function() {
+            if (window.firebaseAuth) {
+                import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js").then(({signOut}) => {
+                    signOut(window.firebaseAuth).then(() => {
+                        localStorage.removeItem('logepCrmDataV4');
+                        window.location.reload();
+                    });
+                });
+            } else {
+                localStorage.removeItem('logepCrmDataV4');
+                window.location.reload();
             }
         };
 
@@ -660,6 +675,7 @@
             if (!window.appData.liabilityTypes) window.appData.liabilityTypes = [];
             if (!window.appData.liabilityCells) window.appData.liabilityCells = {};
             if (!window.appData.taskCategories) window.appData.taskCategories = [];
+            if (!window.appData.teamMembers) window.appData.teamMembers = [];
             window.appData.clients.forEach(c => { 
                 if (c.isActive === undefined) c.isActive = true; 
                 if (!c.fixedCharges) c.fixedCharges = []; 
@@ -680,20 +696,17 @@
             return total;
         };
 
-        window.loadLocalData = function() { const stored = localStorage.getItem('logepCrmDataV4'); window.appData = stored ? JSON.parse(stored) : { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [] }; window.sanitizeDataStructure(); };
+        window.loadLocalData = function() { const stored = localStorage.getItem('logepCrmDataV4'); window.appData = stored ? JSON.parse(stored) : { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [], teamMembers: [] }; window.sanitizeDataStructure(); };
         
         // --- Core UI and Save ---
         window.saveData = function() { 
             if (window.isCloudEnabled && window.currentUserDocRef) { 
-                // Αποθήκευση στο Cloud
                 import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").then(({setDoc}) => {
                     setDoc(window.currentUserDocRef, window.appData).then(() => { window.updateUI(); }).catch(e => { console.error(e); window.updateUI(); });
                 });
             } else if (!window.isCloudEnabled && window.loggedInEmail === 'Επισκέπτης_Demo') { 
-                // Σε Demo μην σώζεις πουθενά, απλά κάνε update
                 window.updateUI(); 
             } else { 
-                // Τοπική αποθήκευση
                 localStorage.setItem('logepCrmDataV4', JSON.stringify(window.appData)); window.updateUI(); 
             } 
         };
@@ -764,6 +777,21 @@
             if(window.loggedInEmail === SUPER_ADMIN_EMAIL) window.renderSuperAdminPanel(); 
         };
 
+        // --- TEAM MEMBERS ---
+        window.addTeamMember = function() {
+            const email = document.getElementById('newTeamEmail').value.trim().toLowerCase();
+            if(!email) return;
+            if(window.appData.teamMembers.includes(email)) return;
+            window.appData.teamMembers.push(email);
+            document.getElementById('newTeamEmail').value = '';
+            window.saveData();
+        };
+
+        window.deleteTeamMember = function(email) {
+            window.appData.teamMembers = window.appData.teamMembers.filter(e => e !== email);
+            window.saveData();
+        };
+
         // --- SUPER ADMIN SAAS ---
         window.openAddTenantModal = function() { document.getElementById('addTenantModal').classList.remove('hidden'); };
         window.closeAddTenantModal = function() { document.getElementById('addTenantModal').classList.add('hidden'); document.getElementById('newTenantName').value = ''; document.getElementById('newTenantEmail').value = ''; document.getElementById('newTenantDuration').value = '12'; };
@@ -818,7 +846,29 @@
             let monthsData = new Array(12).fill(0); yearReceipts.forEach(r => { monthsData[new Date(r.date).getMonth()] += parseFloat(r.amount); });
             let ctx4 = document.getElementById('chartMonthlyReceipts'); if(ctx4) { if(window.cInstance4) window.cInstance4.destroy(); window.cInstance4 = new Chart(ctx4, { type: 'line', data: { labels: ['Ιαν', 'Φεβ', 'Μαρ', 'Απρ', 'Μάι', 'Ιούν', 'Ιούλ', 'Αύγ', 'Σεπ', 'Οκτ', 'Νοέ', 'Δεκ'], datasets: [{ label: 'Εισπράξεις €', data: monthsData, borderColor: '#f43f5e', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } }); }
 
-            const gridContainer = document.getElementById('dashboardClientsGrid'); if(gridContainer) { gridContainer.innerHTML = ''; window.appData.clients.filter(c => c.isActive !== false).forEach(client => { let t = window.calculateClientTarget(client, window.currentAppYear); let c = yearReceipts.filter(r => r.client === client.name).reduce((sum, r) => sum + parseFloat(r.amount), 0); if(t === 0 && c === 0) return; let r = Math.max(0, t - c); let p = t > 0 ? (c / t) * 100 : 0; gridContainer.innerHTML += `<div class="bg-white border p-4 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center gap-4 text-sm"><div class="md:w-1/4 font-black truncate">${client.name}</div><div class="md:w-1/3 w-full bg-gray-100 rounded-full h-2"><div class="bg-indigo-500 h-2 rounded-full" style="width: ${p}%"></div></div><div class="md:w-5/12 flex justify-between font-mono text-xs"><div>Στόχος: <b>${window.formatCurrency(t)}</b></div><div>Είσπραξη: <b class="text-green-600">${window.formatCurrency(c)}</b></div></div></div>`; }); }
+            const gridContainer = document.getElementById('dashboardClientsGrid'); 
+            if(gridContainer) { 
+                gridContainer.innerHTML = ''; 
+                window.appData.clients.filter(c => c.isActive !== false).forEach(client => { 
+                    let t = window.calculateClientTarget(client, window.currentAppYear); 
+                    let c = yearReceipts.filter(r => r.client === client.name).reduce((sum, r) => sum + parseFloat(r.amount), 0); 
+                    if(t === 0 && c === 0) return; 
+                    let r = Math.max(0, t - c); 
+                    let p = t > 0 ? (c / t) * 100 : 0; 
+                    gridContainer.innerHTML += `
+                    <div class="bg-white border p-4 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center gap-4 text-sm">
+                        <div class="md:w-1/4 font-black truncate">${client.name}</div>
+                        <div class="md:w-1/3 w-full bg-gray-100 rounded-full h-2.5">
+                            <div class="bg-indigo-500 h-2.5 rounded-full" style="width: ${p}%"></div>
+                        </div>
+                        <div class="md:w-5/12 flex justify-between font-mono text-xs">
+                            <div>Στόχος: <span class="font-bold text-gray-900">${window.formatCurrency(t)}</span></div>
+                            <div>Είσπραξη: <span class="font-bold text-green-600">${window.formatCurrency(c)}</span></div>
+                            <div>Υπόλοιπο: <span class="font-bold text-orange-600">${window.formatCurrency(r)}</span></div>
+                        </div>
+                    </div>`; 
+                }); 
+            }
         };
 
         // --- CLIENTS ---
@@ -1029,6 +1079,21 @@
                 cList.innerHTML = window.appData.taskCategories.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία κατηγορία.</li>' : window.appData.taskCategories.map(c => `
                     <li class="px-4 py-3 flex justify-between items-center bg-white border-b border-gray-100"><span class="font-bold text-gray-800">${c.title}</span>
                     <div><button onclick="window.renameTaskCategory('${c.id}')" class="text-gray-400 hover:text-blue-500 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteTaskCategory('${c.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); 
+            }
+
+            const teamList = document.getElementById('teamList');
+            if (teamList) {
+                let html = `<li class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-sm font-bold text-gray-800 truncate">${window.loggedInEmail || '-'}</span>
+                    <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold">Ιδιοκτήτης</span>
+                </li>`;
+                (window.appData.teamMembers || []).forEach(tm => {
+                    html += `<li class="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-100 shadow-sm mt-2">
+                        <span class="text-sm font-medium text-gray-600 truncate">${tm}</span>
+                        <button onclick="window.deleteTeamMember('${tm}')" class="text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+                    </li>`;
+                });
+                teamList.innerHTML = html;
             }
         };
 
