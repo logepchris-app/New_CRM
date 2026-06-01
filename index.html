@@ -114,7 +114,7 @@
     </nav>
 
     <!-- Main Content Area -->
-    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 relative">
         
         <!-- MODULE: SUPER ADMIN (SaaS Management) -->
         <div id="module-superadmin" class="crm-module hidden max-w-7xl mx-auto">
@@ -190,7 +190,7 @@
                     <div class="flex-1 relative min-h-0"><canvas id="chartMonthlyReceipts"></canvas></div>
                 </div>
             </div>
-
+            
             <h3 class="text-sm sm:text-md font-bold text-gray-800 mb-3 mt-8 border-b pb-2">Ανάλυση ανά Πελάτη (<span class="display-year"></span>)</h3>
             <div id="dashboardClientsGrid" class="flex flex-col gap-3"></div>
         </div>
@@ -331,6 +331,7 @@
                 </div>
             </div>
 
+            <!-- Καρτέλα Λίστες & Tasks -->
             <div id="config-panel-liabilities" class="config-panel hidden grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h2 class="text-md font-bold text-gray-800 mb-4 border-b pb-2"><i class="fas fa-list text-indigo-500 mr-2"></i>Λίστες Υποχρεώσεων</h2>
@@ -350,6 +351,7 @@
                 </div>
             </div>
 
+            <!-- Καρτέλα Εισαγωγής CSV -->
             <div id="config-panel-biz" class="config-panel hidden bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-8">
                 <div>
                     <h3 class="text-md font-bold text-gray-800 mb-3 border-b pb-2"><i class="fas fa-users text-blue-600 mr-2"></i>Μαζική Εισαγωγή Πελατών (CSV)</h3>
@@ -371,6 +373,7 @@
                 </div>
             </div>
 
+            <!-- Καρτέλα Συνδρομής & Ομάδας -->
             <div id="config-panel-sub" class="config-panel hidden">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
@@ -398,7 +401,7 @@
                     </div>
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                         <h3 class="text-lg font-black text-gray-900 mb-1"><i class="fas fa-users text-blue-500 mr-2"></i>Η Ομάδα του Γραφείου</h3>
-                        <p class="text-sm text-gray-500 mb-4">Διαχειριστείτε τα emails των συνεργατών.</p>
+                        <p class="text-sm text-gray-500 mb-4">Διαχειριστείτε τα emails των συνεργατών. Το όριο είναι 1 δωρεάν μέλος.</p>
                         <div class="flex gap-2 mb-4">
                             <input type="email" id="newTeamEmail" placeholder="Email συνεργάτη..." class="flex-1 border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-indigo-500">
                             <button onclick="window.addTeamMember()" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-colors">Προσθήκη</button>
@@ -525,6 +528,7 @@
         window.currentLiabilityTypeId = null;
         window.tempFixedCharges = [];
         window.tempOneOffJobs = [];
+        window.isAppReadOnly = false; // ΝΕΟ: Έλεγχος Λειτουργίας Read-Only
 
         const demoData = {
           "liabilityTypes": [ { "id": "LT1", "title": "ΦΠΑ" }, { "id": "LT2", "title": "ΕΦΚΑ" } ], 
@@ -607,6 +611,7 @@
             }
         };
 
+        // --- ΔΙΟΡΘΩΣΗ LOGOUT ---
         window.logout = function() {
             if (window.firebaseAuth) {
                 import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js").then(({signOut}) => {
@@ -645,14 +650,48 @@
             }
         };
 
+        // --- ΔΙΟΡΘΩΣΗ: ΠΕΡΙΟΔΟΣ ΧΑΡΙΤΟΣ 30 ΗΜΕΡΩΝ ---
         window.simulateTenantSubscription = function() {
-            let currentSubEndDate = new Date(); currentSubEndDate.setFullYear(currentSubEndDate.getFullYear() + 1);
-            let today = new Date(); let timeDiff = currentSubEndDate.getTime() - today.getTime();
+            let currentSubEndDate = new Date(); 
+            currentSubEndDate.setFullYear(currentSubEndDate.getFullYear() + 1); // Mock end date
+            
+            let today = new Date(); 
+            let timeDiff = currentSubEndDate.getTime() - today.getTime();
             let daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
             
             const daysEl = document.getElementById('clientSubDaysLeft'); if(daysEl) daysEl.textContent = daysDiff;
             const endEl = document.getElementById('clientSubEndDate'); if(endEl) endEl.textContent = currentSubEndDate.toLocaleDateString('el-GR');
             const progEl = document.getElementById('clientSubProgress'); if(progEl) progEl.style.width = Math.max(0, Math.min(100, (daysDiff / 365) * 100)) + '%';
+
+            // Καθαρισμός τυχόν προηγούμενου banner
+            const oldBanner = document.getElementById('grace-period-banner');
+            if(oldBanner) oldBanner.remove();
+
+            // ΕΛΕΓΧΟΣ ΛΗΞΗΣ (Read-Only ή Οριστικό Κλείδωμα)
+            if (daysDiff <= 0) {
+                let graceDaysLeft = 30 + daysDiff; 
+                
+                if (graceDaysLeft > 0) {
+                    window.isAppReadOnly = true; 
+                    const banner = document.createElement('div');
+                    banner.id = 'grace-period-banner';
+                    banner.className = 'bg-red-600 text-white text-center py-3 font-bold text-xs sm:text-sm sticky top-0 z-50 px-4 flex justify-center items-center gap-2';
+                    banner.innerHTML = `<i class="fas fa-exclamation-triangle animate-pulse"></i> <span>Η συνδρομή σας έχει λήξει! Το CRM λειτουργεί σε κατάσταση <b>Read-Only</b>. Απομένουν ${graceDaysLeft} ημέρες για την οριστική διαγραφή των αρχείων σας.</span>`;
+                    document.body.insertBefore(banner, document.body.firstChild);
+                } else {
+                    document.body.innerHTML = `
+                        <div class="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center text-white p-6 text-center">
+                            <i class="fas fa-lock text-6xl text-red-500 mb-6"></i>
+                            <h1 class="text-2xl sm:text-3xl font-black mb-2">Η πρόσβαση τερματίστηκε οριστικά</h1>
+                            <p class="text-gray-400 max-w-md mb-6 text-xs sm:text-sm">Έχουν περάσει περισσότερες από 30 ημέρες από τη λήξη της συνδρομής σας. Τα αρχεία σας διεγράφησαν.</p>
+                            <button onclick="window.location.reload()" class="bg-indigo-600 hover:bg-indigo-700 px-6 py-2.5 rounded-lg font-bold text-sm transition-colors">Επιστροφή</button>
+                        </div>
+                    `;
+                    return;
+                }
+            } else {
+                window.isAppReadOnly = false;
+            }
 
             if(window.currentSubStatus === 'canceled') {
                 const badge = document.getElementById('clientSubStatusBadge'); if(badge) { badge.textContent = 'ΑΚΥΡΩΜΕΝΗ'; badge.classList.replace('bg-green-500', 'bg-red-500'); }
@@ -698,8 +737,14 @@
 
         window.loadLocalData = function() { const stored = localStorage.getItem('logepCrmDataV4'); window.appData = stored ? JSON.parse(stored) : { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [], teamMembers: [] }; window.sanitizeDataStructure(); };
         
-        // --- Core UI and Save ---
+        // --- ΔΙΟΡΘΩΣΗ: ΚΛΕΙΔΩΜΑ ΑΠΟΘΗΚΕΥΣΗΣ ΛΟΓΩ READ-ONLY ---
         window.saveData = function() { 
+            if (window.isAppReadOnly) {
+                window.showCustomDialog('Λειτουργία Μόνο Ανάγνωσης', 'Η συνδρομή σας έχει λήξει και δεν επιτρέπεται η αποθήκευση ή τροποποίηση δεδομένων. Μπορείτε μόνο να κάνετε λήψη του Backup σας.');
+                window.updateUI(); 
+                return;
+            }
+
             if (window.isCloudEnabled && window.currentUserDocRef) { 
                 import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").then(({setDoc}) => {
                     setDoc(window.currentUserDocRef, window.appData).then(() => { window.updateUI(); }).catch(e => { console.error(e); window.updateUI(); });
@@ -777,11 +822,17 @@
             if(window.loggedInEmail === SUPER_ADMIN_EMAIL) window.renderSuperAdminPanel(); 
         };
 
-        // --- TEAM MEMBERS ---
+        // --- ΔΙΟΡΘΩΣΗ: ΟΡΙΟ ΟΜΑΔΑΣ (1 ΜΕΛΟΣ) ---
         window.addTeamMember = function() {
             const email = document.getElementById('newTeamEmail').value.trim().toLowerCase();
             if(!email) return;
             if(window.appData.teamMembers.includes(email)) return;
+            
+            if(window.appData.teamMembers.length >= 1) {
+                window.showCustomDialog('Απαιτείται Αναβάθμιση', 'Έχετε εξαντλήσει το δωρεάν όριο μελών (1 συνεργάτης).\nΓια κάθε επιπλέον μέλος η χρέωση είναι 20€/μήνα. Επικοινωνήστε με τον διαχειριστή για αναβάθμιση.');
+                return;
+            }
+            
             window.appData.teamMembers.push(email);
             document.getElementById('newTeamEmail').value = '';
             window.saveData();
@@ -805,6 +856,7 @@
             window.saveData(); window.closeAddTenantModal(); window.showCustomDialog('Επιτυχία!', `Το γραφείο ${name} προστέθηκε!`); window.renderSuperAdminPanel();
         };
         window.deleteTenant = function(idx) { window.showCustomDialog('Διαγραφή', 'Σίγουρα θέλετε να διαγράψετε αυτόν τον συνδρομητή;', 'confirm', () => { window.appData.saasTenants.splice(idx, 1); window.saveData(); window.renderSuperAdminPanel(); }); };
+        
         window.renderSuperAdminPanel = function() {
             const tbody = document.getElementById('saasTenantsTable'); if(!tbody) return; tbody.innerHTML = '';
             const searchTerm = (document.getElementById('tenantSearch') ? document.getElementById('tenantSearch').value.toLowerCase() : '');
@@ -820,7 +872,7 @@
             document.getElementById('superAdminActiveSubs').textContent = `${activeCount} Ενεργές Συνδρομές`;
         };
 
-        // --- DASHBOARD ---
+        // --- DASHBOARD (ME STOXOUS) ---
         window.renderDashboardModule = function() {
             const yearReceipts = window.appData.receipts.filter(r => new Date(r.date).getFullYear() === window.currentAppYear);
             let totalTarget = 0; window.appData.clients.forEach(c => { if(c.isActive !== false) totalTarget += window.calculateClientTarget(c, window.currentAppYear); });
