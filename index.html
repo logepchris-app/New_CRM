@@ -29,7 +29,6 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
 
-    <!-- Login Screen -->
     <div id="login-screen" class="fixed inset-0 bg-indigo-900 z-50 flex flex-col items-center justify-center text-white transition-opacity duration-500">
         <div class="bg-white/10 p-8 sm:p-10 rounded-2xl backdrop-blur-md text-center shadow-2xl border border-white/20 max-w-md w-full mx-4">
             <i class="fas fa-layer-group text-5xl sm:text-6xl mb-6 text-indigo-300"></i>
@@ -48,7 +47,6 @@
         </div>
     </div>
 
-    <!-- Top Navigation Bar -->
     <nav class="text-white shadow-lg z-20 relative bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2529&auto=format&fit=crop');">
         <div class="absolute inset-0 bg-indigo-900/80 backdrop-blur-md z-0 pointer-events-none"></div>
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
@@ -86,7 +84,6 @@
         </div>
     </nav>
 
-    <!-- Sub Navigation Bar -->
     <nav class="bg-white shadow-sm border-b border-gray-200 z-10 relative">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div id="subnav-superadmin" class="subnav-container hidden flex overflow-x-auto py-2 space-x-6 text-sm scrollbar-hide">
@@ -113,10 +110,8 @@
         </div>
     </nav>
 
-    <!-- Main Content Area -->
     <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 relative">
         
-        <!-- MODULE: SUPER ADMIN (SaaS Management) -->
         <div id="module-superadmin" class="crm-module hidden max-w-7xl mx-auto">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                 <div class="bg-gradient-to-r from-gray-900 to-indigo-900 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-white">
@@ -154,7 +149,6 @@
             </div>
         </div>
 
-        <!-- MODULE: DASHBOARD -->
         <div id="module-dashboard" class="crm-module block max-w-7xl mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 shadow-sm flex flex-col justify-center">
@@ -195,7 +189,6 @@
             <div id="dashboardClientsGrid" class="flex flex-col gap-3"></div>
         </div>
 
-        <!-- MODULE: CLIENTS & RECEIPTS -->
         <div id="module-clients" class="crm-module hidden max-w-4xl mx-auto">
             <div id="clientsMain" class="module-tab-content block">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
@@ -256,7 +249,6 @@
             </div>
         </div>
 
-        <!-- MODULE: LIABILITIES & TASKS -->
         <div id="module-liabilities" class="crm-module hidden max-w-[100%] mx-auto">
             <div id="liabilitiesGrid" class="module-tab-content block">
                 <div class="flex overflow-x-auto space-x-2 border-b border-gray-200 mb-4 scrollbar-hide" id="liabilitiesTabs"></div>
@@ -286,21 +278,21 @@
                         <form onsubmit="window.saveTask(event)" class="flex flex-col gap-3 sm:gap-4 text-sm">
                             <input type="hidden" id="editingTaskId">
                             <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                                <input type="text" id="taskTitle" required placeholder="Τίτλος..." class="sm:col-span-2 border rounded-lg p-2.5 shadow-sm">
-                                <select id="taskClient" required class="border rounded-lg p-2.5 shadow-sm bg-white"></select>
-                                <input type="date" id="taskDate" required class="border rounded-lg p-2.5 shadow-sm">
+                                <input type="text" id="taskTitle" required placeholder="Τίτλος..." class="sm:col-span-2 border border-gray-300 rounded-lg p-2.5 shadow-sm">
+                                <select id="taskClient" required class="border border-gray-300 rounded-lg p-2.5 shadow-sm bg-white"></select>
+                                <input type="date" id="taskDate" required class="border border-gray-300 rounded-lg p-2.5 shadow-sm">
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                                <select id="taskCategory" class="border rounded-lg p-2.5 shadow-sm bg-white"></select>
-                                <select id="taskRecurring" class="border rounded-lg p-2.5 shadow-sm bg-white text-indigo-700 font-bold">
+                                <select id="taskCategory" class="border border-gray-300 rounded-lg p-2.5 shadow-sm bg-white"></select>
+                                <select id="taskRecurring" class="border border-gray-300 rounded-lg p-2.5 shadow-sm bg-white text-indigo-700 font-bold">
                                     <option value="">Άπαξ</option><option value="monthly">🔄 Μήνα</option><option value="quarterly">🔄 3 Μήνες</option><option value="yearly">🔄 Χρόνο</option>
                                 </select>
-                                <div class="flex items-center justify-center bg-white border rounded-lg p-2.5 shadow-sm">
+                                <div class="flex items-center justify-center bg-white border border-gray-300 rounded-lg p-2.5 shadow-sm">
                                     <label class="flex items-center gap-2 cursor-pointer font-bold text-xs text-indigo-700"><input type="checkbox" id="taskEmailNotify" class="w-4 h-4 rounded"> <i class="fas fa-envelope"></i> Email</label>
                                 </div>
                                 <div class="flex gap-2">
                                     <button type="button" id="btnCancelEditTask" onclick="window.cancelEditTask()" class="hidden w-1/3 bg-gray-200 text-gray-700 rounded-lg font-bold transition-colors">Άκυρο</button>
-                                    <button type="submit" id="btnSaveTask" class="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg font-bold shadow-sm transition-colors">Προσθήκη</button>
+                                    <button type="submit" id="btnSaveTask" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg font-bold shadow-sm transition-colors">Προσθήκη</button>
                                 </div>
                             </div>
                             <textarea id="taskNotes" rows="2" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm shadow-sm" placeholder="Σημειώσεις..."></textarea>
@@ -310,9 +302,9 @@
                     <div class="p-4 bg-white border-b border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between text-sm">
                         <div class="flex items-center gap-2 font-bold text-gray-500 uppercase"><i class="fas fa-filter"></i> Φίλτρα</div>
                         <div class="flex flex-wrap gap-2 w-full md:w-auto">
-                            <select id="taskFilterStatus" onchange="window.renderTasksModule()" class="border rounded-lg p-2"><option value="all">Όλα</option><option value="pending" selected>Εκκρεμή</option><option value="completed">Ολοκληρωμένα</option></select>
-                            <select id="taskFilterClient" onchange="window.renderTasksModule()" class="border rounded-lg p-2"><option value="">Όλοι οι Πελάτες</option></select>
-                            <select id="taskFilterCategory" onchange="window.renderTasksModule()" class="border rounded-lg p-2"><option value="all">Όλες οι Κατηγορίες</option></select>
+                            <select id="taskFilterStatus" onchange="window.renderTasksModule()" class="border border-gray-300 rounded-lg p-2"><option value="all">Όλα</option><option value="pending" selected>Εκκρεμή</option><option value="completed">Ολοκληρωμένα</option></select>
+                            <select id="taskFilterClient" onchange="window.renderTasksModule()" class="border border-gray-300 rounded-lg p-2"><option value="">Όλοι οι Πελάτες</option></select>
+                            <select id="taskFilterCategory" onchange="window.renderTasksModule()" class="border border-gray-300 rounded-lg p-2"><option value="all">Όλες οι Κατηγορίες</option></select>
                         </div>
                     </div>
                     
@@ -321,7 +313,6 @@
             </div>
         </div>
 
-        <!-- MODULE 4: ΡΥΘΜΙΣΕΙΣ -->
         <div id="module-config" class="crm-module hidden max-w-5xl mx-auto">
             <div id="config-panel-general" class="config-panel block bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fas fa-shield-alt text-indigo-500 mr-2"></i>Backup</h3>
@@ -331,7 +322,6 @@
                 </div>
             </div>
 
-            <!-- Καρτέλα Λίστες & Tasks -->
             <div id="config-panel-liabilities" class="config-panel hidden grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h2 class="text-md font-bold text-gray-800 mb-4 border-b pb-2"><i class="fas fa-list text-indigo-500 mr-2"></i>Λίστες Υποχρεώσεων</h2>
@@ -351,7 +341,6 @@
                 </div>
             </div>
 
-            <!-- Καρτέλα Εισαγωγής CSV -->
             <div id="config-panel-biz" class="config-panel hidden bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-8">
                 <div>
                     <h3 class="text-md font-bold text-gray-800 mb-3 border-b pb-2"><i class="fas fa-users text-blue-600 mr-2"></i>Μαζική Εισαγωγή Πελατών (CSV)</h3>
@@ -373,7 +362,6 @@
                 </div>
             </div>
 
-            <!-- Καρτέλα Συνδρομής & Ομάδας -->
             <div id="config-panel-sub" class="config-panel hidden">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
@@ -407,15 +395,13 @@
                             <button onclick="window.addTeamMember()" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-colors">Προσθήκη</button>
                         </div>
                         <ul id="teamList" class="space-y-2">
-                            <!-- Populated via JS -->
-                        </ul>
+                            </ul>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Client Profile Modal -->
     <div id="clientProfileModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center sm:py-4">
         <div class="bg-white sm:rounded-xl shadow-2xl w-full h-full sm:h-auto max-w-3xl sm:mx-4 max-h-full sm:max-h-[95vh] flex flex-col overflow-hidden">
             <div class="px-4 sm:px-6 pt-4 bg-gray-50 border-b border-gray-200 flex flex-col flex-shrink-0">
@@ -462,7 +448,7 @@
                     <div class="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm">
                         <h5 class="font-black text-gray-800 mb-3 text-xs sm:text-sm uppercase"><i class="fas fa-sync text-indigo-600 mr-2"></i>Σταθερές Χρεώσεις</h5>
                         <div class="flex flex-wrap gap-2 mb-4 bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-                            <input type="hidden" id="editFcId"><input type="text" id="fcTitle" placeholder="Περιγραφή..." class="flex-1 min-w-[120px] border rounded-lg p-2 text-xs sm:text-sm outline-none"><input type="number" id="fcAmount" placeholder="€" step="0.01" class="w-20 sm:w-24 border rounded-lg p-2 text-xs sm:text-sm outline-none"><select id="fcPeriod" class="border rounded-lg p-2 text-xs sm:text-sm bg-white outline-none"><option value="monthly">Μήνα</option><option value="quarterly">Τρίμηνο</option><option value="yearly">Έτος</option></select>
+                            <input type="hidden" id="editFcId"><input type="text" id="fcTitle" placeholder="Περιγραφή..." class="flex-1 min-w-[120px] border border-gray-300 rounded-lg p-2 text-xs sm:text-sm outline-none"><input type="number" id="fcAmount" placeholder="€" step="0.01" class="w-20 sm:w-24 border border-gray-300 rounded-lg p-2 text-xs sm:text-sm outline-none"><select id="fcPeriod" class="border border-gray-300 rounded-lg p-2 text-xs sm:text-sm bg-white outline-none"><option value="monthly">Μήνα</option><option value="quarterly">Τρίμηνο</option><option value="yearly">Έτος</option></select>
                             <select id="fcYear" class="border border-indigo-200 rounded-lg p-2 text-xs sm:text-sm bg-indigo-50 font-bold text-indigo-700 outline-none"><option value="all">Όλα τα Έτη</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option></select>
                             <button type="button" id="btnSaveFc" onclick="window.saveTempFc()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-4 py-2 rounded-lg font-bold transition-colors"><i class="fas fa-plus"></i></button>
                         </div>
@@ -471,7 +457,7 @@
                     <div class="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm">
                         <h5 class="font-black text-gray-800 mb-3 text-xs sm:text-sm uppercase"><i class="fas fa-bolt text-emerald-600 mr-2"></i>One-Off Έργα</h5>
                         <div class="flex flex-wrap gap-2 mb-4 bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-                            <input type="hidden" id="editOoId"><input type="text" id="ooTitle" placeholder="Περιγραφή..." class="flex-1 min-w-[120px] border rounded-lg p-2 text-xs sm:text-sm outline-none"><input type="number" id="ooAmount" placeholder="€" step="0.01" class="w-20 sm:w-24 border rounded-lg p-2 text-xs sm:text-sm outline-none"><input type="date" id="ooDate" class="w-32 border rounded-lg p-2 text-xs sm:text-sm outline-none"><button type="button" id="btnSaveOo" onclick="window.saveTempOo()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-4 py-2 rounded-lg font-bold transition-colors"><i class="fas fa-plus"></i></button>
+                            <input type="hidden" id="editOoId"><input type="text" id="ooTitle" placeholder="Περιγραφή..." class="flex-1 min-w-[120px] border border-gray-300 rounded-lg p-2 text-xs sm:text-sm outline-none"><input type="number" id="ooAmount" placeholder="€" step="0.01" class="w-20 sm:w-24 border border-gray-300 rounded-lg p-2 text-xs sm:text-sm outline-none"><input type="date" id="ooDate" class="w-32 border border-gray-300 rounded-lg p-2 text-xs sm:text-sm outline-none"><button type="button" id="btnSaveOo" onclick="window.saveTempOo()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-4 py-2 rounded-lg font-bold transition-colors"><i class="fas fa-plus"></i></button>
                         </div>
                         <ul id="ooList" class="space-y-2"></ul>
                     </div>
@@ -490,7 +476,6 @@
         </div>
     </div>
 
-    <!-- Add Tenant Modal (SaaS) -->
     <div id="addTenantModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
         <div class="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4">
             <h3 class="text-lg font-bold text-gray-900 mb-4"><i class="fas fa-user-plus text-indigo-600 mr-2"></i>Νέος Συνδρομητής SaaS</h3>
@@ -506,7 +491,6 @@
         </div>
     </div>
 
-    <!-- Γενικό Dialog -->
     <div id="customDialog" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
         <div class="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full mx-4">
             <h3 id="dialogTitle" class="text-lg font-bold text-gray-900 mb-2"></h3>
@@ -528,7 +512,7 @@
         window.currentLiabilityTypeId = null;
         window.tempFixedCharges = [];
         window.tempOneOffJobs = [];
-        window.isAppReadOnly = false; // ΝΕΟ: Έλεγχος Λειτουργίας Read-Only
+        window.isAppReadOnly = false; 
 
         const demoData = {
           "liabilityTypes": [ { "id": "LT1", "title": "ΦΠΑ" }, { "id": "LT2", "title": "ΕΦΚΑ" } ], 
@@ -611,7 +595,6 @@
             }
         };
 
-        // --- ΔΙΟΡΘΩΣΗ LOGOUT ---
         window.logout = function() {
             if (window.firebaseAuth) {
                 import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js").then(({signOut}) => {
@@ -650,24 +633,18 @@
             }
         };
 
-        // --- ΔΙΟΡΘΩΣΗ: ΠΕΡΙΟΔΟΣ ΧΑΡΙΤΟΣ 30 ΗΜΕΡΩΝ ---
         window.simulateTenantSubscription = function() {
-            let currentSubEndDate = new Date(); 
-            currentSubEndDate.setFullYear(currentSubEndDate.getFullYear() + 1); // Mock end date
-            
-            let today = new Date(); 
-            let timeDiff = currentSubEndDate.getTime() - today.getTime();
+            let currentSubEndDate = new Date(); currentSubEndDate.setFullYear(currentSubEndDate.getFullYear() + 1);
+            let today = new Date(); let timeDiff = currentSubEndDate.getTime() - today.getTime();
             let daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
             
             const daysEl = document.getElementById('clientSubDaysLeft'); if(daysEl) daysEl.textContent = daysDiff;
             const endEl = document.getElementById('clientSubEndDate'); if(endEl) endEl.textContent = currentSubEndDate.toLocaleDateString('el-GR');
             const progEl = document.getElementById('clientSubProgress'); if(progEl) progEl.style.width = Math.max(0, Math.min(100, (daysDiff / 365) * 100)) + '%';
 
-            // Καθαρισμός τυχόν προηγούμενου banner
             const oldBanner = document.getElementById('grace-period-banner');
             if(oldBanner) oldBanner.remove();
 
-            // ΕΛΕΓΧΟΣ ΛΗΞΗΣ (Read-Only ή Οριστικό Κλείδωμα)
             if (daysDiff <= 0) {
                 let graceDaysLeft = 30 + daysDiff; 
                 
@@ -737,7 +714,6 @@
 
         window.loadLocalData = function() { const stored = localStorage.getItem('logepCrmDataV4'); window.appData = stored ? JSON.parse(stored) : { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [], teamMembers: [] }; window.sanitizeDataStructure(); };
         
-        // --- ΔΙΟΡΘΩΣΗ: ΚΛΕΙΔΩΜΑ ΑΠΟΘΗΚΕΥΣΗΣ ΛΟΓΩ READ-ONLY ---
         window.saveData = function() { 
             if (window.isAppReadOnly) {
                 window.showCustomDialog('Λειτουργία Μόνο Ανάγνωσης', 'Η συνδρομή σας έχει λήξει και δεν επιτρέπεται η αποθήκευση ή τροποποίηση δεδομένων. Μπορείτε μόνο να κάνετε λήψη του Backup σας.');
@@ -822,7 +798,6 @@
             if(window.loggedInEmail === SUPER_ADMIN_EMAIL) window.renderSuperAdminPanel(); 
         };
 
-        // --- ΔΙΟΡΘΩΣΗ: ΟΡΙΟ ΟΜΑΔΑΣ (1 ΜΕΛΟΣ) ---
         window.addTeamMember = function() {
             const email = document.getElementById('newTeamEmail').value.trim().toLowerCase();
             if(!email) return;
@@ -855,24 +830,53 @@
             window.appData.saasTenants.push({ id: 'tenant_' + Date.now(), name: name, adminEmail: email, start: start.toISOString().split('T')[0], end: end.toISOString().split('T')[0], status: 'active' });
             window.saveData(); window.closeAddTenantModal(); window.showCustomDialog('Επιτυχία!', `Το γραφείο ${name} προστέθηκε!`); window.renderSuperAdminPanel();
         };
-        window.deleteTenant = function(idx) { window.showCustomDialog('Διαγραφή', 'Σίγουρα θέλετε να διαγράψετε αυτόν τον συνδρομητή;', 'confirm', () => { window.appData.saasTenants.splice(idx, 1); window.saveData(); window.renderSuperAdminPanel(); }); };
+
+        window.toggleTenantStatus = function(idx) { 
+            const t = window.appData.saasTenants[idx];
+            const newStatus = t.status === 'active' ? 'suspended' : 'active';
+            const actionText = newStatus === 'suspended' ? 'Αναστολή' : 'Ενεργοποίηση';
+            
+            window.showCustomDialog(actionText, `Σίγουρα θέλετε να αλλάξετε την κατάσταση του συνδρομητή σε ${actionText};`, 'confirm', () => { 
+                window.appData.saasTenants[idx].status = newStatus; 
+                window.saveData(); 
+                window.renderSuperAdminPanel(); 
+            }); 
+        };
         
         window.renderSuperAdminPanel = function() {
             const tbody = document.getElementById('saasTenantsTable'); if(!tbody) return; tbody.innerHTML = '';
             const searchTerm = (document.getElementById('tenantSearch') ? document.getElementById('tenantSearch').value.toLowerCase() : '');
             let activeCount = 0; const tenants = window.appData.saasTenants || [];
             if (tenants.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500 italic">Δεν υπάρχουν συνδρομητές.</td></tr>`; document.getElementById('superAdminActiveSubs').textContent = `0 Ενεργές Συνδρομές`; return; }
+            
             tenants.forEach((t, idx) => {
                 if (searchTerm && !t.name.toLowerCase().includes(searchTerm) && !t.adminEmail.toLowerCase().includes(searchTerm)) return;
                 if(t.status === 'active') activeCount++;
-                let eDate = new Date(t.end); let today = new Date(); let daysLeft = Math.ceil((eDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
-                let statusHtml = t.status === 'active' ? `<span class="bg-green-100 text-green-700 px-2 py-1 rounded font-bold text-[10px]">ΕΝΕΡΓΗ</span>` : `<span class="bg-red-100 text-red-700 px-2 py-1 rounded font-bold text-[10px]">ΑΚΥΡΩΜΕΝΗ</span>`;
-                tbody.innerHTML += `<tr class="bg-white hover:bg-gray-50 border-b border-gray-100"><td class="px-4 py-3 font-bold text-gray-900">${t.name}</td><td class="px-4 py-3 font-medium text-gray-500">${t.adminEmail}</td><td class="px-4 py-3 text-gray-500">${eDate.toLocaleDateString('el-GR')}</td><td class="px-4 py-3 font-mono font-bold ${daysLeft < 30 ? 'text-orange-500' : 'text-indigo-600'}">${daysLeft} μέρες</td><td class="px-4 py-3">${statusHtml}</td><td class="px-4 py-3 text-center"><button onclick="window.deleteTenant(${idx})" class="text-gray-400 hover:text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm transition-colors"><i class="fas fa-trash"></i></button></td></tr>`;
+                
+                let eDate = new Date(t.end); let today = new Date(); 
+                let daysLeft = Math.ceil((eDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+                
+                let statusHtml = t.status === 'active' 
+                    ? `<span class="bg-green-100 text-green-700 px-2 py-1 rounded font-bold text-[10px]">ΕΝΕΡΓΗ</span>` 
+                    : `<span class="bg-red-100 text-red-700 px-2 py-1 rounded font-bold text-[10px]">ΑΝΕΣΤΑΛΜΕΝΗ</span>`;
+                
+                let actionBtn = t.status === 'active' 
+                    ? `<button onclick="window.toggleTenantStatus(${idx})" class="text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors w-full border border-red-200">Αναστολή</button>`
+                    : `<button onclick="window.toggleTenantStatus(${idx})" class="text-green-600 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors w-full border border-green-200">Ενεργοποίηση</button>`;
+
+                tbody.innerHTML += `<tr class="bg-white hover:bg-gray-50 border-b border-gray-100">
+                    <td class="px-4 py-3 font-bold text-gray-900">${t.name}</td>
+                    <td class="px-4 py-3 font-medium text-gray-500">${t.adminEmail}</td>
+                    <td class="px-4 py-3 text-gray-500">${eDate.toLocaleDateString('el-GR')}</td>
+                    <td class="px-4 py-3 font-mono font-bold ${daysLeft < 30 ? 'text-orange-500' : 'text-indigo-600'}">${daysLeft} μέρες</td>
+                    <td class="px-4 py-3">${statusHtml}</td>
+                    <td class="px-4 py-3 text-center">${actionBtn}</td>
+                </tr>`;
             });
             document.getElementById('superAdminActiveSubs').textContent = `${activeCount} Ενεργές Συνδρομές`;
         };
 
-        // --- DASHBOARD (ME STOXOUS) ---
+        // --- DASHBOARD ---
         window.renderDashboardModule = function() {
             const yearReceipts = window.appData.receipts.filter(r => new Date(r.date).getFullYear() === window.currentAppYear);
             let totalTarget = 0; window.appData.clients.forEach(c => { if(c.isActive !== false) totalTarget += window.calculateClientTarget(c, window.currentAppYear); });
@@ -908,7 +912,7 @@
                     let r = Math.max(0, t - c); 
                     let p = t > 0 ? (c / t) * 100 : 0; 
                     gridContainer.innerHTML += `
-                    <div class="bg-white border p-4 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center gap-4 text-sm">
+                    <div class="bg-white border border-gray-100 p-4 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center gap-4 text-sm">
                         <div class="md:w-1/4 font-black truncate">${client.name}</div>
                         <div class="md:w-1/3 w-full bg-gray-100 rounded-full h-2.5">
                             <div class="bg-indigo-500 h-2.5 rounded-full" style="width: ${p}%"></div>
@@ -1124,13 +1128,13 @@
             if(lList) {
                 lList.innerHTML = window.appData.liabilityTypes.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία λίστα.</li>' : window.appData.liabilityTypes.map(t => `
                     <li class="px-4 py-3 flex justify-between items-center bg-white border-b border-gray-100"><span class="font-bold text-gray-800">${t.title}</span>
-                    <div><button onclick="window.renameLiabilityType('${t.id}')" class="text-gray-400 hover:text-blue-500 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteLiabilityType('${t.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); 
+                    <div><button onclick="window.renameLiabilityType('${t.id}')" class="text-blue-500 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteLiabilityType('${t.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); 
             }
             const cList = document.getElementById('taskCategoriesList'); 
             if(cList) {
                 cList.innerHTML = window.appData.taskCategories.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία κατηγορία.</li>' : window.appData.taskCategories.map(c => `
                     <li class="px-4 py-3 flex justify-between items-center bg-white border-b border-gray-100"><span class="font-bold text-gray-800">${c.title}</span>
-                    <div><button onclick="window.renameTaskCategory('${c.id}')" class="text-gray-400 hover:text-blue-500 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteTaskCategory('${c.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); 
+                    <div><button onclick="window.renameTaskCategory('${c.id}')" class="text-blue-500 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteTaskCategory('${c.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); 
             }
 
             const teamList = document.getElementById('teamList');
