@@ -359,15 +359,54 @@
             </div>
 
             <div id="config-panel-sub" class="config-panel hidden">
-                <div class="grid grid-cols-1 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Στοιχεία Συνδρομής -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
                         <div class="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-4 py-1 rounded-bl-lg" id="clientSubStatusBadge">ΕΝΕΡΓΗ</div>
-                        <h3 class="text-lg font-black text-gray-900 mb-4"><i class="fas fa-star text-amber-400 mr-2"></i>Η Ομάδα & Συνδρομή</h3>
+                        <h3 class="text-lg font-black text-gray-900 mb-1"><i class="fas fa-star text-amber-400 mr-2"></i>Η Συνδρομή σας</h3>
+                        <p class="text-sm text-gray-500 mb-6">Σχέδιο: <span class="font-bold text-gray-800">New CRM Pro (Ετήσιο)</span></p>
+                        
                         <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
                             <div class="flex justify-between items-center mb-2">
-                                <span class="text-sm font-bold text-gray-700">Cloud Sync: Ενεργό</span>
+                                <span class="text-sm font-bold text-gray-700">Ημέρες που απομένουν:</span>
+                                <span class="text-xl font-black text-indigo-600" id="clientSubDaysLeft">345</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-indigo-600 h-2 rounded-full" style="width: 90%" id="clientSubProgress"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-3 text-right">Λήγει: <span class="font-bold" id="clientSubEndDate">15/05/2027</span></p>
+                        </div>
+                        
+                        <div class="border-t border-gray-100 pt-5 text-center" id="cancelSubArea">
+                            <p class="text-xs text-gray-500 mb-3 italic">Αν ακυρώσετε, θα διατηρήσετε την πρόσβαση στα δεδομένα σας μέχρι το τέλος της τρέχουσας περιόδου.</p>
+                            <button onclick="if(window.cancelMySubscription) window.cancelMySubscription()" class="text-red-500 hover:text-red-700 hover:bg-red-50 font-bold px-4 py-2 rounded-lg text-sm transition-colors w-full border border-red-100">
+                                Ακύρωση Συνδρομής
+                            </button>
+                        </div>
+                        <div id="canceledSubArea" class="hidden border-t border-gray-100 pt-5 text-center">
+                            <div class="bg-amber-50 text-amber-800 p-3 rounded-lg border border-amber-200 text-sm font-bold">
+                                <i class="fas fa-exclamation-triangle mr-1"></i> Η συνδρομή σας έχει ακυρωθεί και δεν θα ανανεωθεί.
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Διαχείριση Ομάδας -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="text-lg font-black text-gray-900 mb-1"><i class="fas fa-users text-blue-500 mr-2"></i>Η Ομάδα του Γραφείου</h3>
+                        <p class="text-sm text-gray-500 mb-6">Διαχειριστείτε ποια emails έχουν πρόσβαση στη βάση σας.</p>
+                        
+                        <div class="flex gap-2 mb-6">
+                            <input type="email" placeholder="Email νέου συνεργάτη..." class="flex-1 border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-indigo-500">
+                            <button onclick="alert('Demo: Η προσθήκη συνεργατών θα συνδεθεί με τη βάση σε κανονικό περιβάλλον.')" class="bg-gray-800 hover:bg-gray-900 text-white font-bold px-4 py-2.5 rounded-lg text-sm transition-colors">Προσθήκη</button>
+                        </div>
+                        
+                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Ενεργα Μελη</h4>
+                        <ul class="space-y-2">
+                            <li class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                <span class="text-sm font-bold text-gray-800" id="teamAdminEmail">admin@office.gr</span>
+                                <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold">Ιδιοκτήτης</span>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -498,7 +537,8 @@
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Whitelist Configuration
-        const ALLOWED_EMAILS = [ 'logepchris@gmail.com', 'demo.newcrm@gmail.com' ];
+        const SUPER_ADMIN_EMAIL = 'logepchris@gmail.com';
+        const ALLOWED_EMAILS = [ SUPER_ADMIN_EMAIL, 'demo.newcrm@gmail.com' ];
 
         let appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [] };
         let currentAppYear = new Date().getFullYear();
@@ -507,6 +547,13 @@
         let db, auth, userDocRef;
         window.currentLiabilityTypeId = null; 
         window.editingReceiptId = null;       
+
+        // Mock Tenants for Super Admin
+        let mockTenantsDB = [
+            { id: "tenant_1", name: "Λογιστική Σύμβουλοι Α.Ε.", adminEmail: "office1@gmail.com", start: "2025-05-15", end: "2027-05-15", status: "active" },
+            { id: "tenant_2", name: "Papadopoulos & Assoc", adminEmail: "papadopoulos@yahoo.gr", start: "2024-01-10", end: "2027-01-10", status: "active" },
+            { id: "tenant_3", name: "Tax Experts IKE", adminEmail: "tax@experts.gr", start: "2025-02-01", end: "2026-02-01", status: "canceled" }
+        ];
 
         const demoData = {
           "liabilityTypes": [ { "id": "LT1", "title": "ΦΠΑ" }, { "id": "LT2", "title": "ΕΦΚΑ" }, { "id": "LT3", "title": "myDATA" } ],
@@ -535,7 +582,66 @@
             document.getElementById('user-badge').classList.add('flex');
             document.getElementById('user-email-text').textContent = loggedInEmail;
             document.getElementById('cloud-status').innerHTML = `<i class="fas fa-vial text-yellow-400" title="Demo Sandbox"></i>`;
-            window.updateUI(); window.switchCrmModule('dashboard');
+            setupUIPermissions(); window.updateUI(); window.switchCrmModule('dashboard');
+        };
+
+        function setupUIPermissions() {
+            if (loggedInEmail === SUPER_ADMIN_EMAIL) {
+                document.getElementById('nav-superadmin').classList.remove('hidden');
+                document.getElementById('tab-config-sub').classList.add('hidden'); 
+                window.renderSuperAdminPanel();
+            } else {
+                document.getElementById('nav-superadmin').classList.add('hidden');
+                document.getElementById('tab-config-sub').classList.remove('hidden');
+                const tMail = document.getElementById('teamAdminEmail');
+                if(tMail) tMail.textContent = loggedInEmail;
+                simulateTenantSubscription();
+            }
+        }
+
+        let currentSubStatus = "active";
+        let currentSubEndDate = new Date();
+        currentSubEndDate.setFullYear(currentSubEndDate.getFullYear() + 1);
+        
+        function simulateTenantSubscription() {
+            let today = new Date();
+            let timeDiff = currentSubEndDate.getTime() - today.getTime();
+            let daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            
+            const dl = document.getElementById('clientSubDaysLeft'); if(dl) dl.textContent = daysDiff;
+            const ed = document.getElementById('clientSubEndDate'); if(ed) ed.textContent = currentSubEndDate.toLocaleDateString('el-GR');
+            const pb = document.getElementById('clientSubProgress'); if(pb) pb.style.width = Math.max(0, Math.min(100, (daysDiff / 365) * 100)) + '%';
+            
+            if(currentSubStatus === 'canceled') {
+                const badge = document.getElementById('clientSubStatusBadge');
+                if(badge) { badge.textContent = 'ΑΚΥΡΩΜΕΝΗ (ΛΗΓΕΙ)'; badge.classList.replace('bg-green-500', 'bg-red-500'); }
+                const ca = document.getElementById('cancelSubArea'); if(ca) ca.classList.add('hidden');
+                const cda = document.getElementById('canceledSubArea'); if(cda) cda.classList.remove('hidden');
+            }
+        }
+
+        window.cancelMySubscription = function() {
+            window.showCustomDialog('Ακύρωση Συνδρομής', 'Είστε σίγουροι ότι θέλετε να ακυρώσετε;\nΘα διατηρήσετε την πρόσβαση μέχρι την λήξη του έτους.', 'confirm', () => {
+                currentSubStatus = 'canceled';
+                simulateTenantSubscription();
+                window.showCustomDialog('Ενημέρωση', 'Η συνδρομή σας μαρκαρίστηκε προς ακύρωση.');
+            });
+        };
+
+        window.renderSuperAdminPanel = function() {
+            const tbody = document.getElementById('saasTenantsTable');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            let activeCount = 0;
+            mockTenantsDB.forEach(t => {
+                if(t.status === 'active') activeCount++;
+                let eDate = new Date(t.end); let today = new Date();
+                let daysLeft = Math.ceil((eDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+                let statusHtml = t.status === 'active' ? `<span class="bg-green-100 text-green-700 px-2 py-1 rounded font-bold text-[10px]">ΕΝΕΡΓΗ</span>` : `<span class="bg-red-100 text-red-700 px-2 py-1 rounded font-bold text-[10px]">ΑΚΥΡΩΜΕΝΗ</span>`;
+                tbody.innerHTML += `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="px-4 py-3 font-bold text-gray-900">${t.name}</td><td class="px-4 py-3 font-medium text-gray-500">${t.adminEmail}</td><td class="px-4 py-3 text-gray-500">${eDate.toLocaleDateString('el-GR')}</td><td class="px-4 py-3 font-mono font-bold ${daysLeft < 30 ? 'text-orange-500' : 'text-indigo-600'}">${daysLeft} μέρες</td><td class="px-4 py-3">${statusHtml}</td><td class="px-4 py-3 text-center"><button onclick="window.showCustomDialog('Διαχείριση', 'Εδώ θα ανοίγει η πλήρης καρτέλα πελάτη.')" class="bg-white border border-gray-200 text-gray-600 hover:text-indigo-600 hover:border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Διαχείριση</button></td></tr>`;
+            });
+            const subsEl = document.getElementById('superAdminActiveSubs');
+            if(subsEl) subsEl.textContent = `${activeCount} Ενεργές Συνδρομές`;
         };
 
         window.showCustomDialog = function(title, message, type = 'alert', onConfirm = null) {
@@ -600,22 +706,14 @@
                 };
                 
                 window.logout = function() { 
-                    if(isCloudEnabled) {
-                        signOut(auth).then(() => { 
-                            appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [] }; 
-                            localStorage.removeItem('logepCrmDataV4');
-                            document.getElementById('user-badge').classList.add('hidden');
-                            loggedInEmail = "";
-                            window.updateUI(); 
-                        }); 
-                    } else {
+                    signOut(auth).then(() => { 
                         appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [] }; 
                         localStorage.removeItem('logepCrmDataV4');
                         document.getElementById('user-badge').classList.add('hidden');
+                        document.getElementById('nav-superadmin').classList.add('hidden');
                         loggedInEmail = "";
                         window.updateUI(); 
-                        document.getElementById('login-screen').classList.remove('hidden');
-                    }
+                    }); 
                 };
                 
                 onAuthStateChanged(auth, (user) => {
@@ -634,6 +732,8 @@
                         document.getElementById('user-badge').classList.add('flex');
                         document.getElementById('user-email-text').textContent = user.email;
                         
+                        setupUIPermissions();
+
                         onSnapshot(userDocRef, (docSnap) => { 
                             if (docSnap.exists()) { 
                                 appData = docSnap.data(); 
@@ -795,7 +895,7 @@
         };
 
         window.renderLiabilitiesModule = function() {
-            const container = document.getElementById('liabilitiesTableBody'); const tabsContainer = document.getElementById('liabilitiesTabs'); if(!container || !tabsContainer) return; if (!appData.liabilityTypes || appData.liabilityTypes.length === 0) { tabsContainer.innerHTML = ''; container.innerHTML = `<tr><td colspan="13" class="p-8 text-center text-gray-500 text-sm">Καμία λίστα διαθέσιμη.</td></tr>`; return; } if (!window.currentLiabilityTypeId || !appData.liabilityTypes.find(t => t.id === window.currentLiabilityTypeId)) { window.currentLiabilityTypeId = appData.liabilityTypes[0].id; } tabsContainer.innerHTML = appData.liabilityTypes.map(type => `<button onclick="window.switchLiabilityType('${type.id}')" class="px-5 py-2.5 font-bold text-sm whitespace-nowrap border-b-[3px] outline-none ${type.id === window.currentLiabilityTypeId ? 'border-indigo-600 text-indigo-900 bg-white rounded-t-xl shadow-sm' : 'border-transparent text-gray-500 hover:text-gray-900'}" >${type.title}</button>`).join(''); const activeClients = appData.clients.map((c, idx) => ({...c, originalIndex: idx})).filter(c => c.isActive !== false).filter(c => !c.assignedLiabilities || c.assignedLiabilities.includes(window.currentLiabilityTypeId)).sort((a,b) => a.name.localeCompare(b.name)); container.innerHTML = ''; if (activeClients.length === 0) { container.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-gray-400 text-sm italic">Κανένας πελάτης σε αυτή τη λίστα.</td></tr>`; return; } activeClients.forEach(c => { let rowHTML = `<tr class="hover:bg-indigo-50/20 border-b border-gray-100 bg-white group"><td class="px-3 py-2 border-r border-gray-100 font-bold text-gray-800 text-xs sticky left-0 bg-white group-hover:bg-indigo-50/40 z-10 max-w-[180px] truncate" title="${c.name}">${c.name}</td>`; for (let m = 1; m <= 12; m++) { const cellKey = `${currentAppYear}_${window.currentLiabilityTypeId}_${c.name}_${m}`; const cellValue = appData.liabilityCells && appData.liabilityCells[cellKey] ? appData.liabilityCells[cellKey] : ''; rowHTML += `<td class="border-r border-gray-100 p-0 relative focus-within:ring-2 focus-within:ring-indigo-500"><input type="text" value="${cellValue.replace(/"/g, '&quot;')}" onchange="window.saveLiabilityCell('${window.currentLiabilityTypeId}', ${c.originalIndex}, ${m}, this.value)" class="w-full h-full min-h-[40px] p-1.5 border-0 bg-transparent text-xs text-center outline-none"></td>`; } rowHTML += `</tr>`; container.innerHTML += rowHTML; }); 
+            const container = document.getElementById('liabilitiesTableBody'); const tabsContainer = document.getElementById('liabilitiesTabs'); if(!container || !tabsContainer) return; if (!appData.liabilityTypes || appData.liabilityTypes.length === 0) { tabsContainer.innerHTML = ''; container.innerHTML = `<tr><td colspan="13" class="p-8 text-center text-gray-500 text-sm">Καμία λίστα διαθέσιμη.</td></tr>`; return; } if (!window.currentLiabilityTypeId || !appData.liabilityTypes.find(t => t.id === window.currentLiabilityTypeId)) { window.currentLiabilityTypeId = appData.liabilityTypes[0].id; } tabsContainer.innerHTML = appData.liabilityTypes.map(type => `<button onclick="window.switchLiabilityType('${type.id}')" class="px-5 py-2.5 font-bold text-sm whitespace-nowrap border-b-[3px] outline-none ${type.id === window.currentLiabilityTypeId ? 'border-indigo-600 text-indigo-900 bg-white rounded-t-xl shadow-sm' : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'}" >${type.title}</button>`).join(''); const activeClients = appData.clients.map((c, idx) => ({...c, originalIndex: idx})).filter(c => c.isActive !== false).filter(c => !c.assignedLiabilities || c.assignedLiabilities.includes(window.currentLiabilityTypeId)).sort((a,b) => a.name.localeCompare(b.name)); container.innerHTML = ''; if (activeClients.length === 0) { container.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-gray-400 text-sm italic">Κανένας πελάτης σε αυτή τη λίστα.</td></tr>`; return; } activeClients.forEach(c => { let rowHTML = `<tr class="hover:bg-indigo-50/20 border-b border-gray-100 bg-white group"><td class="px-3 py-2 border-r border-gray-100 font-bold text-gray-800 text-xs sticky left-0 bg-white group-hover:bg-indigo-50/40 z-10 max-w-[180px] truncate" title="${c.name}">${c.name}</td>`; for (let m = 1; m <= 12; m++) { const cellKey = `${currentAppYear}_${window.currentLiabilityTypeId}_${c.name}_${m}`; const cellValue = appData.liabilityCells && appData.liabilityCells[cellKey] ? appData.liabilityCells[cellKey] : ''; rowHTML += `<td class="border-r border-gray-100 p-0 relative focus-within:ring-2 focus-within:ring-indigo-500"><input type="text" value="${cellValue.replace(/"/g, '&quot;')}" onchange="window.saveLiabilityCell('${window.currentLiabilityTypeId}', ${c.originalIndex}, ${m}, this.value)" class="w-full h-full min-h-[40px] p-1.5 border-0 bg-transparent text-xs text-center outline-none"></td>`; } rowHTML += `</tr>`; container.innerHTML += rowHTML; }); 
         };
 
         window.renderTasksModule = function() {
@@ -825,49 +925,82 @@
             window.renderTempFinancials(); window.switchProfileTab('general'); document.getElementById('clientProfileModal').classList.remove('hidden');
         };
         window.closeClientProfile = function() { document.getElementById('clientProfileModal').classList.add('hidden'); };
-        window.addCustomFieldRow = function(k='', v='') { const container = document.getElementById('profileCustomFields'); const r = document.createElement('div'); r.className = "flex gap-2 custom-field-row"; r.innerHTML = `<input type="text" class="custom-key w-1/3 border border-gray-300 rounded-lg p-2 text-xs" placeholder="Πεδίο..." value="${k}"><input type="text" class="custom-val flex-1 border border-gray-300 rounded-lg p-2 text-xs" placeholder="Τιμή..." value="${v}"><button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:bg-red-50 px-3 rounded-lg"><i class="fas fa-times"></i></button>`; container.appendChild(r); };
+        window.addCustomFieldRow = function(k='', v='') { const container = document.getElementById('profileCustomFields'); const r = document.createElement('div'); r.className = "flex gap-2 custom-field-row"; r.innerHTML = `<input type="text" class="custom-key w-1/3 border border-gray-300 rounded-lg p-2.5 text-xs" placeholder="Πεδίο..." value="${k}"><input type="text" class="custom-val flex-1 border border-gray-300 rounded-lg p-2.5 text-xs" placeholder="Τιμή..." value="${v}"><button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:bg-red-50 px-3 rounded-lg"><i class="fas fa-times"></i></button>`; container.appendChild(r); };
         window.saveClientProfile = function() {
             const idx = document.getElementById('profileClientIndex').value; const oldName = appData.clients[idx].name; const newName = document.getElementById('profileName').value.trim(); if (!newName) return;
             const assignedLiabilities = []; document.querySelectorAll('.profile-liability-cb:checked').forEach(cb => assignedLiabilities.push(cb.value));
             const customFields = []; document.querySelectorAll('.custom-field-row').forEach(row => { const k = row.querySelector('.custom-key').value.trim(); const v = row.querySelector('.custom-val').value.trim(); if (k || v) customFields.push({ key: k, value: v }); });
             const c = appData.clients[idx]; c.isActive = document.getElementById('profileIsActive').checked; c.name = newName; c.startDate = document.getElementById('profileStartDate').value; c.endDate = document.getElementById('profileEndDate').value; c.folderLink = document.getElementById('profileFolderLink').value.trim(); c.notes = document.getElementById('profileNotes').value.trim(); c.gsis = document.getElementById('profileGsis').value; c.efka = document.getElementById('profileEfka').value; c.gemi = document.getElementById('profileGemi').value; c.mydata = document.getElementById('profileMyData').value; c.assignedLiabilities = assignedLiabilities; c.customFields = customFields; c.fixedCharges = window.tempFixedCharges; c.oneOffJobs = window.tempOneOffJobs;
             if (oldName !== newName) { appData.receipts.forEach(r => { if(r.client === oldName) r.client = newName; }); appData.tasks.forEach(t => { if(t.client === oldName) t.client = newName; }); const nCells = {}; Object.keys(appData.liabilityCells).forEach(k => { nCells[k.includes(`_${oldName}_`) ? k.replace(`_${oldName}_`, `_${newName}_`) : k] = appData.liabilityCells[k]; }); appData.liabilityCells = nCells; }
-            saveData(); window.closeClientProfile(); window.showCustomDialog('Επιτυχία', 'Η καρτέλα ενημερώθηκε!');
+            saveData(); window.closeClientProfile();
         };
 
-        window.saveReceipt = function(e) { e.preventDefault(); const client = document.getElementById('clientSelect').value; const amount = parseFloat(document.getElementById('amount').value); const date = document.getElementById('date').value; if (!client || !amount || !date) return; if (window.editingReceiptId) { const idx = appData.receipts.findIndex(r => r.id === window.editingReceiptId); if (idx > -1) appData.receipts[idx] = { id: window.editingReceiptId, client, amount, date, period: document.getElementById('period').value, comments: document.getElementById('comments').value }; window.showCustomDialog('Επιτυχία', 'Η είσπραξη ενημερώθηκε!'); } else { appData.receipts.push({ id: 'R'+Date.now(), client, amount, date, period: document.getElementById('period').value, comments: document.getElementById('comments').value }); } window.cancelEditReceipt(); saveData(); };
-        window.editReceipt = function(id) { const r = appData.receipts.find(x => x.id === id); if (!r) return; window.editingReceiptId = id; window.switchModuleTab('clients', 'newReceipt'); document.getElementById('clientSelect').value = r.client; document.getElementById('amount').value = r.amount; document.getElementById('date').value = r.date; document.getElementById('period').value = r.period || ''; document.getElementById('comments').value = r.comments || ''; document.getElementById('formReceiptTitle').innerHTML = '<i class="fas fa-edit text-blue-500 mr-2"></i>Επεξεργασία Είσπραξης'; document.getElementById('btnSaveReceipt').innerHTML = '<i class="fas fa-save"></i> Ενημέρωση'; document.getElementById('btnCancelEdit').classList.remove('hidden'); };
-        window.cancelEditReceipt = function() { window.editingReceiptId = null; document.getElementById('receiptForm').reset(); document.getElementById('formReceiptTitle').textContent = 'Καταχώρηση Νέας Είσπραξης'; document.getElementById('btnSaveReceipt').innerHTML = '<i class="fas fa-save"></i> Αποθήκευση'; document.getElementById('btnCancelEdit').classList.add('hidden'); window.switchModuleTab('clients', 'history'); };
-        window.deleteReceipt = function(id) { window.showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', () => { appData.receipts = appData.receipts.filter(r => r.id !== id); saveData(); }); };
-        
-        window.saveLiabilityType = function(e) { e.preventDefault(); const t = document.getElementById('liabTypeTitle').value.trim(); if(!t) return; appData.liabilityTypes.push({ id: 'LT'+Date.now(), title: t }); document.getElementById('liabTypeTitle').value = ''; saveData(); window.showCustomDialog('Επιτυχία', `Η λίστα δημιουργήθηκε!`); };
-        window.deleteLiabilityType = function(id) { window.showCustomDialog('Προσοχή', 'Η διαγραφή θα σβήσει αυτόν τον πίνακα. Σίγουρα;', 'confirm', () => { appData.liabilityTypes = appData.liabilityTypes.filter(t => t.id !== id); if (window.currentLiabilityTypeId === id) window.currentLiabilityTypeId = null; saveData(); }); };
-        window.switchLiabilityType = function(id) { window.currentLiabilityTypeId = id; window.renderLiabilitiesModule(); };
-        window.saveLiabilityCell = function(typeId, clientIndex, month, value) { const clientName = appData.clients[clientIndex].name; const cellKey = `${currentAppYear}_${typeId}_${clientName}_${month}`; appData.liabilityCells[cellKey] = value; saveData(); };
-        window.renameLiabilityType = function(id) { const obj = appData.liabilityTypes.find(t => t.id === id); if(!obj) return; const n = prompt('Νέο όνομα:', obj.title); if(n && n.trim()) { obj.title = n.trim(); saveData(); } };
-        
-        window.saveTaskCategory = function(e) { e.preventDefault(); const t = document.getElementById('taskCatTitle').value.trim(); if(!t) return; appData.taskCategories.push({ id: 'TC'+Date.now(), title: t }); document.getElementById('taskCatTitle').value = ''; saveData(); };
-        window.deleteTaskCategory = function(id) { window.showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', () => { appData.taskCategories = appData.taskCategories.filter(t => t.id !== id); appData.tasks.forEach(task => { if(task.category === id) task.category = ""; }); saveData(); }); };
-        window.renameTaskCategory = function(id) { const obj = appData.taskCategories.find(t => t.id === id); if(!obj) return; const n = prompt('Νέο όνομα:', obj.title); if(n && n.trim()) { obj.title = n.trim(); saveData(); } };
+        window.saveReceipt = function(e) {
+            e.preventDefault(); const client = document.getElementById('clientSelect').value; const amount = parseFloat(document.getElementById('amount').value); const date = document.getElementById('date').value; if (!client || !amount || !date) return;
+            const receiptYear = new Date(date).getFullYear();
+            if (window.editingReceiptId) { const idx = appData.receipts.findIndex(r => r.id === window.editingReceiptId); if (idx > -1) appData.receipts[idx] = { id: window.editingReceiptId, client, amount, date, period: document.getElementById('period').value, comments: document.getElementById('comments').value }; } 
+            else { appData.receipts.push({ id: 'R'+Date.now(), client, amount, date, period: document.getElementById('period').value, comments: document.getElementById('comments').value }); }
+            window.cancelEditReceipt(); if (receiptYear !== currentAppYear) { currentAppYear = receiptYear; document.getElementById('globalYear').value = currentAppYear; } saveData();
+        };
+        window.editReceipt = function(id) {
+            const r = appData.receipts.find(x => x.id === id); if (!r) return; window.editingReceiptId = id; window.switchModuleTab('clients', 'newReceipt');
+            document.getElementById('clientSelect').value = r.client; document.getElementById('amount').value = r.amount; document.getElementById('date').value = r.date; document.getElementById('period').value = r.period || ''; document.getElementById('comments').value = r.comments || '';
+            document.getElementById('btnSaveReceipt').innerHTML = '<i class="fas fa-save"></i> Ενημέρωση'; document.getElementById('btnCancelEdit').classList.remove('hidden');
+        };
+        window.cancelEditReceipt = function() { window.editingReceiptId = null; document.getElementById('receiptForm').reset(); document.getElementById('date').valueAsDate = new Date(); document.getElementById('btnSaveReceipt').innerHTML = '<i class="fas fa-save"></i> Αποθήκευση'; document.getElementById('btnCancelEdit').classList.add('hidden'); window.switchModuleTab('clients', 'history'); };
+        window.deleteReceipt = function(id) { showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', () => { appData.receipts = appData.receipts.filter(r => r.id !== id); saveData(); }); };
 
-        window.saveTask = function(e) { e.preventDefault(); const id = document.getElementById('editingTaskId').value; const title = document.getElementById('taskTitle').value.trim(); const client = document.getElementById('taskClient').value; const date = document.getElementById('taskDate').value; const category = document.getElementById('taskCategory').value; const recurring = document.getElementById('taskRecurring').value; const notes = document.getElementById('taskNotes').value.trim(); const emailNotify = document.getElementById('taskEmailNotify').checked; if (!title || !client) return; if (id) { const idx = appData.tasks.findIndex(t => t.id === id); if (idx > -1) appData.tasks[idx] = { ...appData.tasks[idx], title, client, date, category, recurring, notes }; document.getElementById('btnSaveTask').innerHTML = 'Προσθήκη'; document.getElementById('btnCancelEditTask').classList.add('hidden'); document.getElementById('editingTaskId').value = ''; } else { appData.tasks.push({ id: 'T' + Date.now(), title, client, date, category, recurring, notes, isCompleted: false, createdAt: new Date().toISOString() }); } if (emailNotify) { window.location.href = `mailto:?subject=${encodeURIComponent('Task: '+title)}&body=${encodeURIComponent(notes)}`; } document.getElementById('taskTitle').value = ''; document.getElementById('taskDate').value = ''; document.getElementById('taskClient').value = ''; document.getElementById('taskCategory').value = ''; document.getElementById('taskRecurring').value = ''; document.getElementById('taskNotes').value = ''; document.getElementById('taskEmailNotify').checked = false; saveData(); };
-        window.editTask = function(id) { const t = appData.tasks.find(x => x.id === id); if(!t) return; document.getElementById('editingTaskId').value = t.id; document.getElementById('taskTitle').value = t.title; document.getElementById('taskClient').value = t.client; document.getElementById('taskDate').value = t.date; document.getElementById('taskCategory').value = t.category || ''; document.getElementById('taskRecurring').value = t.recurring || ''; document.getElementById('taskNotes').value = t.notes || ''; document.getElementById('taskEmailNotify').checked = false; document.getElementById('btnSaveTask').innerHTML = '<i class="fas fa-save mr-1"></i> Ενημέρωση'; document.getElementById('btnCancelEditTask').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+        window.saveLiabilityType = function(e) { e.preventDefault(); const t = document.getElementById('liabTypeTitle').value.trim(); if(!t) return; appData.liabilityTypes.push({ id: 'LT'+Date.now(), title: t }); document.getElementById('liabTypeTitle').value = ''; saveData(); };
+        window.deleteLiabilityType = function(id) { showCustomDialog('Προσοχή', 'Η διαγραφή θα σβήσει αυτόν τον πίνακα για όλα τα έτη. Σίγουρα;', 'confirm', () => { appData.liabilityTypes = appData.liabilityTypes.filter(t => t.id !== id); if (window.currentLiabilityTypeId === id) window.currentLiabilityTypeId = null; saveData(); }); };
+        window.switchLiabilityType = function(id) { window.currentLiabilityTypeId = id; renderLiabilitiesModule(); };
+        window.saveLiabilityCell = function(typeId, clientIndex, month, value) { const clientName = appData.clients[clientIndex].name; const cellKey = `${currentAppYear}_${typeId}_${clientName}_${month}`; appData.liabilityCells[cellKey] = value; saveData(); };
+        window.renameTaskCategory = function(id) { const obj = appData.taskCategories.find(t => t.id === id); if(!obj) return; const n = prompt('Νέο όνομα:', obj.title); if(n && n.trim()) { obj.title = n.trim(); saveData(); } };
+        window.saveTaskCategory = function(e) { e.preventDefault(); const t = document.getElementById('taskCatTitle').value.trim(); if(!t) return; appData.taskCategories.push({ id: 'TC'+Date.now(), title: t }); document.getElementById('taskCatTitle').value = ''; saveData(); };
+        window.deleteTaskCategory = function(id) { showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', () => { appData.taskCategories = appData.taskCategories.filter(t => t.id !== id); appData.tasks.forEach(task => { if(task.category === id) task.category = ""; }); saveData(); }); };
+
+        window.saveTask = function(e) {
+            e.preventDefault(); const id = document.getElementById('editingTaskId').value; const title = document.getElementById('taskTitle').value.trim(); const client = document.getElementById('taskClient').value; const date = document.getElementById('taskDate').value; const category = document.getElementById('taskCategory').value; const recurring = document.getElementById('taskRecurring').value; const notes = document.getElementById('taskNotes').value.trim(); const emailNotify = document.getElementById('taskEmailNotify').checked; if (!title || !client) return;
+            if (id) { const idx = appData.tasks.findIndex(t => t.id === id); if (idx > -1) appData.tasks[idx] = { ...appData.tasks[idx], title, client, date, category, recurring, notes }; document.getElementById('btnSaveTask').innerHTML = 'Προσθήκη'; document.getElementById('btnCancelEditTask').classList.add('hidden'); document.getElementById('editingTaskId').value = ''; } 
+            else { appData.tasks.push({ id: 'T' + Date.now(), title, client, date, category, recurring, notes, isCompleted: false, createdAt: new Date().toISOString() }); }
+            if (emailNotify) { window.location.href = `mailto:?subject=${encodeURIComponent('Task: '+title)}&body=${encodeURIComponent(notes)}`; }
+            document.getElementById('taskTitle').value = ''; document.getElementById('taskDate').value = ''; document.getElementById('taskClient').value = ''; document.getElementById('taskCategory').value = ''; document.getElementById('taskRecurring').value = ''; document.getElementById('taskNotes').value = ''; document.getElementById('taskEmailNotify').checked = false; saveData();
+        };
+        window.editTask = function(id) {
+            const t = appData.tasks.find(x => x.id === id); if(!t) return; document.getElementById('editingTaskId').value = t.id; document.getElementById('taskTitle').value = t.title; document.getElementById('taskClient').value = t.client; document.getElementById('taskDate').value = t.date; document.getElementById('taskCategory').value = t.category || ''; document.getElementById('taskRecurring').value = t.recurring || ''; document.getElementById('taskNotes').value = t.notes || ''; document.getElementById('taskEmailNotify').checked = false; document.getElementById('btnSaveTask').innerHTML = '<i class="fas fa-save mr-1"></i> Ενημέρωση'; document.getElementById('btnCancelEditTask').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
         window.cancelEditTask = function() { document.getElementById('editingTaskId').value = ''; document.getElementById('taskTitle').value = ''; document.getElementById('taskDate').value = ''; document.getElementById('taskClient').value = ''; document.getElementById('taskCategory').value = ''; document.getElementById('taskRecurring').value = ''; document.getElementById('taskNotes').value = ''; document.getElementById('taskEmailNotify').checked = false; document.getElementById('btnSaveTask').innerHTML = 'Προσθήκη'; document.getElementById('btnCancelEditTask').classList.add('hidden'); };
-        window.toggleTask = function(id) { const task = appData.tasks.find(t => t.id === id); if (task) { task.isCompleted = !task.isCompleted; if (task.isCompleted && task.recurring && task.date) { let d = new Date(task.date); if(task.recurring==='weekly') d.setDate(d.getDate()+7); else if(task.recurring==='monthly') d.setMonth(d.getMonth()+1); else if(task.recurring==='quarterly') d.setMonth(d.getMonth()+3); else if(task.recurring==='biannually') d.setMonth(d.getMonth()+6); else d.setFullYear(d.getFullYear()+1); appData.tasks.push({ id: 'T'+Date.now(), title: task.title, client: task.client, category: task.category, date: d.toISOString().split('T')[0], notes: task.notes, isCompleted: false, recurring: task.recurring, createdAt: new Date().toISOString() }); task.recurring = ""; window.showCustomDialog('Αυτόματη Επανάληψη', `Η εργασία μεταφέρθηκε για τις ${formatDate(d.toISOString().split('T')[0])}!`); } saveData(); } };
+        window.toggleTask = function(id) {
+            const task = appData.tasks.find(t => t.id === id);
+            if (task) { 
+                task.isCompleted = !task.isCompleted; 
+                if (task.isCompleted && task.recurring && task.date) {
+                    let d = new Date(task.date);
+                    if(task.recurring==='weekly') d.setDate(d.getDate()+7); else if(task.recurring==='monthly') d.setMonth(d.getMonth()+1); else if(task.recurring==='quarterly') d.setMonth(d.getMonth()+3); else if(task.recurring==='biannually') d.setMonth(d.getMonth()+6); else if(task.recurring==='yearly') d.setFullYear(d.getFullYear()+1);
+                    appData.tasks.push({ id: 'T'+Date.now(), title: task.title, client: task.client, category: task.category, date: d.toISOString().split('T')[0], notes: task.notes, isCompleted: false, recurring: task.recurring, createdAt: new Date().toISOString() });
+                    task.recurring = ""; showCustomDialog('Αυτόματη Επανάληψη', 'Η εργασία προγραμματίστηκε για τον επόμενο κύκλο!');
+                }
+                saveData(); 
+            }
+        };
         window.deleteTask = function(id) { appData.tasks = appData.tasks.filter(t => t.id !== id); saveData(); };
-        window.printTasksByClient = function() { const pending = appData.tasks.filter(t => !t.isCompleted); if(!pending.length) { window.showCustomDialog('Προσοχή', 'Δεν υπάρχουν εκκρεμείς εργασίες.'); return; } const uniqueClients = [...new Set(pending.map(t => t.client))].sort(); let pHTML = `<html><head><title>Εκκρεμείς Εργασίες</title><style>body { font-family: sans-serif; padding: 30px; color: #333; } .print-title { font-size: 24px; font-weight: 900; margin-bottom: 25px; border-bottom: 3px solid #1e1b4b; padding-bottom: 10px; } .print-client-block { margin-bottom: 35px; page-break-inside: avoid; } .print-client-name { font-size: 18px; font-weight: bold; color: #4f46e5; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; } .print-task-item { margin-bottom: 6px; font-size: 14px; } .print-task-date { color: #dc2626; font-size: 12px; margin-left: 10px; font-weight: bold; } .print-task-notes { color: #64748b; font-size: 12px; margin-left: 15px; font-style: italic; }</style></head><body><div class="print-title">Εκκρεμείς Εργασίες ανά Πελάτη</div>`; uniqueClients.forEach(c => { pHTML += `<div class="print-client-block"><div class="print-client-name">${c}</div>`; pending.filter(t => t.client === c).sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => { pHTML += `<div class="print-task-item">&#9642; ${t.title} <span class="print-task-date">${t.date?formatDate(t.date):''}</span></div>`; if(t.notes) pHTML += `<div class="print-task-notes">${t.notes}</div>`; }); pHTML += `</div>`; }); pHTML += `</body></html>`; const printWin = window.open('', '_blank'); printWin.document.write(pHTML); printWin.document.close(); printWin.focus(); setTimeout(() => { printWin.print(); printWin.close(); }, 300); };
+        window.printTasksByClient = function() {
+            const pending = appData.tasks.filter(t => !t.isCompleted); if(!pending.length) { showCustomDialog('Προσοχή', 'Δεν υπάρχουν εκκρεμείς εργασίες.'); return; } const uniqueClients = [...new Set(pending.map(t => t.client))].sort(); let pHTML = `<html><head><title>Εκκρεμείς Εργασίες</title><style>body { font-family: sans-serif; padding: 30px; color: #333; } .print-title { font-size: 24px; font-weight: 900; margin-bottom: 25px; border-bottom: 3px solid #1e1b4b; padding-bottom: 10px; } .print-client-block { margin-bottom: 35px; page-break-inside: avoid; } .print-client-name { font-size: 18px; font-weight: bold; color: #4f46e5; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; } .print-task-item { margin-bottom: 6px; font-size: 14px; } .print-task-date { color: #dc2626; font-size: 12px; margin-left: 10px; font-weight: bold; } .print-task-notes { color: #64748b; font-size: 12px; margin-left: 15px; font-style: italic; }</style></head><body><div class="print-title">Εκκρεμείς Εργασίες ανά Πελάτη</div>`; uniqueClients.forEach(c => { pHTML += `<div class="print-client-block"><div class="print-client-name">${c}</div>`; pending.filter(t => t.client === c).sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => { pHTML += `<div class="print-task-item">&#9642; ${t.title} <span class="print-task-date">${t.date?formatDate(t.date):''}</span></div>`; if(t.notes) pHTML += `<div class="print-task-notes">${t.notes}</div>`; }); pHTML += `</div>`; }); pHTML += `</body></html>`; const printWin = window.open('', '_blank'); printWin.document.write(pHTML); printWin.document.close(); printWin.focus(); setTimeout(() => { printWin.print(); printWin.close(); }, 300); 
+        };
 
         window.exportBackup = function() { const dl = document.createElement('a'); dl.setAttribute("href", "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData))); dl.setAttribute("download", "NewCRM_Backup_V4.json"); document.body.appendChild(dl); dl.click(); dl.remove(); };
-        window.importBackup = function(e) { const file = e.target.files[0]; if (!file) return; const r = new FileReader(); r.onload = function(evt) { try { const data = JSON.parse(evt.target.result); if (data.clients) { window.showCustomDialog('Επιβεβαίωση', 'Τα τρέχοντα δεδομένα θα αντικατασταθούν!', 'confirm', () => { appData = data; sanitizeDataStructure(); saveData(); window.showCustomDialog('Επιτυχία', 'Η βάση επαναφέρθηκε επιτυχώς!'); if(!isCloudEnabled) window.switchCrmModule('dashboard'); }); } } catch (err) { window.showCustomDialog('Σφάλμα', 'Μη έγκυρο αρχείο JSON.'); } }; r.readAsText(file); e.target.value = ''; };
-        window.exportToCSV = function() { const yearReceipts = appData.receipts.filter(r => new Date(r.date).getFullYear() === currentAppYear).sort((a,b) => new Date(b.date) - new Date(a.date)); if (yearReceipts.length === 0) { window.showCustomDialog('Προσοχή', 'Δεν υπάρχουν δεδομένα.'); return; } let csv = "data:text/csv;charset=utf-8,\uFEFFΗμερομηνία,Πελάτης,Ποσό,Περίοδος,Σχόλια\n"; yearReceipts.forEach(r => { csv += `${formatDate(r.date)},${r.client},${r.amount.toString().replace('.', ',')},${r.period || ''},${(r.comments || '').replace(/,/g, ' ')}\n`; }); const l = document.createElement("a"); l.href = encodeURI(csv); l.download = `Receipts_${currentAppYear}.csv`; document.body.appendChild(l); l.click(); l.remove(); };
+        window.importBackup = function(e) {
+            const file = e.target.files[0]; if (!file) return; const r = new FileReader(); r.onload = function(evt) { try { const data = JSON.parse(evt.target.result); if (data.clients) { showCustomDialog('Επιβεβαίωση', 'Τα τρέχοντα δεδομένα θα αντικατασταθούν!', 'confirm', () => { appData = data; sanitizeDataStructure(); saveData(); showCustomDialog('Επιτυχία', 'Η βάση επαναφέρθηκε επιτυχώς!'); if(!isCloudEnabled) window.switchCrmModule('dashboard'); }); } } catch (err) { showCustomDialog('Σφάλμα', 'Μη έγκυρο αρχείο JSON.'); } }; r.readAsText(file); e.target.value = '';
+        };
+
+        window.addClient = function() { const inp = document.getElementById('newClientName'); const n = inp.value.trim(); if(n) { if(appData.clients.some(x=>x.name.toLowerCase()===n.toLowerCase())) return; appData.clients.push({ name: n, targets: {}, isActive: true, fixedCharges: [], oneOffJobs: [] }); inp.value = ''; saveData(); } };
+        window.deleteClient = function(idx) { const name = appData.clients[idx].name; if(appData.receipts.some(r=>r.client===name)||appData.tasks.some(t=>t.client===name)) { window.showCustomDialog('Σφάλμα', 'Ο πελάτης έχει κινητικότητα.'); return; } window.showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', () => { appData.clients.splice(idx, 1); saveData(); }); };
+        window.renameLiabilityType = function(id) { const obj = appData.liabilityTypes.find(t => t.id === id); if(!obj) return; const n = prompt('Νέο όνομα:', obj.title); if(n && n.trim()) { obj.title = n.trim(); saveData(); } };
+        window.exportToCSV = function() { const yearReceipts = appData.receipts.filter(r => new Date(r.date).getFullYear() === currentAppYear).sort((a,b) => new Date(b.date) - new Date(a.date)); if (yearReceipts.length === 0) { window.showCustomDialog('Προσοχή', 'Δεν υπάρχουν δεδομένα.'); return; } let csv = "data:text/csv;charset=utf-8,\uFEFFΗμερομηνία,Πελάτης,Ποσό,Περίοδος,Σχόλια\n"; yearReceipts.forEach(r => { csv += `${formatDate(r.date)},${r.client},${r.amount.toString().replace('.', ',')},${r.period||''},${(r.comments||'').replace(/,/g,' ')}\n`; }); const link = document.createElement("a"); link.href = encodeURI(csv); link.download = `Receipts_${currentAppYear}.csv`; document.body.appendChild(link); link.click(); link.remove(); };
 
         if (document.getElementById('date')) document.getElementById('date').valueAsDate = new Date();
-        
-        // Initialize immediately
         loadLocalData(); 
         initApp();
-        window.updateUI();
-
+        
     </script>
 </body>
 </html>
