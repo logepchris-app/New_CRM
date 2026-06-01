@@ -116,7 +116,7 @@
                 <button onclick="window.switchConfigTab('general')" id="tab-config-general" class="config-tab-btn font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1 whitespace-nowrap">Backup</button>
                 <button onclick="window.switchConfigTab('liabilities')" id="tab-config-liabilities" class="config-tab-btn font-medium text-gray-500 border-b-2 border-transparent whitespace-nowrap">Tasks Data</button>
                 <button onclick="window.switchConfigTab('biz')" id="tab-config-biz" class="config-tab-btn font-medium text-gray-500 border-b-2 border-transparent whitespace-nowrap">Εισαγωγή CSV</button>
-                <button onclick="window.switchConfigTab('sub')" id="tab-config-sub" class="config-tab-btn font-medium text-gray-500 border-b-2 border-transparent whitespace-nowrap"><i class="fas fa-star text-amber-400 mr-1"></i>Ομάδα</button>
+                <button onclick="window.switchConfigTab('sub')" id="tab-config-sub" class="config-tab-btn font-medium text-gray-500 border-b-2 border-transparent whitespace-nowrap"><i class="fas fa-star text-amber-400 mr-1"></i>Συνδρομή & Ομάδα</button>
             </div>
         </div>
     </nav>
@@ -315,7 +315,7 @@
 
             <!-- Καρτέλα Συνδρομής (SaaS Tenant) -->
             <div id="config-panel-sub" class="config-panel hidden">
-                <div class="grid grid-cols-1 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
                         <div class="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-4 py-1 rounded-bl-lg" id="clientSubStatusBadge">ΕΝΕΡΓΗ</div>
                         <h3 class="text-lg font-black text-gray-900 mb-4"><i class="fas fa-star text-amber-400 mr-2"></i>Η Συνδρομή σας</h3>
@@ -326,6 +326,18 @@
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-indigo-600 h-2 rounded-full" style="width: 90%" id="clientSubProgress"></div></div>
                         </div>
+                        <div class="border-t border-gray-100 pt-4 text-center" id="cancelSubArea">
+                            <button onclick="window.cancelMySubscription()" class="text-red-500 font-bold px-4 py-2 text-sm border border-red-100 rounded-lg w-full">Ακύρωση</button>
+                        </div>
+                        <div id="canceledSubArea" class="hidden border-t border-gray-100 pt-4 text-center">
+                            <span class="bg-amber-50 text-amber-800 p-2 rounded text-sm font-bold">Ακυρωμένη</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="text-lg font-black text-gray-900 mb-4">Η Ομάδα</h3>
+                        <ul class="space-y-2">
+                            <li class="flex justify-between bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm"><span class="font-bold text-gray-800" id="teamAdminEmail"></span><span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold">Admin</span></li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -431,6 +443,7 @@
         let appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [] };
         let currentAppYear = new Date().getFullYear();
         let isCloudEnabled = false; 
+        let db, auth, userDocRef;
         let loggedInEmail = "";
 
         const demoData = {
@@ -445,7 +458,7 @@
         window.loginAsGuest = function() {
             appData = JSON.parse(JSON.stringify(demoData)); isCloudEnabled = false; loggedInEmail = 'Επισκέπτης_Demo';
             document.getElementById('login-screen').classList.add('hidden'); 
-            document.getElementById('user-badge').classList.remove('hidden', 'md:flex'); // show on mobile demo
+            document.getElementById('user-badge').classList.remove('hidden', 'lg:flex'); // show on mobile demo
             document.getElementById('user-badge').classList.add('flex');
             document.getElementById('user-email-text').textContent = loggedInEmail;
             setupUIPermissions(); updateUI(); window.switchCrmModule('dashboard');
@@ -454,6 +467,9 @@
         function setupUIPermissions() {
             if (loggedInEmail === SUPER_ADMIN_EMAIL) { document.getElementById('nav-superadmin').classList.remove('hidden'); } 
             else { document.getElementById('nav-superadmin').classList.add('hidden'); }
+            const tMail = document.getElementById('teamAdminEmail');
+            if(tMail) tMail.textContent = loggedInEmail;
+            if(typeof simulateTenantSubscription === 'function') simulateTenantSubscription();
         }
 
         function sanitizeDataStructure() {
@@ -553,10 +569,9 @@
 
         window.renderClientsModule = function() {
             const clientsList = document.getElementById('clientsList'); if(!clientsList) return; clientsList.innerHTML = ''; const sortedClients = [...appData.clients].map((c, idx) => ({...c, originalIndex: idx})).sort((a,b) => a.name.localeCompare(b.name));
-            sortedClients.forEach(c => { const calculatedTarget = window.calculateClientTarget(c, currentAppYear); clientsList.innerHTML += `<li class="px-4 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-100"><div class="flex items-center gap-3"><div class="bg-indigo-100 text-indigo-600 w-10 h-10 rounded-full flex items-center justify-center font-black">${c.name.charAt(0).toUpperCase()}</div><div><p class="font-bold text-gray-900">${c.name}</p><p class="text-sm text-gray-500">Στόχος ${currentAppYear}: <span class="font-bold text-indigo-600">${formatCurrency(calculatedTarget)}</span></p></div></div><button onclick="window.openClientProfile(${c.originalIndex})" class="w-full sm:w-auto text-blue-600 bg-blue-50 px-4 py-2 rounded-lg text-sm font-bold">Καρτέλα</button></li>`; }); document.getElementById('totalClientsCount').textContent = `${appData.clients.length} Πελάτες`;
+            sortedClients.forEach(c => { const calculatedTarget = window.calculateClientTarget(c, currentAppYear); clientsList.innerHTML += `<li class="px-4 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-100"><div class="flex items-center gap-3"><div class="bg-indigo-100 text-indigo-600 w-10 h-10 rounded-full flex items-center justify-center font-black">${c.name.charAt(0).toUpperCase()}</div><div><p class="font-bold text-gray-900">${c.name}</p><p class="text-sm text-gray-500">Στόχος: <span class="font-bold text-indigo-600">${formatCurrency(calculatedTarget)}</span></p></div></div><button onclick="window.openClientProfile(${c.originalIndex})" class="w-full sm:w-auto text-blue-600 bg-blue-50 px-4 py-2 rounded-lg text-sm font-bold">Καρτέλα</button></li>`; }); document.getElementById('totalClientsCount').textContent = `${appData.clients.length} Πελάτες`;
         };
 
-        // --- FIXED: ΣΥΝΑΡΤΗΣΕΙΣ ΓΙΑ ΚΑΡΤΕΛΑ ΟΙΚΟΝΟΜΙΚΩΝ ΜΕ ΕΤΟΣ ΙΣΧΥΟΣ ---
         window.renderTempFinancials = function() {
             const fcList = document.getElementById('fcList');
             if (fcList) {
@@ -573,7 +588,7 @@
             const title = document.getElementById('fcTitle').value.trim(); 
             const amount = parseFloat(document.getElementById('fcAmount').value); 
             const period = document.getElementById('fcPeriod').value; 
-            const year = document.getElementById('fcYear') ? document.getElementById('fcYear').value : 'all'; // Διαβάζουμε το έτος!
+            const year = document.getElementById('fcYear') ? document.getElementById('fcYear').value : 'all'; 
 
             if(!title || !amount) return; 
             
@@ -598,7 +613,7 @@
             document.getElementById('fcTitle').value = fc.title; 
             document.getElementById('fcAmount').value = fc.amount; 
             document.getElementById('fcPeriod').value = fc.period; 
-            if (document.getElementById('fcYear')) document.getElementById('fcYear').value = fc.year || 'all'; // Γεμίζει το πεδίο
+            if (document.getElementById('fcYear')) document.getElementById('fcYear').value = fc.year || 'all'; 
             document.getElementById('btnSaveFc').innerHTML = '<i class="fas fa-save"></i>'; 
         };
 
