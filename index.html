@@ -37,7 +37,7 @@
             <p class="text-indigo-200 mb-8 text-xs sm:text-sm">Απαιτείται ταυτοποίηση για πρόσβαση</p>
             
             <div class="space-y-4 w-full">
-                <button onclick="window.loginWithGoogle(event)" class="w-full bg-white text-gray-800 font-bold py-3.5 px-6 rounded-xl shadow-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-3 text-sm">
+                <button onclick="window.loginWithGoogle(event)" id="google-login-btn" class="w-full bg-white text-gray-800 font-bold py-3.5 px-6 rounded-xl shadow-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-3 text-sm">
                     <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
                     Είσοδος με Google
                 </button>
@@ -555,73 +555,101 @@
             dialog.classList.remove('hidden'); 
         };
 
+        // ΝΕΑ ΚΕΝΤΡΙΚΗ ΔΟΜΗ ΕΚΚΙΝΗΣΗΣ FIREBASE ΓΙΑ ΑΣΦΑΛΗ SYNC
+        window.initFirebaseServices = async function() {
+            if (window.firebaseApp) return true; 
+            try {
+                const appMod = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
+                const authMod = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+                const fsMod = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+                
+                const firebaseConfig = { apiKey: "AIzaSyDlQGXb7M2xpQ7yfjojF1VPuPgEV7slUGU", authDomain: "fstracker-47c31.firebaseapp.com", projectId: "fstracker-47c31", storageBucket: "fstracker-47c31.firebasestorage.app", messagingSenderId: "438637783236", appId: "1:438637783236:web:f3647de08ee205ead94191" };
+                window.firebaseApp = appMod.initializeApp(firebaseConfig);
+                window.firebaseAuth = authMod.getAuth(window.firebaseApp);
+                window.firebaseDb = fsMod.getFirestore(window.firebaseApp);
+                
+                window.fsDoc = fsMod.doc;
+                window.fsSetDoc = fsMod.setDoc;
+                window.fsGetDoc = fsMod.getDoc;
+                window.fsOnSnapshot = fsMod.onSnapshot;
+                window.GoogleAuthProvider = authMod.GoogleAuthProvider;
+                window.signInWithPopup = authMod.signInWithPopup;
+                window.signOut = authMod.signOut;
+                window.onAuthStateChanged = authMod.onAuthStateChanged;
+                
+                return true;
+            } catch (e) {
+                console.error("Firebase init error:", e);
+                document.getElementById('cloud-status').innerHTML = '<i class="fas fa-exclamation-triangle text-red-500" title="Σφάλμα"></i>';
+                return false;
+            }
+        };
+
+        // ΑΥΤΟΜΑΤΗ ΣΥΝΔΕΣΗ ΜΕ ΤΗΝ ΕΝΑΡΞΗ
+        window.initFirebaseServices().then((success) => {
+            if (success && window.firebaseAuth) {
+                window.onAuthStateChanged(window.firebaseAuth, (user) => {
+                    if (user) {
+                        window.loggedInEmail = user.email.toLowerCase();
+                        window.isCloudEnabled = true;
+                        document.getElementById('login-screen').classList.add('hidden'); 
+                        window.currentUserDocRef = window.fsDoc(window.firebaseDb, 'crm_users', user.uid);
+                        document.getElementById('user-badge').classList.remove('hidden'); 
+                        document.getElementById('user-email-text').textContent = window.loggedInEmail;
+                        
+                        window.setupUIPermissions();
+
+                        window.fsOnSnapshot(window.currentUserDocRef, (docSnap) => { 
+                            if (docSnap.exists()) { 
+                                window.appData = docSnap.data(); 
+                                window.sanitizeDataStructure(); 
+                                window.saveLocalData(); 
+                            } else { 
+                                window.appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [], teamMembers: [] }; 
+                                window.saveData(); 
+                            } 
+                            window.updateUI(); 
+                            document.getElementById('cloud-status').innerHTML = `<i class="fas fa-cloud text-green-400" title="Συνδεδεμένο"></i>`; 
+                        }, (e) => { 
+                            console.error("Firebase Sync lost:", e);
+                            window.isCloudEnabled = false; 
+                            document.getElementById('cloud-status').innerHTML = '<i class="fas fa-exclamation-triangle text-red-500" title="Εκτός Σύνδεσης"></i>'; 
+                            window.loadLocalData(); 
+                            window.updateUI(); 
+                        });
+                    } else {
+                        if (window.loggedInEmail !== 'Επισκέπτης_Demo') { 
+                            window.isCloudEnabled = false;
+                            document.getElementById('login-screen').classList.remove('hidden'); 
+                            document.getElementById('cloud-status').innerHTML = '<i class="fas fa-lock text-red-300"></i>'; 
+                        }
+                    }
+                });
+            }
+        });
+
         window.loginWithGoogle = async function(event) {
-            const btn = event.currentTarget || document.querySelector('#login-screen button');
+            const btn = event.currentTarget || document.querySelector('#google-login-btn');
             const originalHTML = btn ? btn.innerHTML : 'Είσοδος';
             if(btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Σύνδεση...';
             
             try {
-                const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
-                const { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
-                const { getFirestore, doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-                
-                if (!window.firebaseApp) {
-                    const firebaseConfig = { apiKey: "AIzaSyDlQGXb7M2xpQ7yfjojF1VPuPgEV7slUGU", authDomain: "fstracker-47c31.firebaseapp.com", projectId: "fstracker-47c31", storageBucket: "fstracker-47c31.firebasestorage.app", messagingSenderId: "438637783236", appId: "1:438637783236:web:f3647de08ee205ead94191" };
-                    window.firebaseApp = initializeApp(firebaseConfig);
-                    window.firebaseAuth = getAuth(window.firebaseApp);
-                    window.firebaseDb = getFirestore(window.firebaseApp);
-
-                    onAuthStateChanged(window.firebaseAuth, (user) => {
-                        if (user) {
-                            window.loggedInEmail = user.email.toLowerCase();
-                            window.isCloudEnabled = true;
-                            document.getElementById('login-screen').classList.add('hidden'); 
-                            window.currentUserDocRef = doc(window.firebaseDb, 'crm_users', user.uid);
-                            document.getElementById('user-badge').classList.remove('hidden'); 
-                            document.getElementById('user-email-text').textContent = window.loggedInEmail;
-                            
-                            window.setupUIPermissions();
-
-                            onSnapshot(window.currentUserDocRef, (docSnap) => { 
-                                if (docSnap.exists()) { window.appData = docSnap.data(); window.sanitizeDataStructure(); window.saveLocalData(); } 
-                                else { window.appData = { clients: [], receipts: [], liabilities: [], tasks: [], liabilityTypes: [], liabilityCells: {}, taskCategories: [], saasTenants: [], teamMembers: [] }; window.saveData(); } 
-                                window.updateUI(); 
-                                document.getElementById('cloud-status').innerHTML = `<i class="fas fa-cloud text-green-400" title="Συνδεδεμένο"></i>`; 
-                            }, (e) => { 
-                                console.error("Firebase Sync lost:", e);
-                                window.isCloudEnabled = false; 
-                                document.getElementById('cloud-status').innerHTML = '<i class="fas fa-exclamation-triangle text-red-500" title="Εκτός Σύνδεσης"></i>'; 
-                                window.loadLocalData(); 
-                                window.updateUI(); 
-                            });
-                        } else {
-                            if (window.loggedInEmail !== 'Επισκέπτης_Demo') { 
-                                window.isCloudEnabled = false;
-                                document.getElementById('login-screen').classList.remove('hidden'); 
-                                document.getElementById('cloud-status').innerHTML = '<i class="fas fa-lock text-red-300"></i>'; 
-                            }
-                        }
-                    });
-                }
-                
-                const provider = new GoogleAuthProvider();
-                await signInWithPopup(window.firebaseAuth, provider);
+                if (!window.firebaseAuth) await window.initFirebaseServices();
+                const provider = new window.GoogleAuthProvider();
+                await window.signInWithPopup(window.firebaseAuth, provider);
                 if(btn) btn.innerHTML = originalHTML;
-
             } catch (e) {
                 console.error(e);
                 if(btn) btn.innerHTML = originalHTML;
-                window.showCustomDialog('Σφάλμα', 'Αδυναμία σύνδεσης. Ελέγξτε το ίντερνετ σας.');
+                window.showCustomDialog('Σφάλμα', 'Αδυναμία σύνδεσης. Ελέγξτε το ίντερνετ σας ή τυχόν AdBlockers.');
             }
         };
 
         window.logout = function() {
-            if (window.firebaseAuth) {
-                import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js").then(({signOut}) => {
-                    signOut(window.firebaseAuth).then(() => {
-                        localStorage.removeItem('logepCrmDataV4');
-                        window.location.reload();
-                    });
+            if (window.firebaseAuth && window.signOut) {
+                window.signOut(window.firebaseAuth).then(() => {
+                    localStorage.removeItem('logepCrmDataV4');
+                    window.location.reload();
                 });
             } else {
                 localStorage.removeItem('logepCrmDataV4');
@@ -654,74 +682,72 @@
         };
 
         window.simulateTenantSubscription = function() {
-            if (!window.isCloudEnabled) return; 
+            if (!window.isCloudEnabled || !window.fsGetDoc) return; 
 
-            import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").then(({doc, getDoc}) => {
-                getDoc(doc(window.firebaseDb, 'crm_global', 'subscriptions')).then((docSnap) => {
-                    if (docSnap.exists()) {
-                        let tenants = docSnap.data().tenants || [];
-                        let mySub = tenants.find(t => t.adminEmail === window.loggedInEmail);
+            window.fsGetDoc(window.fsDoc(window.firebaseDb, 'crm_global', 'subscriptions')).then((docSnap) => {
+                if (docSnap.exists()) {
+                    let tenants = docSnap.data().tenants || [];
+                    let mySub = tenants.find(t => t.adminEmail === window.loggedInEmail);
 
-                        if (mySub) {
-                            window.allowedSeats = mySub.maxSeats || 1; 
+                    if (mySub) {
+                        window.allowedSeats = mySub.maxSeats || 1; 
 
-                            const configNav = document.getElementById('nav-config');
-                            if(configNav) configNav.classList.remove('hidden');
+                        const configNav = document.getElementById('nav-config');
+                        if(configNav) configNav.classList.remove('hidden');
 
-                            if (mySub.status === 'suspended') {
+                        if (mySub.status === 'suspended') {
+                            document.body.innerHTML = `
+                                <div class="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center text-white p-6 text-center z-[100]">
+                                    <i class="fas fa-ban text-6xl text-red-500 mb-6"></i>
+                                    <h1 class="text-2xl sm:text-3xl font-black mb-2">Λογαριασμός σε Αναστολή</h1>
+                                    <p class="text-gray-400 max-w-md mb-6 text-sm">Η πρόσβασή σας έχει ανασταλεί από τον διαχειριστή του συστήματος.</p>
+                                    <button onclick="window.logout()" class="bg-indigo-600 hover:bg-indigo-700 px-6 py-2.5 rounded-lg font-bold text-sm transition-colors">Έξοδος</button>
+                                </div>`;
+                            return;
+                        }
+
+                        let currentSubEndDate = new Date(mySub.end);
+                        let today = new Date();
+                        let timeDiff = currentSubEndDate.getTime() - today.getTime();
+                        let daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+                        const daysEl = document.getElementById('clientSubDaysLeft'); if(daysEl) daysEl.textContent = daysDiff;
+                        const endEl = document.getElementById('clientSubEndDate'); if(endEl) endEl.textContent = currentSubEndDate.toLocaleDateString('el-GR');
+                        const progEl = document.getElementById('clientSubProgress'); if(progEl) progEl.style.width = Math.max(0, Math.min(100, (daysDiff / 365) * 100)) + '%';
+
+                        const oldBanner = document.getElementById('grace-period-banner'); if(oldBanner) oldBanner.remove();
+
+                        if (daysDiff <= 0) {
+                            let graceDaysLeft = 30 + daysDiff;
+                            if (graceDaysLeft > 0) {
+                                window.isAppReadOnly = true;
+                                const banner = document.createElement('div');
+                                banner.id = 'grace-period-banner';
+                                banner.className = 'bg-red-600 text-white text-center py-3 font-bold text-xs sm:text-sm sticky top-0 z-50 px-4 flex justify-center items-center gap-2';
+                                banner.innerHTML = `<i class="fas fa-exclamation-triangle animate-pulse"></i> <span>Η συνδρομή σας έληξε. Το σύστημα είναι σε <b>Read-Only</b>. Απομένουν ${graceDaysLeft} ημέρες για διαγραφή των αρχείων σας.</span>`;
+                                document.body.insertBefore(banner, document.body.firstChild);
+                            } else {
                                 document.body.innerHTML = `
                                     <div class="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center text-white p-6 text-center z-[100]">
-                                        <i class="fas fa-ban text-6xl text-red-500 mb-6"></i>
-                                        <h1 class="text-2xl sm:text-3xl font-black mb-2">Λογαριασμός σε Αναστολή</h1>
-                                        <p class="text-gray-400 max-w-md mb-6 text-sm">Η πρόσβασή σας έχει ανασταλεί από τον διαχειριστή του συστήματος.</p>
+                                        <i class="fas fa-lock text-6xl text-red-500 mb-6"></i>
+                                        <h1 class="text-2xl sm:text-3xl font-black mb-2">Οριστική Λήξη</h1>
+                                        <p class="text-gray-400 max-w-md mb-6 text-sm">Έχουν περάσει 30 ημέρες από τη λήξη της συνδρομής. Η πρόσβαση τερματίστηκε.</p>
                                         <button onclick="window.logout()" class="bg-indigo-600 hover:bg-indigo-700 px-6 py-2.5 rounded-lg font-bold text-sm transition-colors">Έξοδος</button>
                                     </div>`;
-                                return;
-                            }
-
-                            let currentSubEndDate = new Date(mySub.end);
-                            let today = new Date();
-                            let timeDiff = currentSubEndDate.getTime() - today.getTime();
-                            let daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-                            const daysEl = document.getElementById('clientSubDaysLeft'); if(daysEl) daysEl.textContent = daysDiff;
-                            const endEl = document.getElementById('clientSubEndDate'); if(endEl) endEl.textContent = currentSubEndDate.toLocaleDateString('el-GR');
-                            const progEl = document.getElementById('clientSubProgress'); if(progEl) progEl.style.width = Math.max(0, Math.min(100, (daysDiff / 365) * 100)) + '%';
-
-                            const oldBanner = document.getElementById('grace-period-banner'); if(oldBanner) oldBanner.remove();
-
-                            if (daysDiff <= 0) {
-                                let graceDaysLeft = 30 + daysDiff;
-                                if (graceDaysLeft > 0) {
-                                    window.isAppReadOnly = true;
-                                    const banner = document.createElement('div');
-                                    banner.id = 'grace-period-banner';
-                                    banner.className = 'bg-red-600 text-white text-center py-3 font-bold text-xs sm:text-sm sticky top-0 z-50 px-4 flex justify-center items-center gap-2';
-                                    banner.innerHTML = `<i class="fas fa-exclamation-triangle animate-pulse"></i> <span>Η συνδρομή σας έληξε. Το σύστημα είναι σε <b>Read-Only</b>. Απομένουν ${graceDaysLeft} ημέρες για διαγραφή των αρχείων σας.</span>`;
-                                    document.body.insertBefore(banner, document.body.firstChild);
-                                } else {
-                                    document.body.innerHTML = `
-                                        <div class="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center text-white p-6 text-center z-[100]">
-                                            <i class="fas fa-lock text-6xl text-red-500 mb-6"></i>
-                                            <h1 class="text-2xl sm:text-3xl font-black mb-2">Οριστική Λήξη</h1>
-                                            <p class="text-gray-400 max-w-md mb-6 text-sm">Έχουν περάσει 30 ημέρες από τη λήξη της συνδρομής. Η πρόσβαση τερματίστηκε.</p>
-                                            <button onclick="window.logout()" class="bg-indigo-600 hover:bg-indigo-700 px-6 py-2.5 rounded-lg font-bold text-sm transition-colors">Έξοδος</button>
-                                        </div>`;
-                                }
-                            } else {
-                                window.isAppReadOnly = false;
                             }
                         } else {
-                            const configNav = document.getElementById('nav-config');
-                            if(configNav) configNav.classList.add('hidden');
-                            
-                            const configModule = document.getElementById('module-config');
-                            if(configModule && !configModule.classList.contains('hidden')) {
-                                window.switchCrmModule('dashboard');
-                            }
+                            window.isAppReadOnly = false;
+                        }
+                    } else {
+                        const configNav = document.getElementById('nav-config');
+                        if(configNav) configNav.classList.add('hidden');
+                        
+                        const configModule = document.getElementById('module-config');
+                        if(configModule && !configModule.classList.contains('hidden')) {
+                            window.switchCrmModule('dashboard');
                         }
                     }
-                });
+                }
             });
         };
 
@@ -742,6 +768,8 @@
             if (!window.appData.teamMembers) window.appData.teamMembers = [];
             window.appData.clients.forEach(c => { 
                 if (c.isActive === undefined) c.isActive = true; 
+                // ΑΣΦΑΛΕΙΑ: Αν βρεθεί πελάτης χωρίς όνομα (λόγω βλάβης αποθήκευσης), δώσε default όνομα για να μην "σκάει" η ταξινόμηση
+                if (!c.name || typeof c.name !== 'string') c.name = 'Χωρίς Όνομα';
                 if (!c.fixedCharges) c.fixedCharges = []; 
                 if (!c.oneOffJobs) c.oneOffJobs = [];
             });
@@ -770,15 +798,13 @@
                 return;
             }
 
-            if (window.isCloudEnabled && window.currentUserDocRef) { 
-                import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").then(({doc, setDoc}) => {
-                    setDoc(window.currentUserDocRef, window.appData).then(() => { 
-                        if(window.loggedInEmail === 'logepchris@gmail.com') {
-                            setDoc(doc(window.firebaseDb, 'crm_global', 'subscriptions'), { tenants: window.appData.saasTenants });
-                        }
-                        window.updateUI(); 
-                    }).catch(e => { console.error(e); window.updateUI(); });
-                });
+            if (window.isCloudEnabled && window.currentUserDocRef && window.fsSetDoc) { 
+                window.fsSetDoc(window.currentUserDocRef, window.appData).then(() => { 
+                    if(window.loggedInEmail === SUPER_ADMIN_EMAIL && window.fsDoc) {
+                        window.fsSetDoc(window.fsDoc(window.firebaseDb, 'crm_global', 'subscriptions'), { tenants: window.appData.saasTenants });
+                    }
+                    window.updateUI(); 
+                }).catch(e => { console.error(e); window.updateUI(); });
             } else if (!window.isCloudEnabled && window.loggedInEmail === 'Επισκέπτης_Demo') { 
                 window.updateUI(); 
             } else { 
@@ -1069,12 +1095,15 @@
                 const blob = new Blob([dataStr], { type: "application/json;charset=utf-8" });
                 const url = URL.createObjectURL(blob);
                 const dl = document.createElement('a');
+                dl.style.display = 'none';
                 dl.href = url;
                 dl.download = "NewCRM_Backup.json";
                 document.body.appendChild(dl);
                 dl.click();
-                document.body.removeChild(dl);
-                setTimeout(() => URL.revokeObjectURL(url), 100);
+                setTimeout(() => {
+                    document.body.removeChild(dl);
+                    URL.revokeObjectURL(url);
+                }, 2000); 
                 window.showCustomDialog('Επιτυχία', 'Το Backup κατέβηκε επιτυχώς στη συσκευή σας.');
             } catch (e) {
                 console.error(e);
@@ -1196,6 +1225,40 @@
         window.deleteLiabilityType = function(id) { window.showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', () => { window.appData.liabilityTypes = window.appData.liabilityTypes.filter(x=>x.id!==id); window.saveData(); }); };
         window.saveTaskCategory = function(e) { e.preventDefault(); const t = document.getElementById('taskCatTitle').value.trim(); if(t) { window.appData.taskCategories.push({ id: 'TC'+Date.now(), title: t }); document.getElementById('taskCatTitle').value = ''; window.saveData(); } };
         window.deleteTaskCategory = function(id) { window.showCustomDialog('Διαγραφή', 'Σίγουρα;', 'confirm', () => { window.appData.taskCategories = window.appData.taskCategories.filter(x=>x.id!==id); window.saveData(); }); };
+
+        // --- CONFIG ---
+        window.renderConfigModule = function() {
+            const lList = document.getElementById('liabilityTypesList'); 
+            if(lList) {
+                lList.innerHTML = window.appData.liabilityTypes.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία λίστα.</li>' : window.appData.liabilityTypes.map(t => `
+                    <li class="px-4 py-3 flex justify-between items-center bg-white border-b border-gray-100"><span class="font-bold text-gray-800">${t.title}</span>
+                    <div><button onclick="window.renameLiabilityType('${t.id}')" class="text-blue-500 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteLiabilityType('${t.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); 
+            }
+            const cList = document.getElementById('taskCategoriesList'); 
+            if(cList) {
+                cList.innerHTML = window.appData.taskCategories.length === 0 ? '<li class="p-4 text-gray-500 text-sm italic">Καμία κατηγορία.</li>' : window.appData.taskCategories.map(c => `
+                    <li class="px-4 py-3 flex justify-between items-center bg-white border-b border-gray-100"><span class="font-bold text-gray-800">${c.title}</span>
+                    <div><button onclick="window.renameTaskCategory('${c.id}')" class="text-blue-500 p-2 mr-1"><i class="fas fa-edit"></i></button><button onclick="window.deleteTaskCategory('${c.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div></li>`).join(''); 
+            }
+
+            const teamList = document.getElementById('teamList');
+            if (teamList) {
+                let html = `<li class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-sm font-bold text-gray-800 truncate">${window.loggedInEmail || '-'}</span>
+                    <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold">Ιδιοκτήτης</span>
+                </li>`;
+                (window.appData.teamMembers || []).forEach(tm => {
+                    html += `<li class="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-100 shadow-sm mt-2">
+                        <span class="text-sm font-medium text-gray-600 truncate">${tm}</span>
+                        <button onclick="window.deleteTeamMember('${tm}')" class="text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+                    </li>`;
+                });
+                teamList.innerHTML = html;
+            }
+        };
+
+        window.renameLiabilityType = function(id) { const obj = window.appData.liabilityTypes.find(t => t.id === id); if(!obj) return; const n = prompt('Νέο όνομα λίστας:', obj.title); if(n && n.trim()) { obj.title = n.trim(); window.saveData(); } };
+        window.renameTaskCategory = function(id) { const obj = window.appData.taskCategories.find(t => t.id === id); if(!obj) return; const n = prompt('Νέο όνομα κατηγορίας:', obj.title); if(n && n.trim()) { obj.title = n.trim(); window.saveData(); } };
 
         window.importBackup = function(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(evt) { try { const d = JSON.parse(evt.target.result); if(d.clients) { window.showCustomDialog('Επαναφορά', 'Τα δεδομένα θα αντικατασταθούν!', 'confirm', () => { window.appData = d; window.sanitizeDataStructure(); window.saveData(); window.showCustomDialog('Επιτυχία', 'Η βάση επαναφέρθηκε.'); }); } } catch(err) { window.showCustomDialog('Σφάλμα', 'Μη έγκυρο αρχείο.'); } }; r.readAsText(f); e.target.value=''; };
         window.importClientsCSV = function(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(evt) { const lines = evt.target.result.split('\n'); let cnt=0; for(let i=1; i<lines.length; i++) { const cols=lines[i].split(lines[i].includes(';')?';':','); const name=cols[0]?cols[0].trim():''; if(name && !window.appData.clients.some(c=>c.name.toLowerCase()===name.toLowerCase())) { window.appData.clients.push({name, gsis:cols[1]?cols[1].trim():'', efka:cols[2]?cols[2].trim():'', gemi:cols[3]?cols[3].trim():'', isActive:true, fixedCharges:[], oneOffJobs:[]}); cnt++; } } if(cnt>0){ window.saveData(); window.showCustomDialog('Επιτυχία', `Εισήχθησαν ${cnt} πελάτες.`); } else window.showCustomDialog('Προσοχή', 'Δεν βρέθηκαν νέοι πελάτες.'); }; r.readAsText(f); e.target.value=''; };
