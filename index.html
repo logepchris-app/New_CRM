@@ -201,36 +201,10 @@
                             <div><label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Ποσό (€) *</label><input type="number" id="amount" step="0.01" min="0.01" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm"></div>
                             <div><label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Ημερομηνία *</label><input type="date" id="date" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm"></div>
                         </div>
-                        <div><label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Περίοδος</label><input type="text" id="period" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm"></div>
-                        <div><label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Σχόλια</label><textarea id="comments" rows="2" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm"></textarea></div>
                         <div class="pt-2 flex gap-2">
-                            <button type="button" id="btnCancelEdit" onclick="window.cancelEditReceipt()" class="hidden w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-lg text-sm transition-colors">Άκυρο</button>
                             <button type="submit" id="btnSaveReceipt" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg flex justify-center items-center gap-2 text-sm transition-colors"><i class="fas fa-save"></i> Αποθήκευση</button>
                         </div>
                     </form>
-                </div>
-            </div>
-
-            <div id="history" class="module-tab-content hidden">
-                <div class="flex justify-between items-center mb-4 gap-3">
-                    <h2 class="text-sm sm:text-lg font-bold text-gray-800">Ιστορικό Εισπράξεων (<span class="display-year"></span>)</h2>
-                    <button onclick="window.exportToCSV()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"><i class="fas fa-file-excel mr-1"></i>CSV</button>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm min-w-max">
-                            <thead class="bg-gray-50 text-gray-700 border-b">
-                                <tr>
-                                    <th class="px-4 py-3 font-bold">Ημερ.</th>
-                                    <th class="px-4 py-3 font-bold">Πελάτης</th>
-                                    <th class="px-4 py-3 font-bold">Ποσό</th>
-                                    <th class="px-4 py-3 font-bold hidden md:table-cell">Περίοδος</th>
-                                    <th class="px-4 py-3 font-bold text-center">...</th>
-                                </tr>
-                            </thead>
-                            <tbody id="historyTableBody" class="divide-y divide-gray-100"></tbody>
-                        </table>
-                    </div>
                 </div>
             </div>
         </div>
@@ -361,13 +335,6 @@
                         </div>
                         <ul id="fcList" class="space-y-2"></ul>
                     </div>
-                    <div class="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm">
-                        <h5 class="font-black text-gray-800 mb-3 text-xs sm:text-sm uppercase"><i class="fas fa-bolt text-emerald-600 mr-2"></i>One-Off Έργα</h5>
-                        <div class="flex flex-wrap gap-2 mb-4 bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-                            <input type="hidden" id="editOoId"><input type="text" id="ooTitle" placeholder="Περιγραφή..." class="flex-1 min-w-[120px] border border-gray-300 rounded-lg p-2 text-xs sm:text-sm outline-none"><input type="number" id="ooAmount" placeholder="€" step="0.01" class="w-20 sm:w-24 border border-gray-300 rounded-lg p-2 text-xs sm:text-sm outline-none"><input type="date" id="ooDate" class="w-32 border border-gray-300 rounded-lg p-2 text-xs sm:text-sm outline-none"><button type="button" id="btnSaveOo" onclick="window.saveTempOo()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-4 py-2 rounded-lg font-bold transition-colors"><i class="fas fa-plus"></i></button>
-                        </div>
-                        <ul id="ooList" class="space-y-2"></ul>
-                    </div>
                 </div>
 
                 <div id="profile-panel-liab" class="profile-panel hidden space-y-4">
@@ -404,7 +371,6 @@
         window.tempOneOffJobs = [];
         window.isAppReadOnly = false; 
 
-        // ΔΙΟΡΘΩΜΕΝΟ ΣΥΣΤΗΜΑ ΔΙΑΛΟΓΩΝ (Για να μην κρύβονται πρόωρα τα Success Messages)
         window.showCustomDialog = function(title, message, type = 'alert', onConfirm = null) { 
             const dialog = document.getElementById('customDialog'); 
             document.getElementById('dialogTitle').textContent = title; 
@@ -423,7 +389,7 @@
                 confirmBtn.textContent = 'Επιβεβαίωση'; 
                 confirmBtn.onclick = () => { 
                     dialog.classList.add('hidden'); 
-                    if (onConfirm) setTimeout(() => onConfirm(), 150); // Μικρή καθυστέρηση για αποφυγή επικάλυψης
+                    if (onConfirm) setTimeout(() => onConfirm(), 150); // Κρίσιμη καθυστέρηση για αποφυγή overlap
                 }; 
                 btnContainer.appendChild(cancelBtn); 
                 btnContainer.appendChild(confirmBtn); 
@@ -484,6 +450,7 @@
                                 window.sanitizeDataStructure(); 
                                 window.saveLocalData(); 
                             } else { 
+                                // ΑΣΦΑΛΕΙΑ: Αν δεν υπάρχει στο Cloud, στέλνει τα τοπικά για να τα σώσει, δεν τα διαγράφει!
                                 window.sanitizeDataStructure(); 
                                 window.saveData(); 
                             } 
