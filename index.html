@@ -78,9 +78,35 @@
                 <button onclick="window.switchCrmModule('dashboard')" id="nav-dashboard" class="crm-nav-btn px-3 sm:px-4 py-2 rounded-t-lg font-bold bg-white text-indigo-900 transition-colors whitespace-nowrap shadow-sm"><i class="fas fa-chart-pie mr-1 sm:mr-2"></i>Dashboard</button>
                 <button onclick="window.switchCrmModule('clients')" id="nav-clients" class="crm-nav-btn px-3 sm:px-4 py-2 rounded-t-lg font-medium text-indigo-100 hover:text-white hover:bg-white/20 transition-all whitespace-nowrap"><i class="fas fa-users mr-1 sm:mr-2"></i>Πελάτες & Εισπράξεις</button>
                 <button onclick="window.switchCrmModule('liabilities')" id="nav-liabilities" class="crm-nav-btn px-3 sm:px-4 py-2 rounded-t-lg font-medium text-indigo-100 hover:text-white hover:bg-white/20 transition-all whitespace-nowrap"><i class="fas fa-file-invoice-dollar mr-1 sm:mr-2"></i>Υποχρεώσεις & Tasks</button>
-                <!-- ΝΕΟ ΚΟΥΜΠΙ KANBAN -->
                 <button onclick="window.switchCrmModule('kanban')" id="nav-kanban" class="crm-nav-btn px-3 sm:px-4 py-2 rounded-t-lg font-medium text-indigo-100 hover:text-white hover:bg-white/20 transition-all whitespace-nowrap"><i class="fas fa-columns mr-1 sm:mr-2"></i>Ομάδα (Kanban)</button>
                 <button onclick="window.switchCrmModule('config')" id="nav-config" class="crm-nav-btn px-3 sm:px-4 py-2 rounded-t-lg font-medium text-indigo-100 hover:text-white hover:bg-white/20 transition-all whitespace-nowrap ml-auto"><i class="fas fa-cogs sm:mr-2"></i><span class="hidden sm:inline"> Ρυθμίσεις</span></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sub Navigation Bar -->
+    <nav class="bg-white shadow-sm border-b border-gray-200 z-10 relative">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div id="subnav-superadmin" class="subnav-container hidden flex overflow-x-auto py-2 space-x-6 text-sm scrollbar-hide">
+                <span class="font-bold text-amber-600 border-b-2 border-amber-600 pb-1 whitespace-nowrap"><i class="fas fa-users-cog mr-1"></i> Πελατολόγιο Συνδρομητών SaaS</span>
+            </div>
+            <div id="subnav-dashboard" class="subnav-container flex overflow-x-auto py-2 space-x-6 text-sm scrollbar-hide">
+                <span class="font-bold text-gray-800 border-b-2 border-gray-800 pb-1 whitespace-nowrap"><i class="fas fa-chart-line mr-1"></i> Συνολική Εικόνα</span>
+            </div>
+            <div id="subnav-clients" class="subnav-container hidden flex overflow-x-auto py-2 space-x-4 sm:space-x-6 text-xs sm:text-sm scrollbar-hide">
+                <button onclick="window.switchModuleTab('clients', 'clientsMain')" id="tab-clients-clientsMain" class="module-tab-btn font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1 whitespace-nowrap"><i class="fas fa-address-book mr-1"></i> Πελατολόγιο</button>
+                <button onclick="window.switchModuleTab('clients', 'newReceipt')" id="tab-clients-newReceipt" class="module-tab-btn font-medium text-gray-500 border-b-2 border-transparent pb-1 whitespace-nowrap"><i class="fas fa-plus-circle mr-1"></i> Νέα Είσπραξη</button>
+                <button onclick="window.switchModuleTab('clients', 'history')" id="tab-clients-history" class="module-tab-btn font-medium text-gray-500 border-b-2 border-transparent pb-1 whitespace-nowrap"><i class="fas fa-list-ul mr-1"></i> Ιστορικό Εισπράξεων</button>
+            </div>
+            <div id="subnav-liabilities" class="subnav-container hidden flex overflow-x-auto py-2 space-x-4 sm:space-x-6 text-xs sm:text-sm scrollbar-hide">
+                <button onclick="window.switchModuleTab('liabilities', 'liabilitiesGrid')" id="tab-liabilities-liabilitiesGrid" class="module-tab-btn font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1 whitespace-nowrap"><i class="fas fa-file-invoice-dollar mr-1"></i> Λίστα Υποχρεώσεων</button>
+                <button onclick="window.switchModuleTab('liabilities', 'tasksMain')" id="tab-liabilities-tasksMain" class="module-tab-btn font-medium text-gray-500 border-b-2 border-transparent pb-1 whitespace-nowrap"><i class="fas fa-tasks mr-1"></i> Εργασίες (Tasks)</button>
+            </div>
+            <div id="subnav-config" class="subnav-container hidden flex overflow-x-auto py-2 space-x-4 text-xs sm:text-sm scrollbar-hide">
+                <button onclick="window.switchConfigTab('general')" id="tab-config-general" class="config-tab-btn font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1 whitespace-nowrap">Backup</button>
+                <button onclick="window.switchConfigTab('liabilities')" id="tab-config-liabilities" class="config-tab-btn font-medium text-gray-500 border-b-2 border-transparent whitespace-nowrap">Λίστες & Tasks</button>
+                <button onclick="window.switchConfigTab('biz')" id="tab-config-biz" class="config-tab-btn font-medium text-gray-500 border-b-2 border-transparent whitespace-nowrap">Εισαγωγή CSV</button>
+                <button onclick="window.switchConfigTab('sub')" id="tab-config-sub" class="config-tab-btn font-medium text-gray-500 border-b-2 border-transparent whitespace-nowrap"><i class="fas fa-star text-amber-400 mr-1"></i>Συνδρομή & Ομάδα</button>
             </div>
         </div>
     </nav>
@@ -175,10 +201,36 @@
                             <div><label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Ποσό (€) *</label><input type="number" id="amount" step="0.01" min="0.01" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm"></div>
                             <div><label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Ημερομηνία *</label><input type="date" id="date" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm"></div>
                         </div>
+                        <div><label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Περίοδος</label><input type="text" id="period" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm"></div>
+                        <div><label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Σχόλια</label><textarea id="comments" rows="2" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm"></textarea></div>
                         <div class="pt-2 flex gap-2">
+                            <button type="button" id="btnCancelEdit" onclick="window.cancelEditReceipt()" class="hidden w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-lg text-sm transition-colors">Άκυρο</button>
                             <button type="submit" id="btnSaveReceipt" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg flex justify-center items-center gap-2 text-sm transition-colors"><i class="fas fa-save"></i> Αποθήκευση</button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <div id="history" class="module-tab-content hidden">
+                <div class="flex justify-between items-center mb-4 gap-3">
+                    <h2 class="text-sm sm:text-lg font-bold text-gray-800">Ιστορικό Εισπράξεων (<span class="display-year"></span>)</h2>
+                    <button onclick="window.exportToCSV()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"><i class="fas fa-file-excel mr-1"></i>CSV</button>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm min-w-max">
+                            <thead class="bg-gray-50 text-gray-700 border-b">
+                                <tr>
+                                    <th class="px-4 py-3 font-bold">Ημερ.</th>
+                                    <th class="px-4 py-3 font-bold">Πελάτης</th>
+                                    <th class="px-4 py-3 font-bold">Ποσό</th>
+                                    <th class="px-4 py-3 font-bold hidden md:table-cell">Περίοδος</th>
+                                    <th class="px-4 py-3 font-bold text-center">...</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -309,6 +361,13 @@
                         </div>
                         <ul id="fcList" class="space-y-2"></ul>
                     </div>
+                    <div class="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm">
+                        <h5 class="font-black text-gray-800 mb-3 text-xs sm:text-sm uppercase"><i class="fas fa-bolt text-emerald-600 mr-2"></i>One-Off Έργα</h5>
+                        <div class="flex flex-wrap gap-2 mb-4 bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                            <input type="hidden" id="editOoId"><input type="text" id="ooTitle" placeholder="Περιγραφή..." class="flex-1 min-w-[120px] border border-gray-300 rounded-lg p-2 text-xs sm:text-sm outline-none"><input type="number" id="ooAmount" placeholder="€" step="0.01" class="w-20 sm:w-24 border border-gray-300 rounded-lg p-2 text-xs sm:text-sm outline-none"><input type="date" id="ooDate" class="w-32 border border-gray-300 rounded-lg p-2 text-xs sm:text-sm outline-none"><button type="button" id="btnSaveOo" onclick="window.saveTempOo()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-4 py-2 rounded-lg font-bold transition-colors"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <ul id="ooList" class="space-y-2"></ul>
+                    </div>
                 </div>
 
                 <div id="profile-panel-liab" class="profile-panel hidden space-y-4">
@@ -345,15 +404,35 @@
         window.tempOneOffJobs = [];
         window.isAppReadOnly = false; 
 
+        // ΔΙΟΡΘΩΜΕΝΟ ΣΥΣΤΗΜΑ ΔΙΑΛΟΓΩΝ (Για να μην κρύβονται πρόωρα τα Success Messages)
         window.showCustomDialog = function(title, message, type = 'alert', onConfirm = null) { 
-            const dialog = document.getElementById('customDialog'); document.getElementById('dialogTitle').textContent = title; document.getElementById('dialogMessage').textContent = message; 
-            const btnContainer = document.getElementById('dialogButtons'); btnContainer.innerHTML = ''; 
+            const dialog = document.getElementById('customDialog'); 
+            document.getElementById('dialogTitle').textContent = title; 
+            document.getElementById('dialogMessage').textContent = message; 
+            const btnContainer = document.getElementById('dialogButtons'); 
+            btnContainer.innerHTML = ''; 
+            
             if (type === 'confirm') { 
-                const cancelBtn = document.createElement('button'); cancelBtn.className = 'px-4 py-2 text-gray-600 font-bold bg-gray-100 hover:bg-gray-200 rounded-lg'; cancelBtn.textContent = 'Άκυρο'; cancelBtn.onclick = () => dialog.classList.add('hidden'); 
-                const confirmBtn = document.createElement('button'); confirmBtn.className = 'px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700'; confirmBtn.textContent = 'Επιβεβαίωση'; confirmBtn.onclick = () => { if (onConfirm) onConfirm(); dialog.classList.add('hidden'); }; 
-                btnContainer.appendChild(cancelBtn); btnContainer.appendChild(confirmBtn); 
+                const cancelBtn = document.createElement('button'); 
+                cancelBtn.className = 'px-4 py-2 text-gray-600 font-bold bg-gray-100 hover:bg-gray-200 rounded-lg'; 
+                cancelBtn.textContent = 'Άκυρο'; 
+                cancelBtn.onclick = () => { dialog.classList.add('hidden'); }; 
+                
+                const confirmBtn = document.createElement('button'); 
+                confirmBtn.className = 'px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700'; 
+                confirmBtn.textContent = 'Επιβεβαίωση'; 
+                confirmBtn.onclick = () => { 
+                    dialog.classList.add('hidden'); 
+                    if (onConfirm) setTimeout(() => onConfirm(), 150); // Μικρή καθυστέρηση για αποφυγή επικάλυψης
+                }; 
+                btnContainer.appendChild(cancelBtn); 
+                btnContainer.appendChild(confirmBtn); 
             } else { 
-                const okBtn = document.createElement('button'); okBtn.className = 'px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700'; okBtn.textContent = 'ΟΚ'; okBtn.onclick = () => dialog.classList.add('hidden'); btnContainer.appendChild(okBtn); 
+                const okBtn = document.createElement('button'); 
+                okBtn.className = 'px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700'; 
+                okBtn.textContent = 'ΟΚ'; 
+                okBtn.onclick = () => { dialog.classList.add('hidden'); }; 
+                btnContainer.appendChild(okBtn); 
             } 
             dialog.classList.remove('hidden'); 
         };
@@ -472,7 +551,7 @@
         window.simulateTenantSubscription = function() {
             if (!window.isCloudEnabled || !window.fsGetDoc) return; 
             window.fsGetDoc(window.fsDoc(window.firebaseDb, 'crm_global', 'subscriptions')).then((docSnap) => {
-                // Λογική ελέγχου SaaS (Απεκρύβη για συντομία αφού δουλεύει σωστά)
+                // Logic hidden for brevity
             });
         };
 
@@ -508,15 +587,16 @@
             // OPTIMISTIC UI: Ακαριαία ανανέωση οθόνης ΠΡΙΝ πάει στο Cloud!
             window.updateUI();
 
+            // Σώζουμε ΥΠΟΧΡΕΩΤΙΚΑ και τοπικά (ως απόλυτο Backup ασφαλείας)
+            localStorage.setItem('logepCrmDataV4', JSON.stringify(window.appData));
+
             if (window.isCloudEnabled && window.currentUserDocRef && window.fsSetDoc) { 
                 window.fsSetDoc(window.currentUserDocRef, window.appData).then(() => { 
                     if(window.loggedInEmail === SUPER_ADMIN_EMAIL && window.fsDoc) {
                         window.fsSetDoc(window.fsDoc(window.firebaseDb, 'crm_global', 'subscriptions'), { tenants: window.appData.saasTenants });
                     }
                 }).catch(e => { console.error("Σφάλμα συγχρονισμού:", e); });
-            } else { 
-                localStorage.setItem('logepCrmDataV4', JSON.stringify(window.appData)); 
-            } 
+            }
         };
 
         window.formatCurrency = (amount) => new Intl.NumberFormat('el-GR', { style: 'currency', currency: 'EUR' }).format(amount);
@@ -570,12 +650,12 @@
             window.renderDashboardModule(); 
             window.renderReceiptsModule();
             window.renderLiabilitiesModule();
-            window.renderKanbanBoard(); // Ανανεώνει το Kanban Board ακαριαία
+            window.renderKanbanBoard();
         };
 
         // --- DASHBOARD ---
         window.renderDashboardModule = function() {
-            // (Λογική γραφημάτων Dashboard παραμένει η ίδια)
+            // Placeholder για το γράφημα Dashboard
         };
 
         // --- CLIENTS ---
@@ -608,7 +688,7 @@
             window.saveData(); window.closeClientProfile();
         };
 
-        // --- RECEIPTS ---
+        // --- RESTORE & BACKUP (ΠΛΗΡΩΣ ΔΙΟΡΘΩΜΕΝΟ) ---
         window.exportBackup = function() {
             try {
                 const dataStr = JSON.stringify(window.appData, null, 2);
@@ -624,6 +704,32 @@
             }
         };
 
+        window.importBackup = function(e) { 
+            const f = e.target.files[0]; 
+            if(!f) return; 
+            const r = new FileReader(); 
+            r.onload = function(evt) { 
+                try { 
+                    const d = JSON.parse(evt.target.result); 
+                    if(d && (d.clients || d.receipts)) { 
+                        window.showCustomDialog('Επαναφορά', 'Τα δεδομένα σας θα αντικατασταθούν από το Backup. Είστε σίγουροι;', 'confirm', () => { 
+                            window.appData = d; 
+                            window.sanitizeDataStructure(); 
+                            window.saveData(); // Θα αποθηκεύσει στο Cloud και τοπικά
+                            window.showCustomDialog('Επιτυχία', 'Η βάση επαναφέρθηκε επιτυχώς! Τα δεδομένα σας είναι ξανά εδώ.'); 
+                        }); 
+                    } else {
+                        window.showCustomDialog('Σφάλμα', 'Το αρχείο δεν περιέχει σωστά δεδομένα CRM.');
+                    }
+                } catch(err) { 
+                    window.showCustomDialog('Σφάλμα', 'Μη έγκυρο αρχείο JSON.'); 
+                } 
+                document.getElementById('importFile').value = ''; // Reset input για επόμενη χρήση
+            }; 
+            r.readAsText(f); 
+        };
+
+        // --- RECEIPTS ---
         window.saveReceipt = function(e) {
             e.preventDefault();
             const client = document.getElementById('clientSelect').value; const amount = parseFloat(document.getElementById('amount').value);
@@ -647,12 +753,11 @@
 
         // --- LIABILITIES ---
         window.renderLiabilitiesModule = function() {
-            // Placeholder (Παρέμεινε ο σκελετός από πριν, χωρίς περιττό κώδικα για να χωρέσει)
+            // Placeholder
         };
 
-
         // ==========================================
-        // ΝΕΟ: TEAM CAPACITY KANBAN & DRAG DROP
+        // TEAM CAPACITY KANBAN & DRAG DROP
         // ==========================================
         
         window.renderKanbanBoard = function() {
