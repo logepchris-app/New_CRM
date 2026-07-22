@@ -1080,7 +1080,7 @@
             
             (window.appData.kanbanMembers || []).forEach(member => {
                 let targetPct = parseFloat(member.target) || 100;
-                let capacityHours = 40 * (targetPct / 100);
+                let capacityHours = 160 * (targetPct / 100);
                 columnsHTML += window.buildKanbanColumn(member.id, member.name, capacityHours, targetPct, member.title);
             });
             board.innerHTML = columnsHTML;
@@ -1094,7 +1094,7 @@
             (window.appData.kanbanMembers || []).forEach(member => {
                 let memberTasks = (window.appData.kanbanTasks || []).filter(t => t.assigneeId === member.id);
                 let totalHours = memberTasks.reduce((sum, t) => sum + parseFloat(t.hours || 0), 0);
-                let capacity = 40 * ((parseFloat(member.target) || 100) / 100);
+                let capacity = 160 * ((parseFloat(member.target) || 100) / 100);
                 let pct = capacity > 0 ? (totalHours / capacity) * 100 : 0;
                 
                 let colorClass = 'bg-emerald-500';
